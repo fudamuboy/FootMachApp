@@ -1,0 +1,274 @@
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    Modal,
+    ScrollView,
+    ActivityIndicator,
+} from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { X, Users, Clock, MapPin, FileText } from 'lucide-react-native';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+
+const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
+    const { profile } = useAuth();
+    const [teamName, setTeamName] = useState('');
+    const [playersNeeded, setPlayersNeeded] = useState(1);
+    const [matchTime, setMatchTime] = useState('');
+    const [location, setLocation] = useState('');
+    const [description, setDescription] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async () => {
+        if (!profile || !teamName || !matchTime || !location) {
+            setError('Veuillez remplir tous les champs obligatoires');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { error } = await supabase
+                .from('announcements')
+                .insert({
+                    user_id: profile.id,
+                    team_name: teamName,
+                    players_needed: playersNeeded,
+                    match_time: matchTime,
+                    location,
+                    description,
+                    region: profile.region
+                });
+
+            if (error) throw error;
+
+            // Reset form
+            setTeamName('');
+            setPlayersNeeded(1);
+            setMatchTime('');
+            setLocation('');
+            setDescription('');
+
+            onSuccess();
+            onClose();
+        } catch (error) {
+            setError(error.message || 'Une erreur est survenue');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <X size={24} color="#6b7280" />
+                    </TouchableOpacity>
+                    <Text style={styles.title}>Créer une annonce</Text>
+                    <View style={styles.placeholder} />
+                </View>
+
+                <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+                    {error && (
+                        <View style={styles.errorContainer}>
+                            <Text style={styles.errorText}>{error}</Text>
+                        </View>
+                    )}
+
+                    <View style={styles.inputContainer}>
+                        <Users size={20} color="#666" style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nom de l'équipe"
+                            value={teamName}
+                            onChangeText={setTeamName}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Users size={20} color="#666" style={styles.inputIcon} />
+                        <Picker
+                            selectedValue={playersNeeded}
+                            onValueChange={setPlayersNeeded}
+                            style={styles.picker}
+                        >
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => (
+                                <Picker.Item
+                                    key={num}
+                                    label={`${num} joueur${num > 1 ? 's' : ''} recherché${num > 1 ? 's' : ''}`}
+                                    value={num}
+                                />
+                            ))}
+                        </Picker>
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Clock size={20} color="#666" style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Date et heure (ex: 2024-01-15 14:30)"
+                            value={matchTime}
+                            onChangeText={setMatchTime}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <MapPin size={20} color="#666" style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Lieu du match"
+                            value={location}
+                            onChangeText={setLocation}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <FileText size={20} color="#666" style={styles.inputIcon} />
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Description (optionnel)"
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                            numberOfLines={3}
+                            textAlignVertical="top"
+                        />
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={[styles.button, styles.cancelButton]}
+                            onPress={onClose}
+                        >
+                            <Text style={styles.cancelButtonText}>Annuler</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.button, styles.submitButton, loading && styles.submitButtonDisabled]}
+                            onPress={handleSubmit}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text style={styles.submitButtonText}>Créer</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </View>
+        </Modal>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'white',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        paddingTop: 60,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
+    },
+    closeButton: {
+        padding: 4,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1f2937',
+    },
+    placeholder: {
+        width: 32,
+    },
+    form: {
+        flex: 1,
+        padding: 20,
+    },
+    errorContainer: {
+        backgroundColor: '#fee2e2',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    errorText: {
+        color: '#dc2626',
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 12,
+        marginBottom: 16,
+        paddingHorizontal: 16,
+        backgroundColor: '#f9fafb',
+    },
+    inputIcon: {
+        marginRight: 12,
+    },
+    input: {
+        flex: 1,
+        height: 50,
+        fontSize: 16,
+        color: '#1f2937',
+    },
+    textArea: {
+        height: 80,
+        paddingTop: 12,
+    },
+    picker: {
+        flex: 1,
+        height: 50,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 20,
+    },
+    button: {
+        flex: 1,
+        height: 50,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#f3f4f6',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+    },
+    cancelButtonText: {
+        color: '#374151',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    submitButton: {
+        backgroundColor: '#3b82f6',
+    },
+    submitButtonDisabled: {
+        opacity: 0.6,
+    },
+    submitButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+});
+
+export default CreateAnnouncement;

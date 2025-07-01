@@ -99,9 +99,12 @@ export const AuthProvider = ({ children }) => {
             });
 
         if (profileError) {
-            console.error('Erreur lors de l’insertion du profil :', profileError.message);
+            console.error('Erreur profil:', profileError.message);
             throw profileError;
+        } else {
+            console.log('✅ Profil inséré avec succès');
         }
+
     };
 
     const signIn = async (email, password) => {

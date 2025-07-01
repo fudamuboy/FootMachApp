@@ -49,7 +49,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                 <Text style={styles.description}>{announcement.description}</Text>
             )}
 
-            {!isOwner && (
+            {isOwner && (
                 <TouchableOpacity
                     style={styles.contactButton}
                     onPress={() => onContact(announcement)}

@@ -1,8 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Megaphone, MessageCircle } from 'lucide-react-native';
+import { Megaphone, MessageCircle, User } from 'lucide-react-native';
 import AnnouncementScreen from '../screens/AnnouncementScreen';
 import ChatsScreen from '../screens/ChatsScreen';
+import Profile from '../screens/Profile';
 
 const Tab = createBottomTabNavigator();
 
@@ -27,6 +28,16 @@ const MainTabNavigator = () => {
                 },
             }}
         >
+            <Tab.Screen
+                name="Profile"
+                component={Profile}
+                options={{
+                    title: 'Profil',
+                    tabBarIcon: ({ size, color }) => (
+                        <User size={size} color={color} />
+                    ),
+                }}
+            />
             <Tab.Screen
                 name="Announcements"
                 component={AnnouncementScreen}

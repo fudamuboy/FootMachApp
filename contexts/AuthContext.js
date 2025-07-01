@@ -5,7 +5,7 @@ const AuthContext = createContext({});
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
@@ -17,28 +17,38 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                fetchProfile(session.user.id);
-            } else {
-                setLoading(false);
-            }
-        });
+        const init = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
 
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            setUser(session?.user ?? null);
             if (session?.user) {
+                setUser(session.user);
                 await fetchProfile(session.user.id);
             } else {
-                setProfile(null);
                 setLoading(false);
             }
-        });
 
-        return () => subscription.unsubscribe();
+            // Listen to auth changes
+            const { data: listener } = supabase.auth.onAuthStateChange(
+                async (_event, session) => {
+                    if (session?.user) {
+                        setUser(session.user);
+                        await fetchProfile(session.user.id);
+                    } else {
+                        setUser(null);
+                        setProfile(null);
+                        setLoading(false);
+                    }
+                }
+            );
+
+            return () => {
+                listener?.subscription?.unsubscribe?.();
+            };
+        };
+
+        init();
     }, []);
 
     const fetchProfile = async (userId) => {
@@ -47,12 +57,19 @@ export const AuthProvider = ({ children }) => {
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
-                .single();
+                .maybeSingle();
 
             if (error) throw error;
-            setProfile(data);
+
+            if (!data) {
+                console.warn('Aucun profil trouvé pour cet utilisateur.');
+                setProfile(null);
+            } else {
+                setProfile(data);
+            }
         } catch (error) {
-            console.error('Error fetching profile:', error);
+            console.error('❌ Error fetching profile:', error.message);
+            setProfile(null);
         } finally {
             setLoading(false);
         }
@@ -66,18 +83,24 @@ export const AuthProvider = ({ children }) => {
 
         if (error) throw error;
 
-        if (data.user) {
-            // Create profile
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .insert({
-                    id: data.user.id,
-                    email,
-                    display_name: displayName,
-                    region,
-                });
+        const userId = data?.user?.id;
 
-            if (profileError) throw profileError;
+        if (!userId) {
+            throw new Error("Impossible de récupérer l'ID utilisateur après inscription");
+        }
+
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                id: userId,
+                username: displayName,
+                region: region,
+                email: email,
+            });
+
+        if (profileError) {
+            console.error('Erreur lors de l’insertion du profil :', profileError.message);
+            throw profileError;
         }
     };
 
@@ -104,5 +127,9 @@ export const AuthProvider = ({ children }) => {
         signOut,
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 };

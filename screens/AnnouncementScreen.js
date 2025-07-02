@@ -7,6 +7,7 @@ import {
     StyleSheet,
     RefreshControl,
     ActivityIndicator,
+    TextInput,
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,20 +16,22 @@ import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
 
 export default function AnnouncementScreen({ navigation }) {
-    const { profile, user } = useAuth();
+    const { profile } = useAuth();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [searchRegion, setSearchRegion] = useState('');
 
-    const fetchAnnouncements = async () => {
-        if (!profile) return;
+    const fetchAnnouncements = async (region = profile?.region) => {
+        if (!region) return;
 
         try {
+            setLoading(true);
             const { data, error } = await supabase
                 .from('announcements')
                 .select('*')
-                .eq('region', profile.region)
+                .ilike('region', `%${region}%`) // ← autorise la recherche floue
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -42,19 +45,22 @@ export default function AnnouncementScreen({ navigation }) {
     };
 
     useEffect(() => {
-        fetchAnnouncements();
+        fetchAnnouncements(); // au début on charge sa propre région
     }, [profile]);
 
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchAnnouncements();
+        fetchAnnouncements(searchRegion || profile?.region);
+    };
+
+    const handleSearchChange = (text) => {
+        setSearchRegion(text);
+        fetchAnnouncements(text);
     };
 
     const handleContact = async (announcement) => {
         if (!profile) return;
-
         try {
-            // Check if chat already exists
             const { data: existingChat } = await supabase
                 .from('chats')
                 .select('id')
@@ -64,7 +70,6 @@ export default function AnnouncementScreen({ navigation }) {
             let chatId = existingChat?.id;
 
             if (!chatId) {
-                // Create new chat
                 const { data: newChat, error } = await supabase
                     .from('chats')
                     .insert({
@@ -79,7 +84,6 @@ export default function AnnouncementScreen({ navigation }) {
                 chatId = newChat.id;
             }
 
-            // Navigate to chat
             navigation.navigate('Chat', { chatId });
         } catch (error) {
             console.error('Error creating/finding chat:', error);
@@ -101,31 +105,17 @@ export default function AnnouncementScreen({ navigation }) {
             </View>
             <Text style={styles.emptyTitle}>Aucune annonce</Text>
             <Text style={styles.emptySubtitle}>
-                Soyez le premier à créer une annonce dans votre région !
+                Essayez une autre région dans la barre de recherche
             </Text>
-            <TouchableOpacity
-                style={styles.emptyButton}
-                onPress={() => setShowCreateModal(true)}
-            >
-                <Text style={styles.emptyButtonText}>Créer une annonce</Text>
-            </TouchableOpacity>
         </View>
     );
-
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3b82f6" />
-            </View>
-        );
-    }
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View>
                     <Text style={styles.title}>Annonces</Text>
-                    <Text style={styles.subtitle}>Région: {profile?.region}</Text>
+                    <Text style={styles.subtitle}>Ma région: {profile?.region}</Text>
                 </View>
                 <TouchableOpacity
                     style={styles.addButton}
@@ -135,26 +125,42 @@ export default function AnnouncementScreen({ navigation }) {
                 </TouchableOpacity>
             </View>
 
-            <FlatList
-                data={announcements}
-                renderItem={renderAnnouncement}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.list}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                }
-                ListEmptyComponent={renderEmpty}
-                showsVerticalScrollIndicator={false}
-            />
+            <View style={styles.searchContainer}>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Rechercher par région (ex: Konak, Buca, Alsancak...)"
+                    value={searchRegion}
+                    onChangeText={handleSearchChange}
+                />
+            </View>
+
+            {loading ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                </View>
+            ) : (
+                <FlatList
+                    data={announcements}
+                    renderItem={renderAnnouncement}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.list}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    }
+                    ListEmptyComponent={renderEmpty}
+                    showsVerticalScrollIndicator={false}
+                />
+            )}
 
             <CreateAnnouncement
                 visible={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
-                onSuccess={fetchAnnouncements}
+                onSuccess={() => fetchAnnouncements(searchRegion || profile?.region)}
             />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {
@@ -246,4 +252,18 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    searchContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        backgroundColor: 'white',
+    },
+    searchInput: {
+        backgroundColor: '#f1f5f9',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        fontSize: 16,
+        color: '#1f2937',
+    },
+
 });

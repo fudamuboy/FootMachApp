@@ -50,8 +50,8 @@ export default function ChatScreen({ route, navigation }) {
                 .from('chats')
                 .select(`
           *,
-          profiles!chats_participant_1_fkey(display_name),
-          profiles!chats_participant_2_fkey(display_name)
+          profiles!chats_participant_1_fkey(username),
+          profiles!chats_participant_2_fkey(username)
         `)
                 .eq('id', chatId)
                 .single();
@@ -59,8 +59,8 @@ export default function ChatScreen({ route, navigation }) {
             if (error) throw error;
 
             const otherUserName = data.participant_1 === profile.id
-                ? data.profiles.display_name
-                : data.profiles.display_name;
+                ? data.profiles.username
+                : data.profiles.username;
 
             setOtherUserName(otherUserName);
         } catch (error) {

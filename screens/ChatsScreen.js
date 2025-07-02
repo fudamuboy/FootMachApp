@@ -26,8 +26,8 @@ export default function ChatsScreen({ navigation }) {
                 .from('chats')
                 .select(`
           *,
-          profiles!chats_participant_1_fkey(display_name),
-          profiles!chats_participant_2_fkey(display_name)
+          participant1:profiles!chats_participant_1_fkey(display_name),
+          participant2:profiles!chats_participant_2_fkey(display_name)
         `)
                 .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
                 .order('last_updated', { ascending: false });
@@ -37,8 +37,8 @@ export default function ChatsScreen({ navigation }) {
             const chatsWithNames = (data || []).map((chat) => ({
                 ...chat,
                 other_user_name: chat.participant_1 === profile.id
-                    ? chat.profiles.display_name
-                    : chat.profiles.display_name
+                    ? chat.participant2?.display_name
+                    : chat.participant1?.display_name
             }));
 
             setChats(chatsWithNames);

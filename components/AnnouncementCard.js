@@ -43,26 +43,19 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                     <MapPin size={18} color="#ef4444" />
                     <Text style={styles.detailText}>{announcement.location}</Text>
                 </View>
-
-                <View style={styles.detailRow}>
-                    <MapPin size={18} color="#8b5cf6" />
-                    <Text style={styles.detailText}>Région: {announcement.region}</Text>
-                </View>
             </View>
 
             {announcement.description && (
                 <Text style={styles.description}>{announcement.description}</Text>
             )}
 
-            {isOwner && (
-                <TouchableOpacity
-                    style={styles.contactButton}
-                    onPress={() => onContact(announcement)}
-                >
-                    <MessageCircle size={18} color="white" />
-                    <Text style={styles.contactButtonText}>Contacter l'équipe</Text>
-                </TouchableOpacity>
-            )}
+            <TouchableOpacity
+                style={styles.contactButton}
+                onPress={() => onContact(announcement)}
+            >
+                <MessageCircle size={18} color="white" />
+                <Text style={styles.contactButtonText}>Contacter l'équipe</Text>
+            </TouchableOpacity>
         </View>
     );
 };

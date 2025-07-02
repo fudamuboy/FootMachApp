@@ -29,7 +29,7 @@ export default function ChatScreen({ route, navigation }) {
         try {
             const { data, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('*, sender:profiles!messages_sender_id_fkey(display_name)')
                 .eq('chat_id', chatId)
                 .order('created_at', { ascending: true });
 
@@ -50,8 +50,8 @@ export default function ChatScreen({ route, navigation }) {
                 .from('chats')
                 .select(`
           *,
-          profiles!chats_participant_1_fkey(username),
-          profiles!chats_participant_2_fkey(username)
+          participant1:profiles!chats_participant_1_fkey(display_name),
+          participant2:profiles!chats_participant_2_fkey(display_name)
         `)
                 .eq('id', chatId)
                 .single();
@@ -59,8 +59,8 @@ export default function ChatScreen({ route, navigation }) {
             if (error) throw error;
 
             const otherUserName = data.participant_1 === profile.id
-                ? data.profiles.username
-                : data.profiles.username;
+                ? data.participant2?.display_name
+                : data.participant1?.display_name;
 
             setOtherUserName(otherUserName);
         } catch (error) {
@@ -144,9 +144,11 @@ export default function ChatScreen({ route, navigation }) {
 
     const renderMessage = ({ item }) => {
         const isOwn = item.sender_id === profile?.id;
+        const senderName = item.sender?.display_name || 'Utilisateur inconnu';
 
         return (
             <View style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}>
+                <Text style={[styles.senderName, isOwn ? styles.ownSender : styles.otherSender]}>{senderName}</Text>
                 <View style={[styles.messageBubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
                     <Text style={[styles.messageText, isOwn ? styles.ownText : styles.otherText]}>
                         {item.content}
@@ -165,6 +167,9 @@ export default function ChatScreen({ route, navigation }) {
             <Text style={styles.emptySubtext}>Envoyez le premier message !</Text>
         </View>
     );
+
+    // Log pour debug
+    console.log('Messages récupérés:', messages);
 
     return (
         <KeyboardAvoidingView
@@ -341,5 +346,18 @@ const styles = StyleSheet.create({
     },
     sendButtonDisabled: {
         opacity: 0.5,
+    },
+    senderName: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginBottom: 2,
+    },
+    ownSender: {
+        color: '#2563eb',
+        textAlign: 'right',
+    },
+    otherSender: {
+        color: '#6b7280',
+        textAlign: 'left',
     },
 });

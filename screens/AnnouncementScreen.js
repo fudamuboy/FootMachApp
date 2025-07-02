@@ -8,6 +8,7 @@ import {
     RefreshControl,
     ActivityIndicator,
     TextInput,
+    Linking,
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,16 +24,30 @@ export default function AnnouncementScreen({ navigation }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [searchRegion, setSearchRegion] = useState('');
 
-    const fetchAnnouncements = async (region = profile?.region) => {
-        if (!region) return;
+    const fetchAnnouncements = async (query = '') => {
+        if (!profile) return;
 
         try {
             setLoading(true);
-            const { data, error } = await supabase
+
+            const now = new Date();
+            const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+            const endOfTomorrow = new Date(startOfToday);
+            endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
+            endOfTomorrow.setHours(23, 59, 59, 999);
+
+            let request = supabase
                 .from('announcements')
                 .select('*')
-                .ilike('region', `%${region}%`) // ← autorise la recherche floue
-                .order('created_at', { ascending: false });
+                .gte('match_time', startOfToday.toISOString())
+                .lte('match_time', endOfTomorrow.toISOString())
+                .order('match_time', { ascending: true });
+
+            if (query.trim()) {
+                request = request.ilike('location', `%${query.trim()}%`);
+            }
+
+            const { data, error } = await request;
 
             if (error) throw error;
             setAnnouncements(data || []);
@@ -45,12 +60,12 @@ export default function AnnouncementScreen({ navigation }) {
     };
 
     useEffect(() => {
-        fetchAnnouncements(); // au début on charge sa propre région
+        fetchAnnouncements('');
     }, [profile]);
 
     const handleRefresh = () => {
         setRefreshing(true);
-        fetchAnnouncements(searchRegion || profile?.region);
+        fetchAnnouncements(searchRegion);
     };
 
     const handleSearchChange = (text) => {
@@ -61,32 +76,35 @@ export default function AnnouncementScreen({ navigation }) {
     const handleContact = async (announcement) => {
         if (!profile) return;
         try {
-            const { data: existingChat } = await supabase
+            // Chercher un chat existant entre les deux users (ordre indifférent)
+            const { data: existingChats, error: fetchError } = await supabase
                 .from('chats')
                 .select('id')
-                .or(`and(participant_1.eq.${profile.id},participant_2.eq.${announcement.user_id}),and(participant_1.eq.${announcement.user_id},participant_2.eq.${profile.id})`)
-                .single();
+                .or(
+                    `and(participant_1.eq.${profile.id},participant_2.eq.${announcement.user_id}),and(participant_1.eq.${announcement.user_id},participant_2.eq.${profile.id})`
+                );
+            if (fetchError) throw fetchError;
 
-            let chatId = existingChat?.id;
+            let chatId = existingChats && existingChats.length > 0 ? existingChats[0].id : null;
 
             if (!chatId) {
-                const { data: newChat, error } = await supabase
+                const { data: newChat, error: insertError } = await supabase
                     .from('chats')
                     .insert({
                         participant_1: profile.id,
                         participant_2: announcement.user_id,
-                        last_updated: new Date().toISOString()
+                        last_updated: new Date().toISOString(),
                     })
                     .select('id')
                     .single();
-
-                if (error) throw error;
+                if (insertError) throw insertError;
                 chatId = newChat.id;
             }
 
             navigation.navigate('Chat', { chatId });
         } catch (error) {
             console.error('Error creating/finding chat:', error);
+            alert("Erreur lors de l'accès au chat. Veuillez réessayer.");
         }
     };
 
@@ -128,7 +146,7 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Rechercher par région (ex: Konak, Buca, Alsancak...)"
+                    placeholder="Rechercher une région (ex: Buca)"
                     value={searchRegion}
                     onChangeText={handleSearchChange}
                 />
@@ -155,8 +173,10 @@ export default function AnnouncementScreen({ navigation }) {
             <CreateAnnouncement
                 visible={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
-                onSuccess={() => fetchAnnouncements(searchRegion || profile?.region)}
+                onSuccess={() => fetchAnnouncements(searchRegion)}
             />
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Contacter l'équipe</Text>
+
         </View>
     );
 }

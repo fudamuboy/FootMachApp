@@ -18,9 +18,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const init = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
 
             if (session?.user) {
                 setUser(session.user);
@@ -29,7 +27,6 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
             }
 
-            // Listen to auth changes
             const { data: listener } = supabase.auth.onAuthStateChange(
                 async (_event, session) => {
                     if (session?.user) {
@@ -51,6 +48,10 @@ export const AuthProvider = ({ children }) => {
         init();
     }, []);
 
+    useEffect(() => {
+        // console.log("✅ Profil chargé dans le context:", profile);
+    }, [profile]);
+
     const fetchProfile = async (userId) => {
         try {
             const { data, error } = await supabase
@@ -62,13 +63,13 @@ export const AuthProvider = ({ children }) => {
             if (error) throw error;
 
             if (!data) {
-                console.warn('Aucun profil trouvé pour cet utilisateur.');
+                console.warn('⚠️ Aucun profil trouvé pour cet utilisateur.');
                 setProfile(null);
             } else {
                 setProfile(data);
             }
         } catch (error) {
-            console.error('❌ Error fetching profile:', error.message);
+            console.error('❌ Erreur lors du chargement du profil:', error.message);
             setProfile(null);
         } finally {
             setLoading(false);
@@ -84,27 +85,23 @@ export const AuthProvider = ({ children }) => {
         if (error) throw error;
 
         const userId = data?.user?.id;
-
-        if (!userId) {
-            throw new Error("Impossible de récupérer l'ID utilisateur après inscription");
-        }
+        if (!userId) throw new Error("❌ Impossible de récupérer l'ID utilisateur");
 
         const { error: profileError } = await supabase
             .from('profiles')
             .insert({
                 id: userId,
                 username: displayName,
-                region: region,
-                email: email,
+                region,
+                email,
             });
 
         if (profileError) {
-            console.error('Erreur profil:', profileError.message);
+            console.error('❌ Erreur lors de la création du profil:', profileError.message);
             throw profileError;
-        } else {
-            console.log('✅ Profil inséré avec succès');
         }
 
+        console.log('✅ Profil inséré avec succès');
     };
 
     const signIn = async (email, password) => {
@@ -115,12 +112,12 @@ export const AuthProvider = ({ children }) => {
 
         if (error) throw error;
 
-        if (data?.user) {
-            setUser(data.user);              // 👈 assure-toi de le setter
-            await fetchProfile(data.user.id); // 👈 charge le profil
+        const user = data?.user;
+        if (user) {
+            setUser(user); // indispensable
+            await fetchProfile(user.id); // indispensable
         }
     };
-
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();

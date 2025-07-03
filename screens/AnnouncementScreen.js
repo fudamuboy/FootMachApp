@@ -8,7 +8,6 @@ import {
     RefreshControl,
     ActivityIndicator,
     TextInput,
-    Linking,
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,11 +35,9 @@ export default function AnnouncementScreen({ navigation }) {
         try {
             setLoading(true);
 
-            // Aujourd'hui à 00:00
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Demain à 23:59
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(23, 59, 59, 999);
@@ -48,15 +45,14 @@ export default function AnnouncementScreen({ navigation }) {
             let request = supabase
                 .from('announcements')
                 .select('*')
-                .order('match_time', { ascending: true })
                 .gte('match_time', today.toISOString())
-                .lte('match_time', tomorrow.toISOString());
+                .lte('match_time', tomorrow.toISOString())
+                .order('match_time', { ascending: true })
+                .range(0, 999); // 👈 affiche jusqu'à 1000 résultats
 
             if (query.trim()) {
-                // Filtre par région tapée par l’utilisateur
                 request = request.ilike('location', `%${query.trim()}%`);
             } else {
-                // Sinon, afficher toutes les annonces dans les 20 régions d’İzmir
                 request = request.in('location', REGIONS);
             }
 
@@ -72,10 +68,8 @@ export default function AnnouncementScreen({ navigation }) {
         }
     };
 
-
     useEffect(() => {
-        console.log("Profil chargé:", profile); // ici
-        fetchAnnouncements('');
+        if (profile) fetchAnnouncements('');
     }, [profile]);
 
     const handleRefresh = () => {
@@ -91,16 +85,16 @@ export default function AnnouncementScreen({ navigation }) {
     const handleContact = async (announcement) => {
         if (!profile) return;
         try {
-            // Chercher un chat existant entre les deux users (ordre indifférent)
             const { data: existingChats, error: fetchError } = await supabase
                 .from('chats')
                 .select('id')
                 .or(
                     `and(participant_1.eq.${profile.id},participant_2.eq.${announcement.user_id}),and(participant_1.eq.${announcement.user_id},participant_2.eq.${profile.id})`
                 );
+
             if (fetchError) throw fetchError;
 
-            let chatId = existingChats && existingChats.length > 0 ? existingChats[0].id : null;
+            let chatId = existingChats?.[0]?.id;
 
             if (!chatId) {
                 const { data: newChat, error: insertError } = await supabase
@@ -112,6 +106,7 @@ export default function AnnouncementScreen({ navigation }) {
                     })
                     .select('id')
                     .single();
+
                 if (insertError) throw insertError;
                 chatId = newChat.id;
             }
@@ -167,6 +162,10 @@ export default function AnnouncementScreen({ navigation }) {
                 />
             </View>
 
+            <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 6 }}>
+                Total: {announcements.length} annonces
+            </Text>
+
             {loading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#3b82f6" />
@@ -175,7 +174,7 @@ export default function AnnouncementScreen({ navigation }) {
                 <FlatList
                     data={announcements}
                     renderItem={renderAnnouncement}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.list}
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -190,12 +189,9 @@ export default function AnnouncementScreen({ navigation }) {
                 onClose={() => setShowCreateModal(false)}
                 onSuccess={() => fetchAnnouncements(searchRegion)}
             />
-            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Contacter l'équipe</Text>
-
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -236,16 +232,26 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
     },
     list: {
         padding: 20,
+    },
+    searchContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        backgroundColor: 'white',
+    },
+    searchInput: {
+        backgroundColor: '#f1f5f9',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        fontSize: 16,
+        color: '#1f2937',
     },
     emptyContainer: {
         alignItems: 'center',
@@ -276,29 +282,4 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         paddingHorizontal: 20,
     },
-    emptyButton: {
-        backgroundColor: '#3b82f6',
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 12,
-    },
-    emptyButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    searchContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-        backgroundColor: 'white',
-    },
-    searchInput: {
-        backgroundColor: '#f1f5f9',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        fontSize: 16,
-        color: '#1f2937',
-    },
-
 });

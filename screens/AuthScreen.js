@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ScrollView,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../contexts/AuthContext';
@@ -49,9 +50,20 @@ export default function AuthScreen() {
                 await signIn(email, password);
             } else {
                 await signUp(email, password, displayName, region);
+                Alert.alert("✅ Giriş başarılı", "Veuillez maintenant vous connecter.");
+                // Réinitialiser les champs
+                setIsLogin(true);
+                setEmail('');
+                setPassword('');
+                setDisplayName('');
+                setRegion('');
             }
         } catch (error) {
-            setError(error.message || 'Une erreur est survenue');
+            if (error.message.includes("User already registered")) {
+                setError("Cette adresse email est déjà utilisée.");
+            } else {
+                setError(error.message || "Une erreur est survenue");
+            }
         } finally {
             setLoading(false);
         }
@@ -151,10 +163,15 @@ export default function AuthScreen() {
 
                 <TouchableOpacity
                     style={styles.switchButton}
-                    onPress={() => setIsLogin(!isLogin)}
+                    onPress={() => {
+                        setIsLogin(!isLogin);
+                        setError(null);
+                    }}
                 >
                     <Text style={styles.switchButtonText}>
-                        {isLogin ? 'Pas encore de compte ? S\'inscrire' : 'Déjà un compte ? Se connecter'}
+                        {isLogin
+                            ? 'Pas encore de compte ? S\'inscrire'
+                            : 'Déjà un compte ? Se connecter'}
                     </Text>
                 </TouchableOpacity>
             </View>

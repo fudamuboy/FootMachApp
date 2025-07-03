@@ -24,27 +24,40 @@ export default function AnnouncementScreen({ navigation }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [searchRegion, setSearchRegion] = useState('');
 
+    const REGIONS = [
+        'Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Balçova', 'Gaziemir',
+        'Güzelbahçe', 'Karabağlar', 'Bayraklı', 'Menemen', 'Narlıdere', 'Tire',
+        'Urla', 'Ödemiş', 'Torbalı', 'Kemalpaşa', 'Aliağa', 'Selçuk', 'Seferihisar'
+    ];
+
     const fetchAnnouncements = async (query = '') => {
         if (!profile) return;
 
         try {
             setLoading(true);
 
-            const now = new Date();
-            const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-            const endOfTomorrow = new Date(startOfToday);
-            endOfTomorrow.setDate(endOfTomorrow.getDate() + 1);
-            endOfTomorrow.setHours(23, 59, 59, 999);
+            // Aujourd'hui à 00:00
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Demain à 23:59
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(23, 59, 59, 999);
 
             let request = supabase
                 .from('announcements')
                 .select('*')
-                .gte('match_time', startOfToday.toISOString())
-                .lte('match_time', endOfTomorrow.toISOString())
-                .order('match_time', { ascending: true });
+                .order('match_time', { ascending: true })
+                .gte('match_time', today.toISOString())
+                .lte('match_time', tomorrow.toISOString());
 
             if (query.trim()) {
+                // Filtre par région tapée par l’utilisateur
                 request = request.ilike('location', `%${query.trim()}%`);
+            } else {
+                // Sinon, afficher toutes les annonces dans les 20 régions d’İzmir
+                request = request.in('location', REGIONS);
             }
 
             const { data, error } = await request;
@@ -59,7 +72,9 @@ export default function AnnouncementScreen({ navigation }) {
         }
     };
 
+
     useEffect(() => {
+        console.log("Profil chargé:", profile); // ici
         fetchAnnouncements('');
     }, [profile]);
 

@@ -108,13 +108,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signIn = async (email, password) => {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
         if (error) throw error;
+
+        if (data?.user) {
+            setUser(data.user);              // 👈 assure-toi de le setter
+            await fetchProfile(data.user.id); // 👈 charge le profil
+        }
     };
+
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();

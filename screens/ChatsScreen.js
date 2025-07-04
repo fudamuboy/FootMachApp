@@ -6,11 +6,28 @@ import {
     TouchableOpacity,
     StyleSheet,
     RefreshControl,
-    ActivityIndicator,
+    ActivityIndicator, Image
 } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+
+const getAvatarUrl = (avatar_url, username) => {
+    if (avatar_url) return avatar_url;
+    // Génère les initiales (2 premières lettres en majuscule)
+    let initials = '';
+    if (username) {
+        const parts = username.trim().split(' ');
+        if (parts.length === 1) {
+            initials = parts[0].slice(0, 2).toUpperCase();
+        } else {
+            initials = (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+    } else {
+        initials = 'US';
+    }
+    return `https://ui-avatars.com/api/?name=${initials}&background=random`;
+};
 
 export default function ChatsScreen({ navigation }) {
     const { profile } = useAuth();
@@ -26,8 +43,8 @@ export default function ChatsScreen({ navigation }) {
                 .from('chats')
                 .select(`
     *,
-    participant_1_profile:profiles!chats_participant_1_fkey(username),
-    participant_2_profile:profiles!chats_participant_2_fkey(username)
+    participant_1_profile:profiles!chats_participant_1_fkey(username,avatar_url)
+    participant_2_profile:profiles!chats_participant_2_fkey(username,avatar_url)
   `)
                 .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
                 .order('last_updated', { ascending: false });
@@ -39,7 +56,10 @@ export default function ChatsScreen({ navigation }) {
                 ...chat,
                 other_user_name: chat.participant_1 === profile.id
                     ? chat.participant_2_profile?.username
-                    : chat.participant_1_profile?.username
+                    : chat.participant_1_profile?.username,
+                other_user_avatar: chat.participant_1 === profile.id
+                    ? chat.participant_2_profile?.avatar_url
+                    : chat.participant_1_profile?.avatar_url
             }));
 
             setChats(chatsWithNames);
@@ -98,6 +118,10 @@ export default function ChatsScreen({ navigation }) {
             style={styles.chatItem}
             onPress={() => navigation.navigate('Chat', { chatId: item.id })}
         >
+            <Image
+                source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
+                style={styles.chatAvatar}
+            />
             <View style={styles.chatContent}>
                 <Text style={styles.chatName}>{item.other_user_name}</Text>
                 <Text style={styles.chatMessage} numberOfLines={1}>
@@ -223,5 +247,11 @@ const styles = StyleSheet.create({
         color: '#6b7280',
         textAlign: 'center',
         lineHeight: 24,
+    },
+    chatAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 12,
     },
 });

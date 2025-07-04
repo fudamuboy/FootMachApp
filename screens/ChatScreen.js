@@ -9,10 +9,19 @@ import {
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
+    Image,
 } from 'react-native';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+
+
+const getAvatarUrl = (avatar_url, username) => {
+    return avatar_url
+        ? avatar_url
+        : `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=random`;
+};
+
 
 export default function ChatScreen({ route, navigation }) {
     const { chatId } = route.params;
@@ -21,6 +30,7 @@ export default function ChatScreen({ route, navigation }) {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [otherUserName, setOtherUserName] = useState('');
+    const [otherUserAvatar, setOtherUserAvatar] = useState('');
     const flatListRef = useRef(null);
 
     const fetchMessages = async () => {
@@ -51,8 +61,8 @@ export default function ChatScreen({ route, navigation }) {
                 .from('chats')
                 .select(`
           *,
-          participant1:profiles!chats_participant_1_fkey(username),
-          participant2:profiles!chats_participant_2_fkey(username)
+          participant1:profiles!chats_participant_1_fkey(username,avatar_url),
+          participant2:profiles!chats_participant_2_fkey(username,avatar_url)
         `)
                 .eq('id', chatId)
                 .single();
@@ -62,8 +72,11 @@ export default function ChatScreen({ route, navigation }) {
             const otherUserName = data.participant_1 === profile.id
                 ? data.participant2?.username
                 : data.participant1?.username;
-
+            const otherUserAvatar = data.participant_1 === profile.id
+                ? data.participant2?.avatar_url
+                : data.participant1?.avatar_url;
             setOtherUserName(otherUserName);
+            setOtherUserAvatar(otherUserAvatar);
         } catch (error) {
             console.error('Error fetching chat info:', error);
         }
@@ -154,7 +167,8 @@ export default function ChatScreen({ route, navigation }) {
     const renderMessage = ({ item }) => {
         //console.log('item', item);
         const isOwn = item.sender_id === profile?.id;
-        const senderName = item.sender?.username || 'Utilisateur inconnu';
+        const senderName = item.sender?.username;
+
 
         return (
             <View style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}>
@@ -190,6 +204,13 @@ export default function ChatScreen({ route, navigation }) {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ArrowLeft size={24} color="#1f2937" />
                 </TouchableOpacity>
+                <View style={styles.chatAvatarContainer}>
+                    <Image
+                        source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
+                        style={styles.chatAvatar}
+                    />
+
+                </View>
                 <Text style={styles.headerTitle}>{otherUserName}</Text>
                 <View style={styles.placeholder} />
             </View>
@@ -369,5 +390,16 @@ const styles = StyleSheet.create({
     otherSender: {
         color: '#6b7280',
         textAlign: 'left',
+    },
+    chatAvatarContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 12,
+    },
+    chatAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
 });

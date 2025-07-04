@@ -71,7 +71,7 @@ export default function AnnouncementScreen({ navigation }) {
     useEffect(() => {
         if (profile) fetchAnnouncements('');
     }, [profile]);
-
+    // actualiser la liste des annonces
     const handleRefresh = () => {
         setRefreshing(true);
         fetchAnnouncements(searchRegion);

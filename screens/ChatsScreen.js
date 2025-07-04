@@ -19,26 +19,27 @@ export default function ChatsScreen({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
 
     const fetchChats = async () => {
-        if (!profile) return;
+        if (!profile?.id) return;
 
         try {
             const { data, error } = await supabase
                 .from('chats')
                 .select(`
-          *,
-          participant1:profiles!chats_participant_1_fkey(display_name),
-          participant2:profiles!chats_participant_2_fkey(display_name)
-        `)
+    *,
+    participant_1_profile:profiles!chats_participant_1_fkey(username),
+    participant_2_profile:profiles!chats_participant_2_fkey(username)
+  `)
                 .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
                 .order('last_updated', { ascending: false });
+
 
             if (error) throw error;
 
             const chatsWithNames = (data || []).map((chat) => ({
                 ...chat,
                 other_user_name: chat.participant_1 === profile.id
-                    ? chat.participant2?.display_name
-                    : chat.participant1?.display_name
+                    ? chat.participant_2_profile?.username
+                    : chat.participant_1_profile?.username
             }));
 
             setChats(chatsWithNames);
@@ -49,6 +50,7 @@ export default function ChatsScreen({ navigation }) {
             setRefreshing(false);
         }
     };
+
 
     useEffect(() => {
         fetchChats();

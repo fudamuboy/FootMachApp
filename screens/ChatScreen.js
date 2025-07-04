@@ -29,9 +29,10 @@ export default function ChatScreen({ route, navigation }) {
         try {
             const { data, error } = await supabase
                 .from('messages')
-                .select('*, sender:profiles!messages_sender_id_fkey(display_name)')
+                .select('*, sender:profiles!messages_sender_id_fkey(username)')
                 .eq('chat_id', chatId)
                 .order('created_at', { ascending: true });
+            // console.log('data', data, error);
 
             if (error) throw error;
             setMessages(data || []);
@@ -50,8 +51,8 @@ export default function ChatScreen({ route, navigation }) {
                 .from('chats')
                 .select(`
           *,
-          participant1:profiles!chats_participant_1_fkey(display_name),
-          participant2:profiles!chats_participant_2_fkey(display_name)
+          participant1:profiles!chats_participant_1_fkey(username),
+          participant2:profiles!chats_participant_2_fkey(username)
         `)
                 .eq('id', chatId)
                 .single();
@@ -59,8 +60,8 @@ export default function ChatScreen({ route, navigation }) {
             if (error) throw error;
 
             const otherUserName = data.participant_1 === profile.id
-                ? data.participant2?.display_name
-                : data.participant1?.display_name;
+                ? data.participant2?.username
+                : data.participant1?.username;
 
             setOtherUserName(otherUserName);
         } catch (error) {
@@ -139,12 +140,21 @@ export default function ChatScreen({ route, navigation }) {
 
     const formatTime = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        // Affiche la date complète et l'heure locale d'Istanbul (Turquie)
+        return date.toLocaleString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Istanbul'
+        });
     };
 
     const renderMessage = ({ item }) => {
+        //console.log('item', item);
         const isOwn = item.sender_id === profile?.id;
-        const senderName = item.sender?.display_name || 'Utilisateur inconnu';
+        const senderName = item.sender?.username || 'Utilisateur inconnu';
 
         return (
             <View style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}>
@@ -169,7 +179,7 @@ export default function ChatScreen({ route, navigation }) {
     );
 
     // Log pour debug
-    console.log('Messages récupérés:', messages);
+    //console.log('Messages récupérés:', messages);
 
     return (
         <KeyboardAvoidingView

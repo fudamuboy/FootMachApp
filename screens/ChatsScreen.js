@@ -12,22 +12,27 @@ import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
+
 const getAvatarUrl = (avatar_url, username) => {
     if (avatar_url) return avatar_url;
-    // Génère les initiales (2 premières lettres en majuscule)
-    let initials = '';
-    if (username) {
-        const parts = username.trim().split(' ');
+
+    const name = username?.trim();
+    let initials = 'US'; // Valeur par défaut
+
+    if (name) {
+        const parts = name.split(' ');
         if (parts.length === 1) {
-            initials = parts[0].slice(0, 2).toUpperCase();
+            initials = parts[0].slice(0, 2).toUpperCase(); // Ex: Meh → ME
         } else {
-            initials = (parts[0][0] + parts[1][0]).toUpperCase();
+            initials = (parts[0][0] + parts[1][0]).toUpperCase(); // Ex: Salim Samake → SS
         }
-    } else {
-        initials = 'US';
     }
-    return `https://ui-avatars.com/api/?name=${initials}&background=random`;
+
+    return `https://ui-avatars.com/api/?name=${initials}&background=random&color=ffffff&bold=true`;
 };
+
+
+
 
 export default function ChatsScreen({ navigation }) {
     const { profile } = useAuth();
@@ -42,34 +47,38 @@ export default function ChatsScreen({ navigation }) {
             const { data, error } = await supabase
                 .from('chats')
                 .select(`
-    *,
-    participant_1_profile:profiles!chats_participant_1_fkey(username,avatar_url)
-    participant_2_profile:profiles!chats_participant_2_fkey(username,avatar_url)
-  `)
+                *,
+                participant_1_profile:profiles!chats_participant_1_fkey(username,avatar_url),
+                participant_2_profile:profiles!chats_participant_2_fkey(username,avatar_url)
+            `)
                 .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
                 .order('last_updated', { ascending: false });
 
-
             if (error) throw error;
 
-            const chatsWithNames = (data || []).map((chat) => ({
-                ...chat,
-                other_user_name: chat.participant_1 === profile.id
-                    ? chat.participant_2_profile?.username
-                    : chat.participant_1_profile?.username,
-                other_user_avatar: chat.participant_1 === profile.id
-                    ? chat.participant_2_profile?.avatar_url
-                    : chat.participant_1_profile?.avatar_url
-            }));
+            // 🔍 LOG ICI POUR DEBUG
+            console.log('Résultat brut depuis Supabase:', JSON.stringify(data, null, 2));
+
+            const chatsWithNames = (data || []).map((chat) => {
+                const isOwn = chat.participant_1 === profile.id;
+                const otherProfile = isOwn ? chat.participant_2_profile : chat.participant_1_profile;
+
+                return {
+                    ...chat,
+                    other_user_name: otherProfile?.username ?? 'Utilisateur inconnu',
+                    other_user_avatar: otherProfile?.avatar_url ?? null,
+                };
+            });
 
             setChats(chatsWithNames);
         } catch (error) {
-            console.error('Error fetching chats:', error);
+            console.error('❌ Erreur lors du fetch des chats:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
+
 
 
     useEffect(() => {
@@ -113,24 +122,30 @@ export default function ChatsScreen({ navigation }) {
         }
     };
 
-    const renderChat = ({ item }) => (
-        <TouchableOpacity
-            style={styles.chatItem}
-            onPress={() => navigation.navigate('Chat', { chatId: item.id })}
-        >
-            <Image
-                source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
-                style={styles.chatAvatar}
-            />
-            <View style={styles.chatContent}>
-                <Text style={styles.chatName}>{item.other_user_name}</Text>
-                <Text style={styles.chatMessage} numberOfLines={1}>
-                    {item.last_message || 'Nouvelle conversation'}
-                </Text>
-            </View>
-            <Text style={styles.chatTime}>{formatTime(item.last_updated)}</Text>
-        </TouchableOpacity>
-    );
+    const renderChat = ({ item }) => {
+        console.log('Rendering chat for:', item.other_user_name);
+
+        return (
+            <TouchableOpacity
+                style={styles.chatItem}
+                onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+            >
+                <Image
+                    source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
+                    style={styles.chatAvatar}
+                />
+
+                <View style={styles.chatContent}>
+                    <Text style={styles.chatName}>{item.other_user_name}</Text>
+                    <Text style={styles.chatMessage} numberOfLines={1}>
+                        {item.last_message || 'Nouvelle conversation'}
+                    </Text>
+                </View>
+                <Text style={styles.chatTime}>{formatTime(item.last_updated)}</Text>
+            </TouchableOpacity>
+        );
+    };
+
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
@@ -252,6 +267,8 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
+        backgroundColor: '#e5e7eb',
         marginRight: 12,
     },
+
 });

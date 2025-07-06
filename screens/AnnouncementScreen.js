@@ -142,8 +142,8 @@ export default function AnnouncementScreen({ navigation }) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View>
-                    <Text style={styles.title}>Annonces</Text>
-                    <Text style={styles.subtitle}>Ma région: {profile?.region}</Text>
+                    <Text style={styles.title}>Reklamlar</Text>
+                    <Text style={styles.subtitle}>Bölgem: {profile?.region}</Text>
                 </View>
                 <TouchableOpacity
                     style={styles.addButton}
@@ -156,7 +156,7 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.searchContainer}>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Rechercher une région (ex: Buca)"
+                    placeholder="Bir bölge arayın (örn: Buca)"
                     value={searchRegion}
                     onChangeText={handleSearchChange}
                 />

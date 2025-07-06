@@ -10,6 +10,7 @@ import {
     Platform,
     ActivityIndicator,
     Image,
+    ImageBackground
 } from 'react-native';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,16 +43,16 @@ export default function ChatScreen({ route, navigation }) {
                 .select('*, sender:profiles!messages_sender_id_fkey(username)')
                 .eq('chat_id', chatId)
                 .order('created_at', { ascending: true });
-            // console.log('data', data, error);
 
             if (error) throw error;
             setMessages(data || []);
         } catch (error) {
             console.error('Error fetching messages:', error);
         } finally {
-            setLoading(false);
+            setLoading(false); // ✅ Important ici
         }
     };
+
 
     const fetchChatInfo = async () => {
         if (!chatId || !profile) return;
@@ -85,27 +86,54 @@ export default function ChatScreen({ route, navigation }) {
     useEffect(() => {
         fetchMessages();
         fetchChatInfo();
+        const markMessagesAsRead = async () => {
+            if (!profile?.id || !chatId) return;
 
-        // Subscribe to new messages
-        const subscription = supabase
-            .channel(`messages:${chatId}`)
-            .on('postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `chat_id=eq.${chatId}`
-                },
-                (payload) => {
-                    setMessages(prev => [...prev, payload.new]);
-                }
-            )
-            .subscribe();
+            const { data: unreadMessages, error } = await supabase
+                .from('messages')
+                .select('id, sender_id, is_read')
+                .eq('chat_id', chatId)
+                .eq('is_read', false)
+                .neq('sender_id', profile.id);
 
-        return () => {
-            subscription.unsubscribe();
+            console.log("📩 Messages non lus trouvés :", unreadMessages);
+
+            if (error) {
+                console.error('❌ SELECT error:', error);
+                setLoading(false); // 🛑 Important ici aussi
+                return;
+            }
+
+            if (!unreadMessages || unreadMessages.length === 0) {
+                console.log('📭 Aucun message à marquer comme lu.');
+                setLoading(false); // ✅
+                return;
+            }
+
+            const idsToUpdate = unreadMessages.map(msg => msg.id).filter(Boolean);
+            console.log("🆔 IDs à mettre à jour:", idsToUpdate);
+
+            const { error: updateError, data: updated } = await supabase
+                .from('messages')
+                .update({ is_read: true })
+                .in('id', idsToUpdate)
+                .select();
+
+            if (updateError) {
+                console.error('❌ UPDATE error:', updateError);
+            } else {
+                console.log('✅ Résultat de mise à jour :', updated);
+                await fetchMessages(); // Refresh
+            }
+
+            setLoading(false); // ✅ Toujours finir par ça
         };
-    }, [chatId]);
+
+        markMessagesAsRead();
+    }, [chatId, profile?.id]);
+
+
+
 
     useEffect(() => {
         // Scroll to bottom when messages change
@@ -115,6 +143,40 @@ export default function ChatScreen({ route, navigation }) {
             }, 100);
         }
     }, [messages]);
+    useEffect(() => {
+        if (!chatId) return;
+
+        const channel = supabase
+            .channel(`chat-${chatId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `chat_id=eq.${chatId}`,
+                },
+                (payload) => {
+                    const newMessage = payload.new;
+                    console.log("📥 Nouveau message reçu :", newMessage);
+
+                    setMessages(prevMessages => {
+                        const exists = prevMessages.some(msg => msg.id === newMessage.id);
+                        if (exists) return prevMessages;
+
+                        return [...prevMessages, newMessage].sort(
+                            (a, b) => new Date(a.created_at) - new Date(b.created_at)
+                        );
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            channel.unsubscribe();
+        };
+    }, [chatId]);
+
 
     const sendMessage = async () => {
         if (!newMessage.trim() || !profile || !chatId) return;
@@ -122,19 +184,37 @@ export default function ChatScreen({ route, navigation }) {
         const messageContent = newMessage.trim();
         setNewMessage('');
 
+        const tempId = Date.now().toString();
+
+        const optimisticMessage = {
+            id: tempId,
+            chat_id: chatId,
+            sender_id: profile.id,
+            content: messageContent,
+            created_at: new Date().toISOString(),
+            is_read: false, // 👈 important ici aussi si tu veux l’afficher dans la liste
+            sender: {
+                username: profile.username,
+            }
+        };
+
+        // 1. Ajoute le message localement
+        setMessages(prev => [...prev, optimisticMessage]);
+
         try {
-            // Insert message
+            // 2. Envoie vers Supabase avec is_read = false
             const { error: messageError } = await supabase
                 .from('messages')
                 .insert({
                     chat_id: chatId,
                     sender_id: profile.id,
-                    content: messageContent
+                    content: messageContent,
+                    is_read: false, // ✅ correction ici
                 });
 
             if (messageError) throw messageError;
 
-            // Update chat last message
+            // 3. Met à jour le dernier message dans la table chats
             const { error: chatError } = await supabase
                 .from('chats')
                 .update({
@@ -145,11 +225,13 @@ export default function ChatScreen({ route, navigation }) {
 
             if (chatError) throw chatError;
 
+            // Le nouveau message sera automatiquement ajouté via Supabase realtime
         } catch (error) {
-            console.error('Error sending message:', error);
-            setNewMessage(messageContent); // Restore message on error
+            console.error("Erreur lors de l'envoi du message :", error);
         }
     };
+
+
 
     const formatTime = (dateString) => {
         const date = new Date(dateString);
@@ -164,15 +246,20 @@ export default function ChatScreen({ route, navigation }) {
         });
     };
 
-    const renderMessage = ({ item }) => {
-        //console.log('item', item);
+    const renderMessage = ({ item, index }) => {
         const isOwn = item.sender_id === profile?.id;
         const senderName = item.sender?.username;
 
+        // 🔍 Si c’est le dernier message de l’utilisateur
+        const isLastOwnMessage =
+            isOwn &&
+            [...messages].reverse().find(msg => msg.sender_id === profile?.id)?.id === item.id;
 
         return (
             <View style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}>
-                <Text style={[styles.senderName, isOwn ? styles.ownSender : styles.otherSender]}>{senderName}</Text>
+                <Text style={[styles.senderName, isOwn ? styles.ownSender : styles.otherSender]}>
+                    {senderName}
+                </Text>
                 <View style={[styles.messageBubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
                     <Text style={[styles.messageText, isOwn ? styles.ownText : styles.otherText]}>
                         {item.content}
@@ -180,20 +267,23 @@ export default function ChatScreen({ route, navigation }) {
                     <Text style={[styles.messageTime, isOwn ? styles.ownTime : styles.otherTime]}>
                         {formatTime(item.created_at)}
                     </Text>
+                    {/* ✅ Ajout du badge "Vu" */}
+                    {isLastOwnMessage && item.is_read && (
+                        <Text style={styles.readReceipt}>gördü</Text>
+                    )}
                 </View>
             </View>
         );
     };
 
+
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Aucun message pour le moment</Text>
-            <Text style={styles.emptySubtext}>Envoyez le premier message !</Text>
+            <Text style={styles.emptyText}>Şu an için mesaj yok</Text>
+            <Text style={styles.emptySubtext}>İlk mesajı gönder!</Text>
         </View>
     );
 
-    // Log pour debug
-    //console.log('Messages récupérés:', messages);
 
     return (
         <KeyboardAvoidingView
@@ -220,16 +310,23 @@ export default function ChatScreen({ route, navigation }) {
                     <ActivityIndicator size="large" color="#3b82f6" />
                 </View>
             ) : (
-                <FlatList
-                    ref={flatListRef}
-                    data={messages}
-                    renderItem={renderMessage}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.messagesList}
-                    ListEmptyComponent={renderEmpty}
-                    showsVerticalScrollIndicator={false}
-                />
+                <ImageBackground source={require('../assets/foot.jpg')}
+                    style={{ flex: 1 }}
+                    resizeMode="cover">
+
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        renderItem={renderMessage}
+                        keyExtractor={(item) => item.id}
+                        contentContainerStyle={styles.messagesList}
+                        ListEmptyComponent={renderEmpty}
+                        showsVerticalScrollIndicator={false}
+                    />
+
+                </ImageBackground>
             )}
+
 
             <View style={styles.inputContainer}>
                 <TextInput
@@ -384,7 +481,7 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     ownSender: {
-        color: '#2563eb',
+        color: 'white',
         textAlign: 'right',
     },
     otherSender: {
@@ -402,4 +499,11 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
     },
+    readReceipt: {
+        fontSize: 10,
+        marginTop: 4,
+        textAlign: 'right',
+        color: 'rgba(255,255,255,0.7)', // clair sur fond bleu
+    },
+
 });

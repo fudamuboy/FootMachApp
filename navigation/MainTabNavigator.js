@@ -42,7 +42,7 @@ const MainTabNavigator = () => {
                 name="Announcements"
                 component={AnnouncementScreen}
                 options={{
-                    title: 'Annonces',
+                    title: 'Reklamlar',
                     tabBarIcon: ({ size, color }) => (
                         <Megaphone size={size} color={color} />
                     ),
@@ -52,7 +52,7 @@ const MainTabNavigator = () => {
                 name="Chats"
                 component={ChatsScreen}
                 options={{
-                    title: 'Messages',
+                    title: 'Mesajlar',
                     tabBarIcon: ({ size, color }) => (
                         <MessageCircle size={size} color={color} />
                     ),

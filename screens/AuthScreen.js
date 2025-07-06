@@ -76,7 +76,7 @@ export default function AuthScreen() {
                     <Text style={styles.logoText}>⚽</Text>
                 </View>
                 <Text style={styles.title}>FootMatch</Text>
-                <Text style={styles.subtitle}>Trouvez votre équipe parfaite</Text>
+                <Text style={styles.subtitle}>Mükemmel ekibinizi bulun</Text>
             </View>
 
             <View style={styles.form}>
@@ -102,7 +102,7 @@ export default function AuthScreen() {
                     <Lock size={20} color="#666" style={styles.inputIcon} />
                     <TextInput
                         style={[styles.input, { paddingRight: 50 }]}
-                        placeholder="Mot de passe"
+                        placeholder="Şifre"
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry={!showPassword}
@@ -125,7 +125,7 @@ export default function AuthScreen() {
                             <User size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Nom d'affichage"
+                                placeholder="Görüntü adı"
                                 value={displayName}
                                 onChangeText={setDisplayName}
                             />
@@ -138,7 +138,7 @@ export default function AuthScreen() {
                                 onValueChange={setRegion}
                                 style={styles.picker}
                             >
-                                <Picker.Item label="Sélectionnez votre région" value="" />
+                                <Picker.Item label="Bölgenizi seçin" value="" />
                                 {REGIONS.map((r) => (
                                     <Picker.Item key={r} label={r} value={r} />
                                 ))}
@@ -156,7 +156,7 @@ export default function AuthScreen() {
                         <ActivityIndicator color="white" />
                     ) : (
                         <Text style={styles.submitButtonText}>
-                            {isLogin ? 'Se connecter' : 'S\'inscrire'}
+                            {isLogin ? 'Oturum aç' : 'Kayit olun'}
                         </Text>
                     )}
                 </TouchableOpacity>
@@ -170,8 +170,8 @@ export default function AuthScreen() {
                 >
                     <Text style={styles.switchButtonText}>
                         {isLogin
-                            ? 'Pas encore de compte ? S\'inscrire'
-                            : 'Déjà un compte ? Se connecter'}
+                            ? 'Henüz hesap yok mu? Kayit olun'
+                            : 'Zaten bir hesap mı? Oturum aç'}
                     </Text>
                 </TouchableOpacity>
             </View>

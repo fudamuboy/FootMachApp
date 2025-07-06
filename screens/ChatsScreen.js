@@ -1,38 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    View,
-    Text,
-    FlatList,
-    TouchableOpacity,
-    StyleSheet,
-    RefreshControl,
-    ActivityIndicator, Image
+    View, Text, FlatList, TouchableOpacity, StyleSheet,
+    RefreshControl, ActivityIndicator, Image
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
-
 const getAvatarUrl = (avatar_url, username) => {
     if (avatar_url) return avatar_url;
-
-    const name = username?.trim();
-    let initials = 'US'; // Valeur par défaut
-
-    if (name) {
-        const parts = name.split(' ');
-        if (parts.length === 1) {
-            initials = parts[0].slice(0, 2).toUpperCase(); // Ex: Meh → ME
-        } else {
-            initials = (parts[0][0] + parts[1][0]).toUpperCase(); // Ex: Salim Samake → SS
-        }
-    }
+    const name = username?.trim() || 'User';
+    const initials = name.split(' ').length === 1
+        ? name.slice(0, 2).toUpperCase()
+        : (name[0] + name.split(' ')[1][0]).toUpperCase();
 
     return `https://ui-avatars.com/api/?name=${initials}&background=random&color=ffffff&bold=true`;
 };
-
-
-
 
 export default function ChatsScreen({ navigation }) {
     const { profile } = useAuth();
@@ -48,31 +32,43 @@ export default function ChatsScreen({ navigation }) {
                 .from('chats')
                 .select(`
                 *,
-                participant_1_profile:profiles!chats_participant_1_fkey(username,avatar_url),
-                participant_2_profile:profiles!chats_participant_2_fkey(username,avatar_url)
+                participant_1_profile:profiles!chats_participant_1_fkey(username, avatar_url),
+                participant_2_profile:profiles!chats_participant_2_fkey(username, avatar_url),
+                messages(id, chat_id, sender_id, is_read)
             `)
                 .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
                 .order('last_updated', { ascending: false });
 
             if (error) throw error;
 
-            // 🔍 LOG ICI POUR DEBUG
-            console.log('Résultat brut depuis Supabase:', JSON.stringify(data, null, 2));
+            const chatsWithNames = await Promise.all(
+                (data || []).map(async (chat) => {
+                    const isOwn = chat.participant_1 === profile.id;
+                    const otherProfile = isOwn ? chat.participant_2_profile : chat.participant_1_profile;
 
-            const chatsWithNames = (data || []).map((chat) => {
-                const isOwn = chat.participant_1 === profile.id;
-                const otherProfile = isOwn ? chat.participant_2_profile : chat.participant_1_profile;
+                    // 🔴 Compte les messages non lus pour ce chat
+                    const { count: unreadCount, error: countError } = await supabase
+                        .from('messages')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('chat_id', chat.id)
+                        .eq('is_read', false)
+                        .neq('sender_id', profile.id);
 
-                return {
-                    ...chat,
-                    other_user_name: otherProfile?.username ?? 'Utilisateur inconnu',
-                    other_user_avatar: otherProfile?.avatar_url ?? null,
-                };
-            });
+                    if (countError) console.error('Erreur unread count:', countError);
+
+                    return {
+                        ...chat,
+                        other_user_name: otherProfile?.username?.trim() || 'Bilinmeyen kullanıcı',
+                        other_user_avatar: otherProfile?.avatar_url || null,
+                        unread_count: unreadCount || 0,
+                    };
+                })
+            );
 
             setChats(chatsWithNames);
+            // console.log('✅ Chats chargés :', chatsWithNames);
         } catch (error) {
-            console.error('❌ Erreur lors du fetch des chats:', error);
+            console.error('❌ Erreur fetchChats:', error);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -80,30 +76,29 @@ export default function ChatsScreen({ navigation }) {
     };
 
 
-
+    // 🔁 Recharge à chaque retour sur l'écran
+    useFocusEffect(
+        useCallback(() => {
+            fetchChats();
+        }, [profile?.id])
+    );
     useEffect(() => {
-        fetchChats();
+        const unsubscribe = navigation.addListener('focus', () => {
+            if (navigation?.getState) {
+                const route = navigation.getState().routes.find(r => r.name === 'Chats');
+                const refreshFlag = route?.params?.refreshFromChat;
 
-        // Subscribe to chat updates
-        const subscription = supabase
-            .channel('chats')
-            .on('postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'chats',
-                    filter: `participant_1=eq.${profile?.id},participant_2=eq.${profile?.id}`
-                },
-                () => {
-                    fetchChats();
+                if (refreshFlag) {
+                    console.log('🔄 Rafraîchissement demandé après retour depuis Chat');
+                    fetchChats(); // recharge proprement
+                    navigation.setParams({ refreshFromChat: false }); // reset le flag
                 }
-            )
-            .subscribe();
+            }
+        });
 
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, [profile]);
+        return unsubscribe;
+    }, [navigation, profile?.id]);
+
 
     const handleRefresh = () => {
         setRefreshing(true);
@@ -114,7 +109,6 @@ export default function ChatsScreen({ navigation }) {
         const date = new Date(dateString);
         const now = new Date();
         const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
         if (diffInHours < 24) {
             return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         } else {
@@ -122,39 +116,40 @@ export default function ChatsScreen({ navigation }) {
         }
     };
 
-    const renderChat = ({ item }) => {
-        console.log('Rendering chat for:', item.other_user_name);
-
-        return (
-            <TouchableOpacity
-                style={styles.chatItem}
-                onPress={() => navigation.navigate('Chat', { chatId: item.id })}
-            >
-                <Image
-                    source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
-                    style={styles.chatAvatar}
-                />
-
-                <View style={styles.chatContent}>
-                    <Text style={styles.chatName}>{item.other_user_name}</Text>
-                    <Text style={styles.chatMessage} numberOfLines={1}>
-                        {item.last_message || 'Nouvelle conversation'}
-                    </Text>
-                </View>
+    const renderChat = ({ item }) => (
+        <TouchableOpacity
+            style={styles.chatItem}
+            onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+        >
+            <Image
+                source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
+                style={styles.chatAvatar}
+            />
+            <View style={styles.chatContent}>
+                <Text style={styles.chatName}>{item.other_user_name}</Text>
+                <Text style={styles.chatMessage} numberOfLines={1}>
+                    {item.last_message || 'Yeni konuşma'}
+                </Text>
+            </View>
+            <View style={styles.chatRightSide}>
                 <Text style={styles.chatTime}>{formatTime(item.last_updated)}</Text>
-            </TouchableOpacity>
-        );
-    };
-
+                {item.unread_count > 0 && (
+                    <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadBadgeText}>{item.unread_count}</Text>
+                    </View>
+                )}
+            </View>
+        </TouchableOpacity>
+    );
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
             <View style={styles.emptyIcon}>
                 <MessageCircle size={48} color="#9ca3af" />
             </View>
-            <Text style={styles.emptyTitle}>Aucune conversation</Text>
+            <Text style={styles.emptyTitle}>Konuşma yok</Text>
             <Text style={styles.emptySubtitle}>
-                Contactez une équipe depuis les annonces pour commencer à discuter !
+                Sohbete başlamak için duyurulardan bir ekiple iletişime geçin!
             </Text>
         </View>
     );
@@ -167,13 +162,16 @@ export default function ChatsScreen({ navigation }) {
         );
     }
 
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Messages</Text>
+                <Text style={styles.title}>Mesajlar</Text>
             </View>
 
+
             <FlatList
+
                 data={chats}
                 renderItem={renderChat}
                 keyExtractor={(item) => item.id}
@@ -188,15 +186,8 @@ export default function ChatsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f9fafb',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    container: { flex: 1, backgroundColor: '#f9fafb' },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     header: {
         paddingHorizontal: 20,
         paddingVertical: 16,
@@ -205,11 +196,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1f2937',
-    },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
     chatItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -219,24 +206,15 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#f3f4f6',
     },
-    chatContent: {
-        flex: 1,
-    },
+    chatContent: { flex: 1 },
     chatName: {
         fontSize: 16,
         fontWeight: '600',
         color: '#1f2937',
         marginBottom: 4,
     },
-    chatMessage: {
-        fontSize: 14,
-        color: '#6b7280',
-    },
-    chatTime: {
-        fontSize: 12,
-        color: '#9ca3af',
-        marginLeft: 12,
-    },
+    chatMessage: { fontSize: 14, color: '#6b7280' },
+    chatTime: { fontSize: 12, color: '#9ca3af', marginLeft: 12 },
     emptyContainer: {
         alignItems: 'center',
         paddingVertical: 80,
@@ -270,5 +248,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#e5e7eb',
         marginRight: 12,
     },
-
+    chatRightSide: {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        marginLeft: 12,
+    },
+    unreadBadge: {
+        backgroundColor: '#ef4444',
+        borderRadius: 12,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        marginTop: 4,
+        minWidth: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    unreadBadgeText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 12,
+        textAlign: 'center',
+    },
 });

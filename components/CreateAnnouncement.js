@@ -43,7 +43,8 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     match_time: matchTime,
                     location,
                     description,
-                    region: profile.region
+                    region: profile.region,
+
                 });
 
             if (error) throw error;
@@ -71,7 +72,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <X size={24} color="#6b7280" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>Créer une annonce</Text>
+                    <Text style={styles.title}>Reklam oluşturma</Text>
                     <View style={styles.placeholder} />
                 </View>
 
@@ -86,7 +87,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <Users size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Nom de l'équipe"
+                            placeholder="Takımın adı"
                             value={teamName}
                             onChangeText={setTeamName}
                         />
@@ -102,7 +103,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => (
                                 <Picker.Item
                                     key={num}
-                                    label={`${num} joueur${num > 1 ? 's' : ''} recherché${num > 1 ? 's' : ''}`}
+                                    label={`${num} oyuncu${num > 1 ? 's' : ''} aranıyor${num > 1 ? 's' : ''}`}
                                     value={num}
                                 />
                             ))}
@@ -113,7 +114,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <Clock size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Date et heure (ex: 2024-01-15 14:30)"
+                            placeholder="Tarih ve saat (örn: 2024-01-15 14:30)"
                             value={matchTime}
                             onChangeText={setMatchTime}
                         />
@@ -123,7 +124,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <MapPin size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Lieu du match"
+                            placeholder="Maçın yeri"
                             value={location}
                             onChangeText={setLocation}
                         />
@@ -133,7 +134,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <FileText size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={[styles.input, styles.textArea]}
-                            placeholder="Description (optionnel)"
+                            placeholder="Açıklama (opsiyonel)"
                             value={description}
                             onChangeText={setDescription}
                             multiline
@@ -147,7 +148,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             style={[styles.button, styles.cancelButton]}
                             onPress={onClose}
                         >
-                            <Text style={styles.cancelButtonText}>Annuler</Text>
+                            <Text style={styles.cancelButtonText}>iptal etmek</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -158,7 +159,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text style={styles.submitButtonText}>Créer</Text>
+                                <Text style={styles.submitButtonText}>Oluştur</Text>
                             )}
                         </TouchableOpacity>
                     </View>

@@ -15,6 +15,7 @@ import {
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const getAvatarUrl = (avatar_url, username) => {
@@ -122,7 +123,7 @@ export default function ChatScreen({ route, navigation }) {
             if (updateError) {
                 console.error('❌ UPDATE error:', updateError);
             } else {
-                console.log('✅ Résultat de mise à jour :', updated);
+                // console.log('✅ Résultat de mise à jour :', updated);
                 await fetchMessages(); // Refresh
             }
 
@@ -256,6 +257,7 @@ export default function ChatScreen({ route, navigation }) {
             [...messages].reverse().find(msg => msg.sender_id === profile?.id)?.id === item.id;
 
         return (
+
             <View style={[styles.messageContainer, isOwn ? styles.ownMessage : styles.otherMessage]}>
                 <Text style={[styles.senderName, isOwn ? styles.ownSender : styles.otherSender]}>
                     {senderName}
@@ -273,6 +275,7 @@ export default function ChatScreen({ route, navigation }) {
                     )}
                 </View>
             </View>
+
         );
     };
 
@@ -286,66 +289,69 @@ export default function ChatScreen({ route, navigation }) {
 
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <ArrowLeft size={24} color="#1f2937" />
-                </TouchableOpacity>
-                <View style={styles.chatAvatarContainer}>
-                    <Image
-                        source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
-                        style={styles.chatAvatar}
-                    />
+        <SafeAreaView edges={['bottom']} // ✅ ne protège que le bas
+            style={{ flex: 1 }}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <ArrowLeft size={24} color="#1f2937" />
+                    </TouchableOpacity>
+                    <View style={styles.chatAvatarContainer}>
+                        <Image
+                            source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
+                            style={styles.chatAvatar}
+                        />
 
+                    </View>
+                    <Text style={styles.headerTitle}>{otherUserName}</Text>
+                    <View style={styles.placeholder} />
                 </View>
-                <Text style={styles.headerTitle}>{otherUserName}</Text>
-                <View style={styles.placeholder} />
-            </View>
 
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#3b82f6" />
-                </View>
-            ) : (
-                <ImageBackground source={require('../assets/foot.jpg')}
-                    style={{ flex: 1 }}
-                    resizeMode="cover">
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#3b82f6" />
+                    </View>
+                ) : (
+                    <ImageBackground source={require('../assets/foot.jpg')}
+                        style={{ flex: 1 }}
+                        resizeMode="cover">
 
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={styles.messagesList}
-                        ListEmptyComponent={renderEmpty}
-                        showsVerticalScrollIndicator={false}
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            renderItem={renderMessage}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.messagesList}
+                            ListEmptyComponent={renderEmpty}
+                            showsVerticalScrollIndicator={false}
+                        />
+
+                    </ImageBackground>
+                )}
+
+
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.textInput}
+                        placeholder="Tapez votre message..."
+                        value={newMessage}
+                        onChangeText={setNewMessage}
+                        multiline
+                        maxLength={500}
                     />
-
-                </ImageBackground>
-            )}
-
-
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.textInput}
-                    placeholder="Tapez votre message..."
-                    value={newMessage}
-                    onChangeText={setNewMessage}
-                    multiline
-                    maxLength={500}
-                />
-                <TouchableOpacity
-                    style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]}
-                    onPress={sendMessage}
-                    disabled={!newMessage.trim()}
-                >
-                    <Send size={20} color="white" />
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
+                    <TouchableOpacity
+                        style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]}
+                        onPress={sendMessage}
+                        disabled={!newMessage.trim()}
+                    >
+                        <Send size={20} color="white" />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 

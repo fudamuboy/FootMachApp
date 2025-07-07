@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AnnouncementScreen({ navigation }) {
     const { profile } = useAuth();
@@ -131,65 +132,68 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.emptyIcon}>
                 <Text style={styles.emptyIconText}>⚽</Text>
             </View>
-            <Text style={styles.emptyTitle}>Aucune annonce</Text>
+            <Text style={styles.emptyTitle}>Hiç reklam</Text>
             <Text style={styles.emptySubtitle}>
-                Essayez une autre région dans la barre de recherche
+                Arama çubuğunda başka bir bölge deneyin
             </Text>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <View>
-                    <Text style={styles.title}>Reklamlar</Text>
-                    <Text style={styles.subtitle}>Bölgem: {profile?.region}</Text>
+        <SafeAreaView edges={['bottom']} // ✅ ne protège que le bas
+            style={{ flex: 1 }}>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View>
+                        <Text style={styles.title}>Reklamlar</Text>
+                        <Text style={styles.subtitle}>Bölgem: {profile?.region}</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={() => setShowCreateModal(true)}
+                    >
+                        <Plus size={24} color="white" />
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => setShowCreateModal(true)}
-                >
-                    <Plus size={24} color="white" />
-                </TouchableOpacity>
-            </View>
 
-            <View style={styles.searchContainer}>
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="Bir bölge arayın (örn: Buca)"
-                    value={searchRegion}
-                    onChangeText={handleSearchChange}
+                <View style={styles.searchContainer}>
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Bir bölge arayın (örn: Buca)"
+                        value={searchRegion}
+                        onChangeText={handleSearchChange}
+                    />
+                </View>
+
+                <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 6 }}>
+                    Toplam: {announcements.length} reklam
+                </Text>
+
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#3b82f6" />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={announcements}
+                        renderItem={renderAnnouncement}
+                        keyExtractor={(item) => item.id.toString()}
+                        contentContainerStyle={styles.list}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                        }
+                        ListEmptyComponent={renderEmpty}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
+
+                <CreateAnnouncement
+                    visible={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    onSuccess={() => fetchAnnouncements(searchRegion)}
                 />
             </View>
-
-            <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 6 }}>
-                Total: {announcements.length} annonces
-            </Text>
-
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#3b82f6" />
-                </View>
-            ) : (
-                <FlatList
-                    data={announcements}
-                    renderItem={renderAnnouncement}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={styles.list}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                    }
-                    ListEmptyComponent={renderEmpty}
-                    showsVerticalScrollIndicator={false}
-                />
-            )}
-
-            <CreateAnnouncement
-                visible={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                onSuccess={() => fetchAnnouncements(searchRegion)}
-            />
-        </View>
+        </SafeAreaView>
     );
 }
 

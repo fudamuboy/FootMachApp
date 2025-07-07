@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Profile() {
-    const { profile } = useAuth();
+    const { profile, loading } = useAuth(); // assure-toi que useAuth() retourne aussi `loading`
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -13,16 +14,35 @@ export default function Profile() {
         }
     };
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Bienvenue, {profile?.username} 👋</Text>
-            <Text>Email: {profile?.email}</Text>
-            <Text>Région: {profile?.region}</Text>
+    if (loading || !profile) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <Text>Profil yükleniyor...</Text>
+            </View>
+        );
+    }
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Text style={styles.logoutText}>Çıkış</Text>
-            </TouchableOpacity>
-        </View>
+    return (
+        <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.container}>
+                <Image
+                    source={{
+                        uri: profile.avatar_url
+                            ? profile.avatar_url
+                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username || 'Kullanıcı')}`,
+                    }}
+                    style={styles.avatar}
+                />
+                <Text style={styles.title}>Hoşgeldiniz, {profile.username}</Text>
+                <Text>Email: {profile.email}</Text>
+                <Text>Bölge: {profile.region}</Text>
+
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <Text style={styles.logoutText}>Çıkış</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -37,6 +57,13 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         marginBottom: 12,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        alignSelf: 'center',
+        marginBottom: 20,
     },
     logoutButton: {
         marginTop: 30,

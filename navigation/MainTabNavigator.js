@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Megaphone, MessageCircle, User } from 'lucide-react-native';
 import AnnouncementScreen from '../screens/AnnouncementScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import Profile from '../screens/Profile';
+import { useAuth } from '../contexts/AuthContext';
+import { View, Text } from 'react-native'; // ✅ Ajout de Text
+import { supabase } from '../lib/supabase'; // ✅ Assure-toi d'importer supabase si ce n'était pas fait
 
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
+    const { profile } = useAuth(); // ✅ Correction ici
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchUnreadMessages = async () => {
+            if (!profile?.id) return;
+
+            const { data, error } = await supabase
+                .from('messages')
+                .select('id')
+                .eq('is_read', false)
+                .neq('sender_id', profile.id); // Messages reçus non lus
+
+            if (error) {
+                console.error('Erreur chargement messages non lus', error);
+            } else {
+                setUnreadCount(data?.length || 0);
+            }
+        };
+
+        fetchUnreadMessages();
+        const interval = setInterval(fetchUnreadMessages, 10000); // ✅ actualise toutes les 10s
+        return () => clearInterval(interval);
+    }, [profile?.id]);
+
     return (
         <Tab.Navigator
             screenOptions={{
@@ -18,9 +46,10 @@ const MainTabNavigator = () => {
                     backgroundColor: 'white',
                     borderTopWidth: 1,
                     borderTopColor: '#e5e7eb',
-                    paddingBottom: 8,
+                    paddingBottom: 20,
                     paddingTop: 8,
-                    height: 60,
+                    height: 80,
+                    position: 'absolute',
                 },
                 tabBarLabelStyle: {
                     fontSize: 12,
@@ -54,7 +83,29 @@ const MainTabNavigator = () => {
                 options={{
                     title: 'Mesajlar',
                     tabBarIcon: ({ size, color }) => (
-                        <MessageCircle size={size} color={color} />
+                        <View style={{ position: 'relative' }}>
+                            <MessageCircle size={size} color={color} />
+                            {unreadCount > 0 && (
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        top: -4,
+                                        right: -10,
+                                        backgroundColor: 'red',
+                                        borderRadius: 10,
+                                        paddingHorizontal: 5,
+                                        minWidth: 18,
+                                        height: 18,
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </Text>
+                                </View>
+                            )}
+                        </View>
                     ),
                 }}
             />

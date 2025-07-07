@@ -5,7 +5,7 @@ import { Users, Clock, MapPin, MessageCircle } from 'lucide-react-native';
 const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR', {
+        return date.toLocaleDateString('tr-TR', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
@@ -21,7 +21,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                 <Text style={styles.teamName}>{announcement.team_name}</Text>
                 {isOwner && (
                     <View style={styles.ownerBadge}>
-                        <Text style={styles.ownerBadgeText}>Votre annonce</Text>
+                        <Text style={styles.ownerBadgeText}>Reklamınızın</Text>
                     </View>
                 )}
             </View>
@@ -30,7 +30,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                 <View style={styles.detailRow}>
                     <Users size={18} color="#3b82f6" />
                     <Text style={styles.detailText}>
-                        {announcement.players_needed} joueur{announcement.players_needed > 1 ? 's' : ''} recherché{announcement.players_needed > 1 ? 's' : ''}
+                        {announcement.players_needed} oyuncu{announcement.players_needed > 1 ? 's' : ''} aranıyor{announcement.players_needed > 1 ? 's' : ''}
                     </Text>
                 </View>
 
@@ -54,7 +54,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                 onPress={() => onContact(announcement)}
             >
                 <MessageCircle size={18} color="white" />
-                <Text style={styles.contactButtonText}>Contacter l'équipe</Text>
+                <Text style={styles.contactButtonText}>Ekibiyle iletişime</Text>
             </TouchableOpacity>
         </View>
     );

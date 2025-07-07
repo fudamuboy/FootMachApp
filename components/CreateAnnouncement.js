@@ -26,7 +26,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
     const handleSubmit = async () => {
         if (!profile || !teamName || !matchTime || !location) {
-            setError('Veuillez remplir tous les champs obligatoires');
+            setError('Lütfen tüm zorunlu alanları doldurun');
             return;
         }
 

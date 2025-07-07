@@ -6,6 +6,8 @@ import MainTabNavigator from './MainTabNavigator';
 import ChatScreen from '../screens/ChatScreen';
 import AuthScreen from '../screens/AuthScreen';
 
+
+
 const Stack = createStackNavigator();
 
 export const AppNavigator = () => {

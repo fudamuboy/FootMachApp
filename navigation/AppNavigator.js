@@ -6,15 +6,13 @@ import MainTabNavigator from './MainTabNavigator';
 import ChatScreen from '../screens/ChatScreen';
 import AuthScreen from '../screens/AuthScreen';
 
-
-
 const Stack = createStackNavigator();
 
 export const AppNavigator = () => {
     const { user, loading } = useAuth();
 
     if (loading) {
-        return null; // You can add a loading screen here
+        return null; // ou un écran de chargement si tu veux
     }
 
     return (

@@ -12,6 +12,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, User, MapPin, Eye, EyeOff } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const REGIONS = [
     'Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Balçova', 'Gaziemir',
@@ -30,6 +31,7 @@ export default function AuthScreen() {
     const [error, setError] = useState(null);
 
     const { signIn, signUp } = useAuth();
+    const navigation = useNavigation()
 
     const handleSubmit = async () => {
         if (!email || !password) {
@@ -50,17 +52,12 @@ export default function AuthScreen() {
                 await signIn(email, password);
             } else {
                 await signUp(email, password, displayName, region);
-                Alert.alert("✅ Giriş başarılı", "Veuillez maintenant vous connecter.");
-                // Réinitialiser les champs
-                setIsLogin(true);
-                setEmail('');
-                setPassword('');
-                setDisplayName('');
-                setRegion('');
+                Alert.alert("✅ Kayıt başarılı", "Şimdi giriş yapabilirsiniz.");
+                navigation.navigate('Auth'); // 🔁 Redirection
             }
         } catch (error) {
             if (error.message.includes("User already registered")) {
-                setError("Cette adresse email est déjà utilisée.");
+                setError("Bu e-posta adresi zaten kullanılıyor.");
             } else {
                 setError(error.message || "Une erreur est survenue");
             }
@@ -68,6 +65,7 @@ export default function AuthScreen() {
             setLoading(false);
         }
     };
+
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>

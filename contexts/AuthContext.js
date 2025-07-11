@@ -65,16 +65,20 @@ export const AuthProvider = ({ children }) => {
             if (!data) {
                 console.warn('⚠️ Aucun profil trouvé pour cet utilisateur.');
                 setProfile(null);
+                setUser(null); // <- ajoute ça
+                setLoading(false); // <- ajoute ça
             } else {
                 setProfile(data);
+                setLoading(false); // <- s'assure que ça s'arrête ici aussi
             }
         } catch (error) {
             console.error('❌ Erreur lors du chargement du profil:', error.message);
             setProfile(null);
-        } finally {
-            setLoading(false);
+            setUser(null); // <- évite de rester bloqué
+            setLoading(false); // <- très important
         }
     };
+
 
     const signUp = async (email, password, displayName, region) => {
         const { data, error } = await supabase.auth.signUp({

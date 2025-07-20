@@ -118,13 +118,22 @@ export default function AnnouncementScreen({ navigation }) {
             alert("Erreur lors de l'accès au chat. Veuillez réessayer.");
         }
     };
+    const handleEvaluate = (announcement) => {
+        // Naviguer vers l’écran d’évaluation ou ouvrir un modal
+        navigation.navigate('EvaluationScreen', { teamId: announcement.team_id });
+    };
+
+
 
     const renderAnnouncement = ({ item }) => (
         <AnnouncementCard
             announcement={item}
+            isOwner={user.id === item.user_id}
             onContact={handleContact}
-            isOwner={item.user_id === profile?.id}
+            onEvaluate={handleEvaluate}
         />
+
+
     );
 
     const renderEmpty = () => (

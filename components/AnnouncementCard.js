@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Users, Clock, MapPin, MessageCircle } from 'lucide-react-native';
 
-const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
+const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('tr-TR', {
@@ -11,18 +11,21 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
             month: 'long',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
+
+    const isPastMatch = new Date(announcement.match_time) < new Date();
 
     return (
         <View style={styles.card}>
             <View style={styles.header}>
                 <Text style={styles.teamName}>{announcement.team_name}</Text>
-                {isOwner && (
-                    <View style={styles.ownerBadge}>
-                        <Text style={styles.ownerBadgeText}>Reklamınızın</Text>
-                    </View>
+
+                {!isOwner && isPastMatch && (
+                    <TouchableOpacity onPress={() => onEvaluate(announcement)}>
+                        <Text style={styles.evaluateButton}>Takımı Değerlendir</Text>
+                    </TouchableOpacity>
                 )}
             </View>
 
@@ -30,7 +33,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner }) => {
                 <View style={styles.detailRow}>
                     <Users size={18} color="#3b82f6" />
                     <Text style={styles.detailText}>
-                        {announcement.players_needed} oyuncu{announcement.players_needed > 1 ? 's' : ''} aranıyor{announcement.players_needed > 1 ? 's' : ''}
+                        {announcement.players_needed} oyuncu aranıyor
                     </Text>
                 </View>
 
@@ -67,10 +70,7 @@ const styles = StyleSheet.create({
         padding: 20,
         marginBottom: 16,
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 3,
@@ -87,16 +87,10 @@ const styles = StyleSheet.create({
         color: '#1f2937',
         flex: 1,
     },
-    ownerBadge: {
-        backgroundColor: '#dcfce7',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    ownerBadgeText: {
-        color: '#166534',
-        fontSize: 12,
-        fontWeight: '500',
+    evaluateButton: {
+        color: '#3b82f6',
+        fontWeight: 'bold',
+        marginLeft: 10,
     },
     details: {
         marginBottom: 16,

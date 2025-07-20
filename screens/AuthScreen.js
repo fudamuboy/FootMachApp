@@ -29,6 +29,8 @@ export default function AuthScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [phoneNumber, setPhoneNumber] = useState('');
+
 
     const { signIn, signUp } = useAuth();
     const navigation = useNavigation()
@@ -51,7 +53,7 @@ export default function AuthScreen() {
             if (isLogin) {
                 await signIn(email, password);
             } else {
-                await signUp(email, password, displayName, region);
+                await signUp(email, password, displayName, region, phoneNumber);
                 Alert.alert("✅ Kayıt başarılı", "Şimdi giriş yapabilirsiniz.");
                 navigation.navigate('Auth'); // 🔁 Redirection
             }
@@ -126,6 +128,17 @@ export default function AuthScreen() {
                                 placeholder="Görüntü adı"
                                 value={displayName}
                                 onChangeText={setDisplayName}
+                            />
+                        </View>
+                        <View style={styles.phoneContainer}>
+                            <Text style={styles.countryCode}>+90</Text>
+                            <TextInput
+                                style={styles.phoneInput}
+                                placeholder="5XX XXX XX XX"
+                                keyboardType="phone-pad"
+                                maxLength={10} // pour ne saisir que 10 chiffres
+                                value={phoneNumber}
+                                onChangeText={setPhoneNumber}
                             />
                         </View>
 
@@ -291,4 +304,28 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
     },
+    phoneContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#f9fafb',
+        marginBottom: 16,
+    },
+
+    countryCode: {
+        marginRight: 8,
+        fontSize: 16,
+        color: '#1f2937',
+    },
+
+    phoneInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#1f2937',
+    },
+
 });

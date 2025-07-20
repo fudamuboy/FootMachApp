@@ -7,6 +7,11 @@ import Profile from '../screens/Profile';
 import { useAuth } from '../contexts/AuthContext';
 import { View, Text } from 'react-native'; // ✅ Ajout de Text
 import { supabase } from '../lib/supabase'; // ✅ Assure-toi d'importer supabase si ce n'était pas fait
+import UserInfoScreen from '../screens/UserInfoScreen';
+import AddressScreen from '../screens/AddressScreen';
+import EvaluationScreen from '../screens/EvaluationScreen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -109,6 +114,20 @@ const MainTabNavigator = () => {
                     ),
                 }}
             />
+            <Tab.Screen name="UserInfoScreen" component={UserInfoScreen} options={{ tabBarButton: () => null }} />
+            <Tab.Screen name="AddressScreen" component={AddressScreen} options={{ tabBarButton: () => null }} />
+
+            <Tab.Screen
+                name="Evaluations"
+                component={EvaluationScreen}
+                options={{
+                    tabBarLabel: 'Değerlendirme',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="star" size={size} color={color} />
+                    ),
+                }}
+            />
+
         </Tab.Navigator>
     );
 };

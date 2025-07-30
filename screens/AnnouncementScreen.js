@@ -73,7 +73,11 @@ export default function AnnouncementScreen({ navigation }) {
             const { data, error } = await request;
 
             if (error) throw error;
-            setAnnouncements(data || []);
+            setAnnouncements((data || []).map(item => ({
+                ...item,
+                match_time: new Date(item.match_time)
+            })));
+
         } catch (error) {
             console.error('Error fetching announcements:', error);
         } finally {

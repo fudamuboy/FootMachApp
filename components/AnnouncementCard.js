@@ -15,29 +15,24 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
         });
     };
 
-    const isPastMatch = new Date(announcement.match_time) < new Date();
+    const isPastMatch = true; // <--- TEMPORAIREMENT FORCÉ
+
+
+    // DEBUG: Vérifie les logs pour t’assurer de la valeur
+    console.log("isPastMatch:", isPastMatch);
+    console.log("isOwner:", isOwner);
+    console.log("match_time:", announcement.match_time);
 
     return (
         <View style={styles.card}>
             <View style={styles.header}>
                 <Text style={styles.teamName}>{announcement.team_name}</Text>
 
-                {/* Montrer le bouton Takımı Değerlendir seulement si ce n’est PAS le propriétaire et que le match est passé */}
+                {/* Affiche le bouton Takımı Değerlendir si ce n’est pas le propriétaire ET que le match est passé */}
                 {!isOwner && isPastMatch && (
-                    <TouchableOpacity
-                        onPress={() => isPastMatch && onEvaluate(announcement)}
-                        disabled={!isPastMatch}
-                    >
-                        <Text
-                            style={[
-                                styles.evaluateButton,
-                                { opacity: isPastMatch ? 1 : 0.5 }
-                            ]}
-                        >
-                            Takımı Değerlendir
-                        </Text>
+                    <TouchableOpacity onPress={() => onEvaluate(announcement)}>
+                        <Text style={styles.evaluateButton}>Takımı Değerlendir</Text>
                     </TouchableOpacity>
-
                 )}
             </View>
 

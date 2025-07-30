@@ -71,10 +71,10 @@ export default function ChatScreen({ route, navigation }) {
 
             if (error) throw error;
 
-            const otherUserName = data.participant_1 === profile.id
+            const otherUserName = data.participant_1 === profile?.id
                 ? data.participant2?.username
                 : data.participant1?.username;
-            const otherUserAvatar = data.participant_1 === profile.id
+            const otherUserAvatar = data.participant_1 === profile?.id
                 ? data.participant2?.avatar_url
                 : data.participant1?.avatar_url;
             setOtherUserName(otherUserName);
@@ -95,7 +95,7 @@ export default function ChatScreen({ route, navigation }) {
                 .select('id, sender_id, is_read')
                 .eq('chat_id', chatId)
                 .eq('is_read', false)
-                .neq('sender_id', profile.id);
+                .neq('sender_id', profile?.id);
 
             console.log("📩 Messages non lus trouvés :", unreadMessages);
 
@@ -190,12 +190,12 @@ export default function ChatScreen({ route, navigation }) {
         const optimisticMessage = {
             id: tempId,
             chat_id: chatId,
-            sender_id: profile.id,
+            sender_id: profile?.id,
             content: messageContent,
             created_at: new Date().toISOString(),
-            is_read: false, // 👈 important ici aussi si tu veux l’afficher dans la liste
+            is_read: false, // 👈 important ici aussi si tu veux l'afficher dans la liste
             sender: {
-                username: profile.username,
+                username: profile?.username,
             }
         };
 
@@ -208,7 +208,7 @@ export default function ChatScreen({ route, navigation }) {
                 .from('messages')
                 .insert({
                     chat_id: chatId,
-                    sender_id: profile.id,
+                    sender_id: profile?.id,
                     content: messageContent,
                     is_read: false, // ✅ correction ici
                 });

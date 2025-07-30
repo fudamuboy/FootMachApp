@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,7 +9,15 @@ export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
     const navigation = useNavigation();
 
-    if (!profile) return null;
+    // 🔐 Ajout d’une vérification : si profile est null, on ne rend rien.
+    if (!profile) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <Text style={styles.title}>Hesabım</Text>
+                <Text style={{ textAlign: 'center', color: '#999' }}>Oturum kapatıldı.</Text>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -18,10 +26,10 @@ export default function ProfileScreen() {
             <View style={styles.avatarContainer}>
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>
-                        {profile.username?.slice(0, 1)?.toUpperCase() || 'K'}
+                        {profile?.username?.slice(0, 1)?.toUpperCase() || 'K'}
                     </Text>
                 </View>
-                <Text style={styles.name}>{profile.username}</Text>
+                <Text style={styles.name}>{profile?.username}</Text>
             </View>
 
             <TouchableOpacity
@@ -37,17 +45,10 @@ export default function ProfileScreen() {
                 style={styles.item}
                 onPress={() => navigation.navigate('AddressScreen')}
             >
-                <Ionicons name="person-outline" size={20} color="#000" />
+                <Ionicons name="location-outline" size={20} color="#000" />
                 <Text style={styles.itemText}>Adres Bilgilerim</Text>
                 <Ionicons name="chevron-forward" size={18} color="#aaa" style={{ marginLeft: 'auto' }} />
             </TouchableOpacity>
-            {/* Exemple de bouton supplémentaire (facultatif)
-      <TouchableOpacity style={styles.item}>
-        <Ionicons name="lock-closed-outline" size={20} color="#000" />
-        <Text style={styles.itemText}>Şifre Değiştirme</Text>
-        <Ionicons name="chevron-forward" size={18} color="#aaa" style={{ marginLeft: 'auto' }} />
-      </TouchableOpacity>
-      */}
 
             <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
                 <Ionicons name="log-out-outline" size={20} color="#ef4444" />

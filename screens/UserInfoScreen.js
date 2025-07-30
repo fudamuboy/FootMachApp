@@ -1,10 +1,49 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase'; // adapte selon ton chemin
 
 const UserInfoScreen = () => {
     const navigation = useNavigation();
+    const { profile, fetchProfile } = useAuth();
+
+    const [username, setUsername] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (profile) {
+            setUsername(profile.username || '');
+            setPhone(profile.phone || '');
+            setEmail(profile.email || '');
+        }
+    }, [profile]);
+
+    const handleUpdate = async () => {
+        setLoading(true);
+        const { error } = await supabase
+            .from('profiles')
+            .update({
+                username,
+                phone,
+                email,
+                updated_at: new Date(), // ajouter ça seulement si la colonne existe
+            })
+            .eq('id', profile.id);
+
+        if (error) {
+            Alert.alert('Hata', 'Bilgiler güncellenemedi');
+            console.error(error);
+        } else {
+            Alert.alert('Başarılı', 'Bilgiler güncellendi');
+            await fetchProfile(); // recharger les données utilisateur depuis Supabase
+        }
+
+        setLoading(false);
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -22,16 +61,32 @@ const UserInfoScreen = () => {
                 </Text>
 
                 <Text style={styles.label}>Cep Telefonu:</Text>
-                <TextInput style={styles.input} value="5766600090" />
+                <TextInput
+                    style={styles.input}
+                    value={phone}
+                    onChangeText={setPhone}
+                />
 
                 <Text style={styles.label}>E-Posta:</Text>
-                <TextInput style={styles.input} value="w@example.com" />
+                <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                />
 
-                <Text style={styles.label}>Görüntü Adı</Text>
-                <TextInput style={styles.input} value="LO" />
+                <Text style={styles.label}>Görüntü Adı:</Text>
+                <TextInput
+                    style={styles.input}
+                    value={username}
+                    onChangeText={setUsername}
+                />
 
-                <TouchableOpacity style={styles.saveButton}>
-                    <Text style={styles.saveText}>Kaydet</Text>
+                <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={handleUpdate}
+                    disabled={loading}
+                >
+                    <Text style={styles.saveText}>Bilgileri Güncelle</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.deleteButton}>
@@ -41,7 +96,6 @@ const UserInfoScreen = () => {
         </SafeAreaView>
     );
 };
-
 export default UserInfoScreen;
 
 const styles = StyleSheet.create({

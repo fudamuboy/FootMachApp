@@ -37,13 +37,13 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
             const { error } = await supabase
                 .from('announcements')
                 .insert({
-                    user_id: profile.id,
+                    user_id: profile?.id,
                     team_name: teamName,
                     players_needed: playersNeeded,
                     match_time: matchTime,
                     location,
                     description,
-                    region: profile.region,
+                    region: profile?.region,
 
                 });
 

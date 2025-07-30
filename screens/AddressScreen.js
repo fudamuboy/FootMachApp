@@ -24,7 +24,7 @@ export default function AddressScreen() {
         const { error } = await supabase
             .from('profiles')
             .update({ address })
-            .eq('id', profile.id);
+            .eq('id', profile?.id);
 
         if (error) {
             Alert.alert('Hata', 'Adres güncellenemedi.');

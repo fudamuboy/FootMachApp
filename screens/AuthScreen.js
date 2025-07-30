@@ -7,7 +7,7 @@ import {
     StyleSheet,
     ScrollView,
     ActivityIndicator,
-    Alert,
+    Alert, Modal
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,6 +30,8 @@ export default function AuthScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState('')
 
 
     const { signIn, signUp } = useAuth();
@@ -68,6 +70,27 @@ export default function AuthScreen() {
         }
     };
 
+    const handlePasswordReset = async () => {
+        if (!resetEmail) {
+            Alert.alert("Hata", "Lütfen email adresinizi girin.");
+            return;
+        }
+
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+            redirectTo: 'myapp://reset-password', // à personnaliser selon ton app
+        });
+
+        if (error) {
+            console.error('Erreur de réinitialisation :', error.message);
+            Alert.alert('Erreur', error.message);
+        } else {
+            Alert.alert('Succès', 'Lien de réinitialisation envoyé à votre email.');
+            setShowResetModal(false); // referme le modal automatiquement
+        }
+    };
+
+
+
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -75,8 +98,8 @@ export default function AuthScreen() {
                 <View style={styles.logo}>
                     <Text style={styles.logoText}>⚽</Text>
                 </View>
-                <Text style={styles.title}>FootMatch</Text>
-                <Text style={styles.subtitle}>Mükemmel ekibinizi bulun</Text>
+                <Text style={styles.title}>Rakibim</Text>
+                <Text style={styles.subtitle}>İlk golü yiyen bip'i giyer </Text>
             </View>
 
             <View style={styles.form}>
@@ -107,6 +130,8 @@ export default function AuthScreen() {
                         onChangeText={setPassword}
                         secureTextEntry={!showPassword}
                     />
+
+
                     <TouchableOpacity
                         style={styles.eyeIcon}
                         onPress={() => setShowPassword(!showPassword)}
@@ -117,15 +142,22 @@ export default function AuthScreen() {
                             <Eye size={20} color="#666" />
                         )}
                     </TouchableOpacity>
-                </View>
 
+                </View>
+                {/* {isLogin && (
+                <TouchableOpacity onPress={() => setShowResetModal(true)}>
+                    <Text style={{ color: '#3b82f6', textAlign: 'right', marginBottom: 10 }}>
+                        Şifremi unuttum
+                    </Text>
+                </TouchableOpacity>
+            )} */}
                 {!isLogin && (
                     <>
                         <View style={styles.inputContainer}>
                             <User size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Görüntü adı"
+                                placeholder="Adiniz"
                                 value={displayName}
                                 onChangeText={setDisplayName}
                             />
@@ -186,6 +218,49 @@ export default function AuthScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
+            <Modal visible={showResetModal} animationType="slide" transparent={true}>
+                <View style={{
+                    flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)'
+                }}>
+                    <View style={{
+                        backgroundColor: 'white', padding: 20, borderRadius: 10, width: '85%'
+                    }}>
+                        <Text style={{ fontSize: 18, marginBottom: 10, fontWeight: 'bold' }}>
+                            Şifre sıfırlama
+                        </Text>
+
+                        <TextInput
+                            placeholder="E-mail adresinizi girin"
+                            style={{
+                                borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
+                                padding: 10, marginBottom: 15
+                            }}
+                            value={resetEmail}
+                            onChangeText={setResetEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+
+                        <TouchableOpacity
+                            onPress={handlePasswordReset}
+                            style={{
+                                backgroundColor: '#3b82f6', padding: 12,
+                                borderRadius: 8, alignItems: 'center', marginBottom: 10
+                            }}
+                        >
+                            <Text style={{ color: 'white', fontWeight: '600' }}>Sıfırlama bağlantısı gönder</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => setShowResetModal(false)}
+                            style={{ alignItems: 'center' }}
+                        >
+                            <Text style={{ color: '#3b82f6' }}>İptal</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
         </ScrollView>
     );
 }

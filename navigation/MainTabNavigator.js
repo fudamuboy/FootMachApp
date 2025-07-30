@@ -7,10 +7,14 @@ import Profile from '../screens/Profile';
 import { useAuth } from '../contexts/AuthContext';
 import { View, Text } from 'react-native'; // ✅ Ajout de Text
 import { supabase } from '../lib/supabase'; // ✅ Assure-toi d'importer supabase si ce n'était pas fait
-import UserInfoScreen from '../screens/UserInfoScreen';
-import AddressScreen from '../screens/AddressScreen';
-import EvaluationScreen from '../screens/EvaluationScreen';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+
+// ✅ Bon pour Expo
+import Ionicons from '@expo/vector-icons/Ionicons';
+
+
+
+
+import CommentsListScreen from '../screens/CommentsListScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -27,7 +31,7 @@ const MainTabNavigator = () => {
                 .from('messages')
                 .select('id')
                 .eq('is_read', false)
-                .neq('sender_id', profile.id); // Messages reçus non lus
+                .neq('sender_id', profile?.id); // Messages reçus non lus
 
             if (error) {
                 console.error('Erreur chargement messages non lus', error);
@@ -76,7 +80,7 @@ const MainTabNavigator = () => {
                 name="Announcements"
                 component={AnnouncementScreen}
                 options={{
-                    title: 'Reklamlar',
+                    title: 'Ilan',
                     tabBarIcon: ({ size, color }) => (
                         <Megaphone size={size} color={color} />
                     ),
@@ -114,12 +118,11 @@ const MainTabNavigator = () => {
                     ),
                 }}
             />
-            <Tab.Screen name="UserInfoScreen" component={UserInfoScreen} options={{ tabBarButton: () => null }} />
-            <Tab.Screen name="AddressScreen" component={AddressScreen} options={{ tabBarButton: () => null }} />
+
 
             <Tab.Screen
-                name="Evaluations"
-                component={EvaluationScreen}
+                name="CommentsListScreen"
+                component={CommentsListScreen}
                 options={{
                     tabBarLabel: 'Değerlendirme',
                     tabBarIcon: ({ color, size }) => (

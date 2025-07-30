@@ -1,5 +1,7 @@
 {
   "expo": {
+    "scheme": "myapp",
+    "deepLinking": true,
     "name": "E-Sport",
     "slug": "E-Sport",
     "version": "1.0.0",

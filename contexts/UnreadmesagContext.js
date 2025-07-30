@@ -16,7 +16,7 @@ export const UnreadMessagesProvider = ({ children }) => {
             .from('messages')
             .select('id')
             .eq('is_read', false)
-            .neq('sender_id', profile.id);
+            .neq('sender_id', profile?.id);
 
         if (error) {
             console.error('Erreur lecture messages non lus :', error);

@@ -36,14 +36,14 @@ export default function ChatsScreen({ navigation }) {
                 participant_2_profile:profiles!chats_participant_2_fkey(username, avatar_url),
                 messages(id, chat_id, sender_id, is_read)
             `)
-                .or(`participant_1.eq.${profile.id},participant_2.eq.${profile.id}`)
+                .or(`participant_1.eq.${profile?.id},participant_2.eq.${profile?.id}`)
                 .order('last_updated', { ascending: false });
 
             if (error) throw error;
 
             const chatsWithNames = await Promise.all(
                 (data || []).map(async (chat) => {
-                    const isOwn = chat.participant_1 === profile.id;
+                    const isOwn = chat.participant_1 === profile?.id;
                     const otherProfile = isOwn ? chat.participant_2_profile : chat.participant_1_profile;
 
                     // 🔴 Compte les messages non lus pour ce chat
@@ -52,7 +52,7 @@ export default function ChatsScreen({ navigation }) {
                         .select('*', { count: 'exact', head: true })
                         .eq('chat_id', chat.id)
                         .eq('is_read', false)
-                        .neq('sender_id', profile.id);
+                        .neq('sender_id', profile?.id);
 
                     if (countError) console.error('Erreur unread count:', countError);
 

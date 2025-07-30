@@ -52,15 +52,15 @@ export default function AnnouncementScreen({ navigation }) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(23, 59, 59, 999);
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            nextWeek.setHours(23, 59, 59, 999);
 
             let request = supabase
                 .from('announcements')
                 .select('*')
                 .gte('match_time', today.toISOString())
-                .lte('match_time', tomorrow.toISOString())
+                .lte('match_time', nextWeek.toISOString())
                 .order('match_time', { ascending: true })
                 .range(0, 999); // 👈 affiche jusqu'à 1000 résultats
 

@@ -24,9 +24,20 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
 
                 {/* Montrer le bouton Takımı Değerlendir seulement si ce n’est PAS le propriétaire et que le match est passé */}
                 {!isOwner && isPastMatch && (
-                    <TouchableOpacity onPress={() => onEvaluate(announcement)}>
-                        <Text style={styles.evaluateButton}>Takımı Değerlendir</Text>
+                    <TouchableOpacity
+                        onPress={() => isPastMatch && onEvaluate(announcement)}
+                        disabled={!isPastMatch}
+                    >
+                        <Text
+                            style={[
+                                styles.evaluateButton,
+                                { opacity: isPastMatch ? 1 : 0.5 }
+                            ]}
+                        >
+                            Takımı Değerlendir
+                        </Text>
                     </TouchableOpacity>
+
                 )}
             </View>
 

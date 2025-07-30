@@ -8,8 +8,11 @@ import {
     Modal,
     ScrollView,
     ActivityIndicator,
+    Platform,
+    Keyboard
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { X, Users, Clock, MapPin, FileText } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -19,10 +22,13 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const [teamName, setTeamName] = useState('');
     const [playersNeeded, setPlayersNeeded] = useState(1);
     const [matchTime, setMatchTime] = useState('');
+    const [tempDate, setTempDate] = useState(null);
     const [location, setLocation] = useState('');
     const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showTimePicker, setShowTimePicker] = useState(false);
 
     const handleSubmit = async () => {
         if (!profile || !teamName || !matchTime || !location) {
@@ -44,12 +50,10 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     location,
                     description,
                     region: profile?.region,
-
                 });
 
             if (error) throw error;
 
-            // Reset form
             setTeamName('');
             setPlayersNeeded(1);
             setMatchTime('');
@@ -100,11 +104,11 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             onValueChange={setPlayersNeeded}
                             style={styles.picker}
                         >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(num => (
+                            {[...Array(11).keys()].map(i => (
                                 <Picker.Item
-                                    key={num}
-                                    label={`${num} oyuncu${num > 1 ? 's' : ''} aranıyor${num > 1 ? 's' : ''}`}
-                                    value={num}
+                                    key={i + 1}
+                                    label={`${i + 1} oyuncu${i > 0 ? 's' : ''} aranıyor${i > 0 ? 's' : ''}`}
+                                    value={i + 1}
                                 />
                             ))}
                         </Picker>
@@ -112,12 +116,51 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     <View style={styles.inputContainer}>
                         <Clock size={20} color="#666" style={styles.inputIcon} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Tarih ve saat (örn: 2024-01-15 14:30)"
-                            value={matchTime}
-                            onChangeText={setMatchTime}
-                        />
+                        <TouchableOpacity
+                            style={{ flex: 1 }}
+                            onPress={() => {
+                                Keyboard.dismiss();
+                                setShowDatePicker(true);
+                            }}
+                        >
+                            <Text style={[styles.input, { paddingTop: 12 }]}>
+                                {matchTime ? new Date(matchTime).toLocaleString() : 'Maç tarihi ve saati seç'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={matchTime ? new Date(matchTime) : new Date()}
+                                mode="date"
+                                display="default"
+                                minimumDate={new Date()}
+                                maximumDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(false);
+                                    if (event.type === 'set' && selectedDate) {
+                                        setTempDate(selectedDate);
+                                        setTimeout(() => setShowTimePicker(true), 100);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        {showTimePicker && (
+                            <DateTimePicker
+                                value={tempDate || new Date()}
+                                mode="time"
+                                display="default"
+                                onChange={(event, selectedTime) => {
+                                    setShowTimePicker(false);
+                                    if (event.type === 'set' && selectedTime) {
+                                        const finalDate = new Date(tempDate);
+                                        finalDate.setHours(selectedTime.getHours());
+                                        finalDate.setMinutes(selectedTime.getMinutes());
+                                        setMatchTime(finalDate.toISOString());
+                                    }
+                                }}
+                            />
+                        )}
                     </View>
 
                     <View style={styles.inputContainer}>
@@ -168,6 +211,8 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
         </Modal>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     container: {

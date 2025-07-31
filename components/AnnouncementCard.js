@@ -19,9 +19,9 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
 
 
     // DEBUG: Vérifie les logs pour t’assurer de la valeur
-    console.log("isPastMatch:", isPastMatch);
-    console.log("isOwner:", isOwner);
-    console.log("match_time:", announcement.match_time);
+    // console.log("isPastMatch:", isPastMatch);
+    // console.log("isOwner:", isOwner);
+    // console.log("match_time:", announcement.match_time);
 
     return (
         <View style={styles.card}>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     evaluateButton: {
-        color: '#3b82f6',
+        color: '#82AD6A',
         fontWeight: 'bold',
         marginLeft: 10,
     },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     contactButton: {
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#9DB88D',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

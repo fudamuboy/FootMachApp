@@ -1,25 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import {
+    View,
+    Text,
+    FlatList,
+    StyleSheet,
+    ImageBackground,
+    SafeAreaView,
+    Platform,
+    StatusBar
+} from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export default function CommentsListScreen() {
     const [comments, setComments] = useState([]);
 
     useEffect(() => {
-        // console.log("hauua");
-
         fetchComments();
     }, []);
-    const fetchComments = async () => {
-        //  console.log("📡 Chargement des commentaires...");
 
+    const fetchComments = async () => {
         const { data, error } = await supabase
             .from('comments')
             .select('*')
             .order('rating', { ascending: false });
-
-        // console.log("🧾 Données :", data);
-        // console.log("❗Erreur :", error);
 
         if (error) {
             console.error('Erreur récupération commentaires :', error);
@@ -27,7 +30,6 @@ export default function CommentsListScreen() {
             setComments(data);
         }
     };
-
 
     const renderItem = ({ item }) => (
         <View style={styles.commentCard}>
@@ -42,33 +44,58 @@ export default function CommentsListScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Yorumlar</Text>
-            <Text>Bulunan yorumlar : {comments.length}</Text>
-
-            <FlatList
-                data={comments}
-                keyExtractor={(item) => item.id?.toString() ?? Math.random().toString()}
-                renderItem={renderItem}
-                ListEmptyComponent={<Text>Yorum bulunamadı</Text>}
-            />
-
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Yorumlar</Text>
+            </View>
+            <View style={styles.contentContainer}>
+                <Text>Bulunan yorumlar : {comments.length}</Text>
+                <ImageBackground
+                    source={require('../assets/logos.jpg')}
+                    style={styles.imageBackground}
+                    imageStyle={{
+                        opacity: 0.09,
+                    }}
+                >
+                    <FlatList
+                        data={comments}
+                        keyExtractor={(item) => item.id?.toString() ?? Math.random().toString()}
+                        renderItem={renderItem}
+                        ListEmptyComponent={<Text>Yorum bulunamadı</Text>}
+                    />
+                </ImageBackground>
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#9DB88D',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    header: {
+        backgroundColor: '#9DB88D',
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        alignItems: 'center',
     },
     title: {
         fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-        paddingTop: 20,
+        color: 'black',
+    },
+    contentContainer: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        backgroundColor: '#f1f5f9',
+        // borderTopLeftRadius: 20,
+        // borderTopRightRadius: 20,
+    },
+    imageBackground: {
+        flex: 1,
     },
     commentCard: {
         backgroundColor: 'white',

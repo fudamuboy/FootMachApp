@@ -11,6 +11,7 @@ import {
     Modal,
     ScrollView,
     Alert,
+    ImageBackground,
 } from 'react-native';
 import { Plus, Star, MessageSquare, Award, X } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
@@ -251,7 +252,7 @@ export default function AnnouncementScreen({ navigation }) {
                         style={styles.addButton}
                         onPress={() => setShowCreateModal(true)}
                     >
-                        <Plus size={24} color="white" />
+                        <Plus size={24} color="black" />
                     </TouchableOpacity>
                 </View>
 
@@ -273,17 +274,26 @@ export default function AnnouncementScreen({ navigation }) {
                         <ActivityIndicator size="large" color="#3b82f6" />
                     </View>
                 ) : (
-                    <FlatList
-                        data={announcements}
-                        renderItem={renderAnnouncement}
-                        keyExtractor={(item) => item.id.toString()}
-                        contentContainerStyle={styles.list}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                        }
-                        ListEmptyComponent={renderEmpty}
-                        showsVerticalScrollIndicator={false}
-                    />
+                    <ImageBackground
+                        source={require('../assets/logos.jpg')}
+                        style={{ flex: 1 }}
+                        imageStyle={{
+                            opacity: 0.09,
+                            resizeMode: 'contain'
+                        }} // 👈 transparence ici
+                    >
+                        <FlatList
+                            data={announcements}
+                            renderItem={renderAnnouncement}
+                            keyExtractor={(item) => item.id.toString()}
+                            contentContainerStyle={styles.list}
+                            refreshControl={
+                                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                            }
+                            ListEmptyComponent={renderEmpty}
+                            showsVerticalScrollIndicator={false}
+                        />
+                    </ImageBackground>
                 )}
 
                 <CreateAnnouncement
@@ -386,22 +396,24 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
+        color: '#1f2937',
+        backgroundColor: '#9DB88D'
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#1f2937',
+
     },
     subtitle: {
         fontSize: 14,
-        color: '#6b7280',
+        color: 'black',
         marginTop: 2,
     },
     addButton: {
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#3b82f6',
+        backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
         shadowColor: '#000',
@@ -417,9 +429,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 10,
         backgroundColor: 'white',
+        margin: 10,
     },
     searchInput: {
-        backgroundColor: '#f1f5f9',
+        backgroundColor: '#C4C7C1',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 10,

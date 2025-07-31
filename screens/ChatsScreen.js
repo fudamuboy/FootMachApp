@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     View, Text, FlatList, TouchableOpacity, StyleSheet,
-    RefreshControl, ActivityIndicator, Image
+    RefreshControl, ActivityIndicator, Image,
+    ImageBackground
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MessageCircle } from 'lucide-react-native';
@@ -169,18 +170,27 @@ export default function ChatsScreen({ navigation }) {
                 <Text style={styles.title}>Mesajlar</Text>
             </View>
 
+            <ImageBackground
+                source={require('../assets/logos.jpg')}
+                style={{ flex: 1 }}
+                imageStyle={{
+                    opacity: 0.09,
+                    resizeMode: 'contain'
+                }} // 👈 transparence ici
+            >
+                <FlatList
+                    data={chats}
+                    renderItem={renderChat}
+                    keyExtractor={(item) => item.id}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    }
+                    ListEmptyComponent={renderEmpty}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                />
+            </ImageBackground>
 
-            <FlatList
-
-                data={chats}
-                renderItem={renderChat}
-                keyExtractor={(item) => item.id}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-                }
-                ListEmptyComponent={renderEmpty}
-                showsVerticalScrollIndicator={false}
-            />
         </View>
     );
 }
@@ -195,6 +205,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e5e7eb',
+        backgroundColor: '#9DB88D'
     },
     title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
     chatItem: {

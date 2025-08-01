@@ -35,6 +35,7 @@ export default function ChatScreen({ route, navigation }) {
     const [otherUserAvatar, setOtherUserAvatar] = useState('');
     const flatListRef = useRef(null);
 
+
     const fetchMessages = async () => {
         if (!chatId) return;
 

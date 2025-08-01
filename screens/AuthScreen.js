@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#9DB88D',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
@@ -295,12 +295,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#1f2937',
+        color: 'black',
         marginBottom: 8,
     },
     subtitle: {
         fontSize: 16,
-        color: '#6b7280',
+        color: 'black',
     },
     form: {
         backgroundColor: 'white',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
         height: 50,
     },
     submitButton: {
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#9DB88D',
         borderRadius: 12,
         height: 50,
         justifyContent: 'center',
@@ -366,18 +366,18 @@ const styles = StyleSheet.create({
         opacity: 0.6,
     },
     submitButtonText: {
-        color: 'white',
+        color: 'black',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
     },
     switchButton: {
         marginTop: 20,
         alignItems: 'center',
     },
     switchButtonText: {
-        color: '#3b82f6',
+        color: 'black',
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: 'bold',
     },
     phoneContainer: {
         flexDirection: 'row',

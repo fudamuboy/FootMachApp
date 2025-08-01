@@ -29,11 +29,11 @@ export default function ProfileScreen() {
                     await signOut();
                     navigation.reset({
                         index: 0,
-                        routes: [{ name: 'LoginScreen' }],
+                        routes: [{ name: 'Auth' }],
                     });
                 }}
                     style={styles.logoutIcon}>
-                    <Ionicons name="log-out-outline" size={24} color="#1A1A1A" />
+                    <Ionicons name="log-out-outline" size={24} color="red" />
                 </TouchableOpacity>
 
                 <Text style={styles.headerText}>Hesabım</Text>

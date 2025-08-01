@@ -266,7 +266,7 @@ export default function AnnouncementScreen({ navigation }) {
                 </View>
 
                 <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 6 }}>
-                    Toplam: {announcements.length} reklam
+                    Toplam: {announcements.length} ilan
                 </Text>
 
                 {loading ? (

@@ -76,7 +76,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <X size={24} color="#6b7280" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>Reklam oluşturma</Text>
+                    <Text style={styles.title}>Ilan oluşturma</Text>
                     <View style={styles.placeholder} />
                 </View>
 
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     submitButton: {
-        backgroundColor: '#3b82f6',
+        backgroundColor: '#B4C8A6',
     },
     submitButtonDisabled: {
         opacity: 0.6,

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Réinitialisation du mot de passe</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Noto Sans', 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+            background: #0b1220;
+            color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: #111827;
+            padding: 24px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        p {
+            margin: 0 0 16px;
+            color: #9ca3af;
+        }
+
+        .input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #374151;
+            background: #0f172a;
+            color: #e5e7eb;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            background: #22c55e;
+            color: #0b1220;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .msg {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .err {
+            color: #fca5a5;
+        }
+
+        .ok {
+            color: #86efac;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .muted {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <div class="card">
+        <h1>Définir un nouveau mot de passe</h1>
+        <p id="state">Vérification du lien…</p>
+        <form id="form" class="hidden">
+            <input id="pw" class="input" type="password" placeholder="Nouveau mot de passe (min. 6)" minlength="6"
+                required />
+            <input id="cpw" class="input" type="password" placeholder="Confirmez le mot de passe" minlength="6"
+                required />
+            <button id="submit" class="btn" type="submit">Mettre à jour</button>
+            <div id="msg" class="msg"></div>
+            <div class="muted">Le lien expire après un court délai. Récupérez un nouveau lien si nécessaire.</div>
+        </form>
+    </div>
+
+    <script>
+        // Configuration publique (safe à exposer)
+        const SUPABASE_URL = 'https://wrgdfzachdaraootrjzy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyZ2RmemFjaGRhcmFvb3Ryanp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzNzEzNDYsImV4cCI6MjA2Njk0NzM0Nn0.NpigGLhyE1Q4o6M2crDFoifhV3dopJ8JnX43o5AveJE';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function getParams() {
+            // Supabase met les tokens dans l'ancre (#)
+            const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+            const h = new URLSearchParams(hash);
+            // Fallback query (?token=...&type=recovery) si jamais
+            const q = new URLSearchParams(window.location.search);
+            const type = h.get('type') || q.get('type');
+            const access_token = h.get('access_token') || q.get('token');
+            const refresh_token = h.get('refresh_token') || q.get('refresh_token');
+            return { type, access_token, refresh_token };
+        }
+
+        async function init() {
+            const state = document.getElementById('state');
+            const form = document.getElementById('form');
+            const { type, access_token, refresh_token } = getParams();
+
+            if (type !== 'recovery' || !access_token) {
+                state.textContent = "Lien invalide ou expiré. Demandez un nouveau lien de réinitialisation.";
+                return;
+            }
+
+            try {
+                const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+                if (error) throw error;
+                state.textContent = 'Lien vérifié. Saisissez votre nouveau mot de passe :';
+                form.classList.remove('hidden');
+            } catch (e) {
+                state.textContent = 'Impossible de vérifier la session. Le lien a peut-être expiré.';
+            }
+        }
+
+        document.getElementById('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('msg');
+            msg.textContent = '';
+            msg.className = 'msg';
+
+            const pw = document.getElementById('pw').value.trim();
+            const cpw = document.getElementById('cpw').value.trim();
+            const btn = document.getElementById('submit');
+
+            if (pw.length < 6) {
+                msg.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
+                msg.classList.add('err');
+                return;
+            }
+            if (pw !== cpw) {
+                msg.textContent = 'Les mots de passe ne correspondent pas.';
+                msg.classList.add('err');
+                return;
+            }
+
+            btn.disabled = true;
+            try {
+                const { error } = await supabase.auth.updateUser({ password: pw });
+                if (error) throw error;
+                msg.textContent = 'Votre mot de passe a été mis à jour. Vous pouvez désormais vous connecter dans l\'app.';
+                msg.classList.add('ok');
+            } catch (e) {
+                msg.textContent = e.message || 'Une erreur est survenue.';
+                msg.classList.add('err');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

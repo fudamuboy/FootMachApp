@@ -8,17 +8,17 @@ import MainTabNavigator from './MainTabNavigator';
 import ChatScreen from '../screens/ChatScreen';
 import AuthScreen from '../screens/AuthScreen';
 import SplashScreen from '../screens/SplashScreen';
-import ResetPasswordScreen from '../screens/ResetPasswordScreen'; // �� ajoute cet import
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import UserInfoScreen from '../screens/UserInfoScreen';
 import AddressScreen from '../screens/AddressScreen';
 
 const Stack = createStackNavigator();
 
 const linking = {
-    prefixes: ['myapp://reset-password'], // 👈 ton schéma ici
+    prefixes: ['myapp://reset-password'],
     config: {
         screens: {
-            ResetPassword: 'reset-password', // 👈 correspond à myapp://reset-password
+            ResetPassword: 'reset-password',
         },
     },
 };
@@ -28,9 +28,7 @@ export const AppNavigator = () => {
     const [showSplash, setShowSplash] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowSplash(false);
-        }, 3000);
+        const timer = setTimeout(() => setShowSplash(false), 3000);
         return () => clearTimeout(timer);
     }, []);
 
@@ -49,13 +47,12 @@ export const AppNavigator = () => {
                         <Stack.Screen name="AddressScreen" component={AddressScreen} />
                     </>
                 ) : (
-                    <Stack.Screen name="Auth" component={AuthScreen} />
+                    <>
+                        <Stack.Screen name="Auth" component={AuthScreen} />
+                        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                    </>
                 )}
-
-                <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-
             </Stack.Navigator>
         </NavigationContainer>
-
     );
 };

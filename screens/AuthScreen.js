@@ -13,6 +13,8 @@ import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, User, MapPin, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
+import { supabase } from '../lib/supabase';
 
 const REGIONS = [
     'Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Balçova', 'Gaziemir',
@@ -71,21 +73,22 @@ export default function AuthScreen() {
     };
 
     const handlePasswordReset = async () => {
-        if (!resetEmail) {
-            Alert.alert("Hata", "Lütfen email adresinizi girin.");
+        if (!resetEmail || !resetEmail.trim()) {
+            Alert.alert('Erreur', 'Lütfen e-postanızı girin.');
             return;
         }
 
-        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-            redirectTo: 'myapp://reset-password', // à personnaliser selon ton app
+        const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+            redirectTo: 'https://sifre-reset.netlify.app/'
         });
 
         if (error) {
             console.error('Erreur de réinitialisation :', error.message);
             Alert.alert('Erreur', error.message);
         } else {
-            Alert.alert('Succès', 'Lien de réinitialisation envoyé à votre email.');
-            setShowResetModal(false); // referme le modal automatiquement
+            console.log('Email de réinitialisation envoyé');
+            Alert.alert('başarılı', 'Sıfırlama e-postası gönderildi.');
+            setShowResetModal(false);
         }
     };
 
@@ -144,13 +147,13 @@ export default function AuthScreen() {
                     </TouchableOpacity>
 
                 </View>
-                {/* {isLogin && (
-                <TouchableOpacity onPress={() => setShowResetModal(true)}>
-                    <Text style={{ color: '#3b82f6', textAlign: 'right', marginBottom: 10 }}>
-                        Şifremi unuttum
-                    </Text>
-                </TouchableOpacity>
-            )} */}
+                {isLogin && (
+                    <TouchableOpacity onPress={() => setShowResetModal(true)}>
+                        <Text style={{ color: '#3b82f6', textAlign: 'right', marginBottom: 10 }}>
+                            Şifremi unuttum
+                        </Text>
+                    </TouchableOpacity>
+                )}
                 {!isLogin && (
                     <>
                         <View style={styles.inputContainer}>
@@ -213,7 +216,7 @@ export default function AuthScreen() {
                 >
                     <Text style={styles.switchButtonText}>
                         {isLogin
-                            ? 'Henüz hesap yok mu? Kayit olun'
+                            ? 'Henüz hesap yok mu? kayıt olun'
                             : 'Zaten bir hesap mı? Oturum aç'}
                     </Text>
                 </TouchableOpacity>

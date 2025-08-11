@@ -29,6 +29,11 @@ export default function AnnouncementScreen({ navigation }) {
     const [showEvaluationModal, setShowEvaluationModal] = useState(false);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [searchRegion, setSearchRegion] = useState('');
+    const [newAnnouncementsCount, setNewAnnouncementsCount] = useState(0);
+    const [lastUpdateTime, setLastUpdateTime] = useState(null);
+    const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' ou 'past'
+    const [pastAnnouncements, setPastAnnouncements] = useState([]);
+    const [loadingPast, setLoadingPast] = useState(false);
 
     // États pour l'évaluation
     const [rating, setRating] = useState(0);
@@ -53,6 +58,7 @@ export default function AnnouncementScreen({ navigation }) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            // Garder le délai de 7 jours comme demandé
             const nextWeek = new Date();
             nextWeek.setDate(nextWeek.getDate() + 7);
             nextWeek.setHours(23, 59, 59, 999);
@@ -63,13 +69,14 @@ export default function AnnouncementScreen({ navigation }) {
                 .gte('match_time', today.toISOString())
                 .lte('match_time', nextWeek.toISOString())
                 .order('match_time', { ascending: true })
-                .range(0, 999); // 👈 affiche jusqu'à 1000 résultats
+                .range(0, 999);
 
+            // Si une recherche est effectuée, filtrer par région
             if (query.trim()) {
                 request = request.ilike('location', `%${query.trim()}%`);
-            } else {
-                request = request.in('location', REGIONS);
             }
+            // Sinon, afficher TOUTES les annonces (pas seulement celles de la région de l'utilisateur)
+            // Suppression du filtre .in('location', REGIONS) pour afficher toutes les annonces
 
             const { data, error } = await request;
 
@@ -87,9 +94,81 @@ export default function AnnouncementScreen({ navigation }) {
         }
     };
 
+    // Fonction pour récupérer les annonces passées (pour les évaluations)
+    const fetchPastAnnouncements = async (query = '') => {
+        if (!profile) return;
+
+        try {
+            setLoadingPast(true);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Récupérer les annonces des 7 derniers jours
+            const pastWeek = new Date();
+            pastWeek.setDate(pastWeek.getDate() - 7);
+            pastWeek.setHours(0, 0, 0, 0);
+
+            let request = supabase
+                .from('announcements')
+                .select('*')
+                .gte('match_time', pastWeek.toISOString())
+                .lt('match_time', today.toISOString())
+                .order('match_time', { ascending: false }) // Plus récentes en premier
+                .range(0, 999);
+
+            // Si une recherche est effectuée, filtrer par région
+            if (query.trim()) {
+                request = request.ilike('location', `%${query.trim()}%`);
+            }
+
+            const { data, error } = await request;
+
+            if (error) throw error;
+            setPastAnnouncements((data || []).map(item => ({
+                ...item,
+                match_time: new Date(item.match_time)
+            })));
+
+        } catch (error) {
+            console.error('Error fetching past announcements:', error);
+        } finally {
+            setLoadingPast(false);
+        }
+    };
+
     useEffect(() => {
-        if (profile) fetchAnnouncements('');
+        if (profile) {
+            fetchAnnouncements('');
+            fetchPastAnnouncements('');
+        }
     }, [profile]);
+
+    // Ajouter un écouteur en temps réel pour les nouvelles annonces
+    useEffect(() => {
+        if (!profile) return;
+
+        // Écouter les changements dans la table announcements
+        const channel = supabase
+            .channel('announcements_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'announcements'
+                },
+                (payload) => {
+                    handleRealTimeUpdate(payload);
+                }
+            )
+            .subscribe();
+
+        // Nettoyer l'abonnement quand le composant se démonte
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [profile, searchRegion]);
     // actualiser la liste des annonces
     const handleRefresh = () => {
         setRefreshing(true);
@@ -98,7 +177,42 @@ export default function AnnouncementScreen({ navigation }) {
 
     const handleSearchChange = (text) => {
         setSearchRegion(text);
-        fetchAnnouncements(text);
+        // Ajouter un délai pour éviter trop d'appels API pendant la frappe
+        setTimeout(() => {
+            fetchAnnouncements(text);
+            fetchPastAnnouncements(text);
+        }, 300);
+    };
+
+    // Fonction optimisée pour les mises à jour en temps réel
+    const handleRealTimeUpdate = (payload) => {
+        console.log('Nouvelle annonce détectée:', payload);
+        setLastUpdateTime(new Date());
+
+        // Si c'est une nouvelle annonce, l'ajouter à la liste
+        if (payload.eventType === 'INSERT') {
+            const newAnnouncement = {
+                ...payload.new,
+                match_time: new Date(payload.new.match_time)
+            };
+
+            // Vérifier si l'annonce correspond aux critères de recherche actuels
+            const matchesSearch = !searchRegion ||
+                newAnnouncement.location.toLowerCase().includes(searchRegion.toLowerCase());
+
+            if (matchesSearch) {
+                setAnnouncements(prev => [newAnnouncement, ...prev]);
+                setNewAnnouncementsCount(prev => prev + 1);
+
+                // Réinitialiser le compteur après 5 secondes
+                setTimeout(() => {
+                    setNewAnnouncementsCount(0);
+                }, 5000);
+            }
+        } else {
+            // Pour les modifications et suppressions, rafraîchir complètement
+            fetchAnnouncements(searchRegion);
+        }
     };
 
     const handleContact = async (announcement) => {
@@ -233,9 +347,14 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.emptyIcon}>
                 <Text style={styles.emptyIconText}>⚽</Text>
             </View>
-            <Text style={styles.emptyTitle}>Hiç ilan</Text>
+            <Text style={styles.emptyTitle}>
+                {searchRegion ? 'Bu bölgede ilan yok' : 'Hiç ilan yok'}
+            </Text>
             <Text style={styles.emptySubtitle}>
-                Arama çubuğunda başka bir bölge deneyin
+                {searchRegion
+                    ? 'Başka bir bölge deneyin veya ilk ilanı oluşturun'
+                    : 'İlk ilanı oluşturarak başlayın'
+                }
             </Text>
         </View>
     );
@@ -245,8 +364,15 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.container}>
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.title}>Ilanlar</Text>
-                        <Text style={styles.subtitle}>Bölgem: {profile?.region}</Text>
+                        <Text style={styles.title}>İlanlar</Text>
+                        <Text style={styles.subtitle}>
+                            {searchRegion ? `Arama: ${searchRegion}` : 'Tüm ilanlar'}
+                        </Text>
+                        {newAnnouncementsCount > 0 && (
+                            <Text style={styles.newAnnouncementsText}>
+                                🆕 {newAnnouncementsCount} yeni ilan
+                            </Text>
+                        )}
                     </View>
                     <TouchableOpacity
                         style={styles.addButton}
@@ -265,8 +391,28 @@ export default function AnnouncementScreen({ navigation }) {
                     />
                 </View>
 
+                {/* Onglets pour séparer les annonces futures et passées */}
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
+                        onPress={() => setActiveTab('upcoming')}
+                    >
+                        <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
+                            Yaklaşan Maçlar ({announcements.length})
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'past' && styles.activeTab]}
+                        onPress={() => setActiveTab('past')}
+                    >
+                        <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
+                            Geçmiş Maçlar ({pastAnnouncements.length})
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
                 <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 6 }}>
-                    Toplam: {announcements.length} ilan
+                    Toplam: {activeTab === 'upcoming' ? announcements.length : pastAnnouncements.length} ilan
                 </Text>
 
                 {loading ? (
@@ -283,7 +429,7 @@ export default function AnnouncementScreen({ navigation }) {
                         }} // 👈 transparence ici
                     >
                         <FlatList
-                            data={announcements}
+                            data={activeTab === 'upcoming' ? announcements : pastAnnouncements}
                             renderItem={renderAnnouncement}
                             keyExtractor={(item) => item.id.toString()}
                             contentContainerStyle={styles.list}
@@ -581,5 +727,38 @@ const styles = StyleSheet.create({
     },
     buttonDisabled: {
         backgroundColor: '#a0aec0',
+    },
+    newAnnouncementsText: {
+        fontSize: 12,
+        color: '#3b82f6',
+        marginTop: 4,
+        fontWeight: 'bold',
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        marginHorizontal: 10,
+        marginBottom: 10,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+    },
+    tab: {
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 20,
+    },
+    activeTab: {
+        backgroundColor: '#9DB88D',
+        borderRadius: 20,
+    },
+    tabText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#6b7280',
+    },
+    activeTabText: {
+        color: 'white',
     },
 });

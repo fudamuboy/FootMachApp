@@ -167,7 +167,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <MapPin size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Maçın yeri"
+                            placeholder="Maçın yeri(örn: Buca)"
                             value={location}
                             onChangeText={setLocation}
                         />

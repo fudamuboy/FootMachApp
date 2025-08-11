@@ -40,10 +40,11 @@ Bu proje, özellikle İzmir’de yaşayan spor tutkunlarını bir araya getirmek
     
     🔗 Bağlantılar:
 
-    Play Store: Uygulamayı İndir (gerçek linki koymayı unutma)
+    Play Store: 
 
     Demo Video / Ekran Görüntüleri: coming soon...
     
     Hazırlayan: @fudamuboy
 💬 Her türlü öneri veya katkı için issues ya da pull request gönderebilirsiniz.
+
 

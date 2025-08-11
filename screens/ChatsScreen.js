@@ -38,6 +38,7 @@ export default function ChatsScreen({ navigation }) {
                 messages(id, chat_id, sender_id, is_read)
             `)
                 .or(`participant_1.eq.${profile?.id},participant_2.eq.${profile?.id}`)
+                .eq('city', profile?.city)
                 .order('last_updated', { ascending: false });
 
             if (error) throw error;
@@ -168,6 +169,7 @@ export default function ChatsScreen({ navigation }) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Mesajlar</Text>
+                <Text style={styles.subtitle}>{profile?.city || 'Tüm şehirler'}</Text>
             </View>
 
             <ImageBackground
@@ -208,6 +210,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#9DB88D'
     },
     title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
+    subtitle: {
+        fontSize: 14,
+        color: '#6b7280',
+        marginTop: 4,
+    },
     chatItem: {
         flexDirection: 'row',
         alignItems: 'center',

@@ -211,7 +211,8 @@ export default function ChatScreen({ route, navigation }) {
                     chat_id: chatId,
                     sender_id: profile?.id,
                     content: messageContent,
-                    is_read: false, // ✅ correction ici
+                    is_read: false,
+                    city: profile?.city
                 });
 
             if (messageError) throw messageError;

@@ -42,13 +42,6 @@ export default function AnnouncementScreen({ navigation }) {
     const [numericRating, setNumericRating] = useState(null);
 
 
-
-    const REGIONS = [
-        'Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Balçova', 'Gaziemir',
-        'Güzelbahçe', 'Karabağlar', 'Bayraklı', 'Menemen', 'Narlıdere', 'Tire',
-        'Urla', 'Ödemiş', 'Torbalı', 'Kemalpaşa', 'Aliağa', 'Selçuk', 'Seferihisar'
-    ];
-
     const fetchAnnouncements = async (query = '') => {
         if (!profile) return;
 
@@ -71,12 +64,15 @@ export default function AnnouncementScreen({ navigation }) {
                 .order('match_time', { ascending: true })
                 .range(0, 999);
 
+            // Filtrer par ville de l'utilisateur
+            if (profile.city) {
+                request = request.eq('city', profile.city);
+            }
+
             // Si une recherche est effectuée, filtrer par région
             if (query.trim()) {
                 request = request.ilike('location', `%${query.trim()}%`);
             }
-            // Sinon, afficher TOUTES les annonces (pas seulement celles de la région de l'utilisateur)
-            // Suppression du filtre .in('location', REGIONS) pour afficher toutes les annonces
 
             const { data, error } = await request;
 
@@ -116,6 +112,11 @@ export default function AnnouncementScreen({ navigation }) {
                 .lt('match_time', today.toISOString())
                 .order('match_time', { ascending: false }) // Plus récentes en premier
                 .range(0, 999);
+
+            // Filtrer par ville de l'utilisateur
+            if (profile.city) {
+                request = request.eq('city', profile.city);
+            }
 
             // Si une recherche est effectuée, filtrer par région
             if (query.trim()) {
@@ -196,11 +197,14 @@ export default function AnnouncementScreen({ navigation }) {
                 match_time: new Date(payload.new.match_time)
             };
 
+            // Vérifier si l'annonce correspond à la ville de l'utilisateur
+            const matchesCity = !profile.city || newAnnouncement.city === profile.city;
+
             // Vérifier si l'annonce correspond aux critères de recherche actuels
             const matchesSearch = !searchRegion ||
                 newAnnouncement.location.toLowerCase().includes(searchRegion.toLowerCase());
 
-            if (matchesSearch) {
+            if (matchesCity && matchesSearch) {
                 setAnnouncements(prev => [newAnnouncement, ...prev]);
                 setNewAnnouncementsCount(prev => prev + 1);
 
@@ -236,6 +240,7 @@ export default function AnnouncementScreen({ navigation }) {
                         participant_1: profile?.id,
                         participant_2: announcement.user_id,
                         last_updated: new Date().toISOString(),
+                        city: profile?.city
                     })
                     .select('id')
                     .single();
@@ -314,7 +319,8 @@ export default function AnnouncementScreen({ navigation }) {
                 user_id: profile?.id,
                 rating: rating,
                 comment: comment,
-                team_name: selectedAnnouncement?.team_name ?? null
+                team_name: selectedAnnouncement?.team_name ?? null,
+                city: profile?.city
             });
 
             if (error) {
@@ -366,7 +372,7 @@ export default function AnnouncementScreen({ navigation }) {
                     <View>
                         <Text style={styles.title}>İlanlar</Text>
                         <Text style={styles.subtitle}>
-                            {searchRegion ? `Arama: ${searchRegion}` : 'Tüm ilanlar'}
+                            {searchRegion ? `Arama: ${searchRegion}` : `${profile?.city || 'Tüm şehirler'} - ${profile?.region || 'Tüm bölgeler'}`}
                         </Text>
                         {newAnnouncementsCount > 0 && (
                             <Text style={styles.newAnnouncementsText}>

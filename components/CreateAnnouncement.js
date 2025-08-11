@@ -49,6 +49,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     match_time: matchTime,
                     location,
                     description,
+                    city: profile?.city,
                     region: profile?.region,
                 });
 

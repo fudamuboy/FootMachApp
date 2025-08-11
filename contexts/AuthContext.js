@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signUp = async (email, password, displayName, region, phoneNumber) => {
+    const signUp = async (email, password, displayName, city, region, phoneNumber) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -99,7 +99,8 @@ export const AuthProvider = ({ children }) => {
             .insert({
                 id: userId,
                 username: displayName,
-                region,
+                city: city,
+                region: region,
                 email: confirmedEmail,
                 phone: phoneNumber,
             });

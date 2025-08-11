@@ -10,8 +10,10 @@ import {
     StatusBar
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CommentsListScreen() {
+    const { profile } = useAuth();
     const [comments, setComments] = useState([]);
 
     useEffect(() => {
@@ -22,6 +24,7 @@ export default function CommentsListScreen() {
         const { data, error } = await supabase
             .from('comments')
             .select('*')
+            .eq('city', profile?.city)
             .order('rating', { ascending: false });
 
         if (error) {
@@ -47,6 +50,7 @@ export default function CommentsListScreen() {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
                 <Text style={styles.title}>Yorumlar</Text>
+                <Text style={styles.subtitle}>{profile?.city || 'Tüm şehirler'}</Text>
             </View>
             <View style={styles.contentContainer}>
                 <Text>Bulunan yorumlar : {comments.length}</Text>
@@ -85,6 +89,11 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: 'black',
+    },
+    subtitle: {
+        fontSize: 16,
+        color: 'gray',
+        marginTop: 4,
     },
     contentContainer: {
         flex: 1,

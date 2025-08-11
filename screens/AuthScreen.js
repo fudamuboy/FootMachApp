@@ -15,18 +15,14 @@ import { Mail, Lock, User, MapPin, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { supabase } from '../lib/supabase';
-
-const REGIONS = [
-    'Konak', 'Karşıyaka', 'Bornova', 'Buca', 'Çiğli', 'Balçova', 'Gaziemir',
-    'Güzelbahçe', 'Karabağlar', 'Bayraklı', 'Menemen', 'Narlıdere', 'Tire',
-    'Urla', 'Ödemiş', 'Torbalı', 'Kemalpaşa', 'Aliağa', 'Selçuk', 'Seferihisar'
-];
+import { getAllCities, getRegionsByCity } from '../lib/cities';
 
 export default function AuthScreen() {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
     const [region, setRegion] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -35,9 +31,14 @@ export default function AuthScreen() {
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetEmail, setResetEmail] = useState('')
 
-
     const { signIn, signUp } = useAuth();
     const navigation = useNavigation()
+
+    // Obtenir toutes les villes
+    const cities = getAllCities();
+
+    // Obtenir les régions de la ville sélectionnée
+    const regions = selectedCity ? getRegionsByCity(selectedCity) : [];
 
     const handleSubmit = async () => {
         if (!email || !password) {
@@ -45,7 +46,7 @@ export default function AuthScreen() {
             return;
         }
 
-        if (!isLogin && (!displayName || !region)) {
+        if (!isLogin && (!displayName || !selectedCity || !region)) {
             setError('Veuillez remplir tous les champs');
             return;
         }
@@ -57,7 +58,7 @@ export default function AuthScreen() {
             if (isLogin) {
                 await signIn(email, password);
             } else {
-                await signUp(email, password, displayName, region, phoneNumber);
+                await signUp(email, password, displayName, selectedCity, region, phoneNumber);
                 Alert.alert("✅ Kayıt başarılı", "Şimdi giriş yapabilirsiniz.");
                 navigation.navigate('Auth'); // 🔁 Redirection
             }
@@ -180,12 +181,29 @@ export default function AuthScreen() {
                         <View style={styles.inputContainer}>
                             <MapPin size={20} color="#666" style={styles.inputIcon} />
                             <Picker
+                                selectedValue={selectedCity}
+                                onValueChange={(value) => {
+                                    setSelectedCity(value);
+                                    setRegion(''); // Réinitialiser la région quand la ville change
+                                }}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Şehir seçin" value="" />
+                                {cities.map((city) => (
+                                    <Picker.Item key={city} label={city} value={city} />
+                                ))}
+                            </Picker>
+                        </View>
+
+                        <View style={styles.inputContainer}>
+                            <MapPin size={20} color="#666" style={styles.inputIcon} />
+                            <Picker
                                 selectedValue={region}
                                 onValueChange={setRegion}
                                 style={styles.picker}
                             >
                                 <Picker.Item label="Bölgenizi seçin" value="" />
-                                {REGIONS.map((r) => (
+                                {regions.map((r) => (
                                     <Picker.Item key={r} label={r} value={r} />
                                 ))}
                             </Picker>

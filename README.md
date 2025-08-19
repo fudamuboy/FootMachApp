@@ -37,14 +37,16 @@ Bu proje, özellikle İzmir’de yaşayan spor tutkunlarını bir araya getirmek
     Uygulama Google Play Store’da yayınlandı ve şu anda aktif olarak kullanılabilir.
 
     Geri bildirimler, katkılar ve yıldızlamalar (⭐) memnuniyetle karşılanır!
+     Play Store: 
+    Hazırlayan: @fudamuboy
     
     🔗 Bağlantılar:
+     Demo Video / Ekran Görüntüleri: 
+<img width="676" height="484" alt="Image" src="https://github.com/user-attachments/assets/4687af85-5366-4bec-b47a-7dcda3cc105e" />
 
-    Play Store: 
 
-    Demo Video / Ekran Görüntüleri: coming soon...
-    
-    Hazırlayan: @fudamuboy
+   
 💬 Her türlü öneri veya katkı için issues ya da pull request gönderebilirsiniz.
 
+  
 

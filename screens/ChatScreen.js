@@ -10,10 +10,12 @@ import {
     Platform,
     ActivityIndicator,
     Image,
-    ImageBackground
+    ImageBackground,
+    StatusBar
 } from 'react-native';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useUnreadMessages } from '../contexts/UnreadmesagContext';
 import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,13 +28,14 @@ const getAvatarUrl = (avatar_url, username) => {
 
 
 export default function ChatScreen({ route, navigation }) {
-    const { chatId } = route.params;
+    const { chatId, otherUserName: initialName, otherUserAvatar: initialAvatar } = route.params;
     const { profile } = useAuth();
+    const { fetchUnreadMessages } = useUnreadMessages();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
-    const [otherUserName, setOtherUserName] = useState('');
-    const [otherUserAvatar, setOtherUserAvatar] = useState('');
+    const [otherUserName, setOtherUserName] = useState(initialName || '');
+    const [otherUserAvatar, setOtherUserAvatar] = useState(initialAvatar || '');
     const flatListRef = useRef(null);
 
 
@@ -69,8 +72,9 @@ export default function ChatScreen({ route, navigation }) {
             if (!profile?.id || !chatId) return;
 
             try {
-                await api.put('/messages/mark-read', { chatId });
+                await api.put(`/chats/${chatId}/messages/mark-read`);
                 await fetchMessages(); // Refresh
+                await fetchUnreadMessages(); // ✅ Refresh tab badge immediately
             } catch(error) {
                  console.error('❌ UPDATE error:', error);
             }
@@ -151,7 +155,7 @@ export default function ChatScreen({ route, navigation }) {
     };
 
     const renderMessage = ({ item, index }) => {
-        const isOwn = item.sender_id === profile?.id;
+        const isOwn = String(item.sender_id) === String(profile?.id);
         const senderName = item.sender_username;
 
         // 🔍 Si c’est le dernier message de l’utilisateur
@@ -192,25 +196,30 @@ export default function ChatScreen({ route, navigation }) {
 
 
     return (
-        <SafeAreaView edges={['bottom']} // ✅ ne protège que le bas
-            style={{ flex: 1 }}>
+        <SafeAreaView edges={['top', 'bottom']}
+            style={{ flex: 1, backgroundColor: 'white' }}>
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <ArrowLeft size={24} color="#1f2937" />
                     </TouchableOpacity>
-                    <View style={styles.chatAvatarContainer}>
+                    
+                    <View style={styles.headerUserInfo}>
                         <Image
                             source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
-                            style={styles.chatAvatar}
+                            style={styles.headerAvatar}
                         />
-
+                        <View style={styles.headerTextContainer}>
+                             <Text style={styles.headerTitle} numberOfLines={1}>{otherUserName || 'Yükleniyor...'}</Text>
+                             <Text style={styles.headerStatus}>çevrimiçi</Text>
+                        </View>
                     </View>
-                    <Text style={styles.headerTitle}>{otherUserName}</Text>
-                    <View style={styles.placeholder} />
+                    
+                    <View style={styles.headerActions} />
                 </View>
 
                 {loading ? (
@@ -221,7 +230,6 @@ export default function ChatScreen({ route, navigation }) {
                     <ImageBackground source={require('../assets/foot.jpg')}
                         style={{ flex: 1 }}
                         resizeMode="cover">
-
                         <FlatList
                             ref={flatListRef}
                             data={messages}
@@ -231,7 +239,6 @@ export default function ChatScreen({ route, navigation }) {
                             ListEmptyComponent={renderEmpty}
                             showsVerticalScrollIndicator={false}
                         />
-
                     </ImageBackground>
                 )}
 
@@ -266,24 +273,49 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        paddingTop: 60,
+        paddingHorizontal: 16,
+        paddingBottom: 12,
+        paddingTop: Platform.OS === 'ios' ? 0 : 10,
         backgroundColor: 'white',
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
+        borderBottomColor: '#f3f4f6',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
     },
     backButton: {
-        padding: 4,
+        padding: 8,
+        marginRight: 4,
+    },
+    headerUserInfo: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    headerAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#e5e7eb',
+    },
+    headerTextContainer: {
+        marginLeft: 12,
+        justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1f2937',
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
     },
-    placeholder: {
-        width: 32,
+    headerStatus: {
+        fontSize: 11,
+        color: '#10b981',
+        fontWeight: '600',
+    },
+    headerActions: {
+        width: 40,
     },
     loadingContainer: {
         flex: 1,

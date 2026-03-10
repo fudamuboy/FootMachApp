@@ -28,10 +28,6 @@ export default function ProfileScreen() {
                 {/* Bouton Çıkış en haut à gauche */}
                 <TouchableOpacity onPress={async () => {
                     await signOut();
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Auth' }],
-                    });
                 }}
                     style={styles.logoutIcon}>
                     <MaterialIcons name="exit-to-app" size={24} color="red" style={{ marginLeft: 'auto' }} />

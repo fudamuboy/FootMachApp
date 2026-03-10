@@ -40,7 +40,7 @@ export default function ChatsScreen({ navigation }) {
                     other_user_avatar: isOwn ? chat.participant_2_avatar : chat.participant_1_avatar || null,
                     // Note: unread count comes back from individual messages check, or we can use another aggregated field if provided by API
                     // To keep it simple, we use the specific endpoint we added for total unread_count initially
-                    unread_count: 0, // This can be enhanced in a future iteration
+                    unread_count: parseInt(chat.unread_count) || 0,
                 };
             });
 
@@ -100,7 +100,11 @@ export default function ChatsScreen({ navigation }) {
     const renderChat = ({ item }) => (
         <TouchableOpacity
             style={styles.chatItem}
-            onPress={() => navigation.navigate('Chat', { chatId: item.id })}
+            onPress={() => navigation.navigate('Chat', { 
+                chatId: item.id,
+                otherUserName: item.other_user_name,
+                otherUserAvatar: item.other_user_avatar
+            })}
         >
             <Image
                 source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}

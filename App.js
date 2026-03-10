@@ -7,11 +7,11 @@ import { UnreadMessagesProvider } from './contexts/UnreadmesagContext';
 
 export default function App() {
   return (
-    <UnreadMessagesProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <UnreadMessagesProvider>
         <StatusBar style="auto" />
         <AppNavigator />
-      </AuthProvider>
-    </UnreadMessagesProvider>
+      </UnreadMessagesProvider>
+    </AuthProvider>
   );
 }

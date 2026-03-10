@@ -14,7 +14,7 @@ export const UnreadMessagesProvider = ({ children }) => {
 
         try {
             const { data } = await api.get('/chats/unread-count');
-            setUnreadCount(data.unreadCount || 0);
+            setUnreadCount(data.count || 0);
         } catch (error) {
             console.error('Erreur lecture messages non lus :', error);
         }
@@ -28,7 +28,7 @@ export const UnreadMessagesProvider = ({ children }) => {
     }, [profile?.id]);
 
     return (
-        <UnreadMessagesContext.Provider value={{ unreadCount }}>
+        <UnreadMessagesContext.Provider value={{ unreadCount, fetchUnreadMessages }}>
             {children}
         </UnreadMessagesContext.Provider>
     );

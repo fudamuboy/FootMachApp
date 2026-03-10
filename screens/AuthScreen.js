@@ -65,7 +65,6 @@ export default function AuthScreen() {
             } else {
                 await signUp(email, password, displayName, selectedCity, region, phoneNumber);
                 Alert.alert("✅ Kayıt başarılı", "Şimdi giriş yapabilirsiniz.");
-                navigation.navigate('Auth'); // 🔁 Redirection
             }
         } catch (error) {
             if (error.message.includes("User already registered")) {

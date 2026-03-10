@@ -118,7 +118,8 @@
             color: #9ca3af;
         }
 
-        .divider::before, .divider::after {
+        .divider::before,
+        .divider::after {
             content: "";
             flex: 1;
             height: 1px;
@@ -138,33 +139,27 @@
         <div class="logo">⚽</div>
         <h1>Şifre Yenileme</h1>
         <p id="instruction">Kimliğinizi doğrulamak için Google ile giriş yapın veya e-posta linkini kullanın.</p>
-        
+
         <div id="auth-section">
             <div id="google-btn-container">
                 <div id="g_id_onload"
                     data-client_id="606635332776-6u3e1ok8u2raq9motmai2oglchc9m666.apps.googleusercontent.com"
-                    data-context="signin"
-                    data-ux_mode="popup"
-                    data-callback="handleCredentialResponse"
+                    data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse"
                     data-auto_prompt="false">
                 </div>
-                <div class="g_id_signin"
-                    data-type="standard"
-                    data-shape="rectangular"
-                    data-theme="outline"
-                    data-text="signin_with"
-                    data-size="large"
-                    data-logo_alignment="left">
+                <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline"
+                    data-text="signin_with" data-size="large" data-logo_alignment="left">
                 </div>
             </div>
         </div>
 
         <form id="reset-form" class="hidden">
-            <input id="pw" class="input" type="password" placeholder="Yeni Şifre (en az 6 karakter)" minlength="6" required />
+            <input id="pw" class="input" type="password" placeholder="Yeni Şifre (en az 6 karakter)" minlength="6"
+                required />
             <input id="cpw" class="input" type="password" placeholder="Şifreyi Onayla" minlength="6" required />
             <button id="submit" class="btn" type="submit">Şifreyi Güncelle</button>
         </form>
-        
+
         <div id="msg" class="msg hidden"></div>
     </div>
 
@@ -232,9 +227,9 @@
                 const res = await fetch(`${API_URL}/auth/reset-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         token: activeToken,
-                        newPassword: pw 
+                        newPassword: pw
                     })
                 });
 

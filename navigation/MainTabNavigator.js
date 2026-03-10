@@ -17,30 +17,12 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 
 import CommentsListScreen from '../screens/CommentsListScreen';
-
+import { useUnreadMessages } from '../contexts/UnreadmesagContext';
 
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
-    const { profile } = useAuth(); // ✅ Correction ici
-    const [unreadCount, setUnreadCount] = useState(0);
-
-    useEffect(() => {
-        const fetchUnreadMessages = async () => {
-            if (!profile?.id) return;
-
-            try {
-                const { data } = await api.get('/chats/unread-count');
-                setUnreadCount(data.unreadCount || 0);
-            } catch (error) {
-                console.error('Erreur chargement messages non lus', error);
-            }
-        };
-
-        fetchUnreadMessages();
-        const interval = setInterval(fetchUnreadMessages, 10000); // ✅ actualise toutes les 10s
-        return () => clearInterval(interval);
-    }, [profile?.id]);
+    const { unreadCount } = useUnreadMessages();
 
     return (
         <Tab.Navigator
@@ -88,30 +70,15 @@ const MainTabNavigator = () => {
                 component={ChatsScreen}
                 options={{
                     title: 'Mesajlar',
+                    tabBarBadge: unreadCount > 0 ? unreadCount : null,
+                    tabBarBadgeStyle: {
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                    },
                     tabBarIcon: ({ size, color }) => (
-                        <View style={{ position: 'relative' }}>
-                            <MessageCircle size={size} color={color} />
-                            {unreadCount > 0 && (
-                                <View
-                                    style={{
-                                        position: 'absolute',
-                                        top: -4,
-                                        right: -10,
-                                        backgroundColor: 'red',
-                                        borderRadius: 10,
-                                        paddingHorizontal: 5,
-                                        minWidth: 18,
-                                        height: 18,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                    }}
-                                >
-                                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                                        {unreadCount > 99 ? '99+' : unreadCount}
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
+                        <MessageCircle size={size} color={color} />
                     ),
                 }}
             />

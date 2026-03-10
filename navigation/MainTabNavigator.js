@@ -6,10 +6,12 @@ import ChatsScreen from '../screens/ChatsScreen';
 import Profile from '../screens/Profile';
 import { useAuth } from '../contexts/AuthContext';
 import { View, Text } from 'react-native'; // ✅ Ajout de Text
-import { supabase } from '../lib/supabase'; // ✅ Assure-toi d'importer supabase si ce n'était pas fait
+import api from '../lib/api';
 
 // ✅ Bon pour Expo
 import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Entypo from '@expo/vector-icons/Entypo';
 
 
 
@@ -27,16 +29,11 @@ const MainTabNavigator = () => {
         const fetchUnreadMessages = async () => {
             if (!profile?.id) return;
 
-            const { data, error } = await supabase
-                .from('messages')
-                .select('id')
-                .eq('is_read', false)
-                .neq('sender_id', profile?.id); // Messages reçus non lus
-
-            if (error) {
+            try {
+                const { data } = await api.get('/chats/unread-count');
+                setUnreadCount(data.unreadCount || 0);
+            } catch (error) {
                 console.error('Erreur chargement messages non lus', error);
-            } else {
-                setUnreadCount(data?.length || 0);
             }
         };
 
@@ -126,7 +123,7 @@ const MainTabNavigator = () => {
                 options={{
                     tabBarLabel: 'Değerlendirme',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="star" size={size} color={color} />
+                        <Entypo name="star-outlined" size={size} color={color} />
                     ),
                 }}
             />

@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { Phone } from 'lucide-react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../lib/api';
 
 const AuthContext = createContext({});
 
@@ -18,120 +17,78 @@ export const AuthProvider = ({ children }) => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-
-
-
     useEffect(() => {
-        const init = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-
-            if (session?.user) {
-                setUser(session.user);
-                await fetchProfile(session.user.id);
-            } else {
+        const loadInitialData = async () => {
+            try {
+                const token = await AsyncStorage.getItem('userToken');
+                if (token) {
+                    // Try to fetch user with token
+                    const { data } = await api.get('/auth/me');
+                    setUser(data);
+                    setProfile(data);
+                }
+            } catch (error) {
+                console.warn('Session expired or invalid token:', error.response?.data?.message || error.message);
+                await AsyncStorage.removeItem('userToken');
+            } finally {
                 setLoading(false);
             }
-
-            const { data: listener } = supabase.auth.onAuthStateChange(
-                async (_event, session) => {
-                    if (session?.user) {
-                        setUser(session.user);
-                        await fetchProfile(session.user.id);
-
-                    } else {
-                        setUser(null);
-                        setProfile(null);
-                        setLoading(false);
-                    }
-                }
-            );
-
-            return () => {
-                listener?.subscription?.unsubscribe?.();
-            };
         };
 
-        init();
+        loadInitialData();
     }, []);
 
-    const fetchProfile = async (userId) => {
-        try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (!data) {
-                console.warn('⚠️ Aucun profil trouvé pour cet utilisateur.');// la partie du warn 
-                setProfile(null);
-                setUser(null);
-                setLoading(false);
-            } else {
-                setProfile(data);
-                setLoading(false);
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors du chargement du profil:', error.message);
-            setProfile(null);
-            setUser(null);
-            setLoading(false);
-        }
-    };
-
     const signUp = async (email, password, displayName, city, region, phoneNumber) => {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-        });
-
-        if (error) throw error;
-
-        const userId = data?.user?.id;
-        const confirmedEmail = data?.user?.email;
-
-        if (!userId || !confirmedEmail) throw new Error("❌ Impossible de récupérer l'email ou l'ID utilisateur");
-
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-                id: userId,
+        try {
+            const { data } = await api.post('/auth/register', {
+                email,
+                password,
                 username: displayName,
-                city: city,
-                region: region,
-                email: confirmedEmail,
-                phone: phoneNumber,
+                city,
+                region,
+                phoneNumber
             });
 
-
-        if (profileError) {
-            console.error('❌ Erreur lors de la création du profil:', profileError.message);
-            throw profileError;
+            const { token, user: newUser } = data;
+            
+            // Save token
+            await AsyncStorage.setItem('userToken', token);
+            setUser(newUser);
+            setProfile(newUser);
+            console.log('✅ Profil inséré avec succès');
+        } catch (error) {
+            console.error('❌ Erreur lors de la création du profil:', error.response?.data?.message || error.message);
+            throw new Error(error.response?.data?.message || "Erreur de création de compte");
         }
-
-        console.log('✅ Profil inséré avec succès');
     };
 
     const signIn = async (email, password) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        try {
+            const { data } = await api.post('/auth/login', {
+                email,
+                password
+            });
 
-        if (error) throw error;
+            const { token, user: loggedInUser } = data;
 
-        const user = data?.user;
-        if (user) {
-            setUser(user);
-            await fetchProfile(user.id);
+            // Save token
+            await AsyncStorage.setItem('userToken', token);
+            setUser(loggedInUser);
+            setProfile(loggedInUser);
+        } catch (error) {
+           console.error('SignIn error:', error.response?.data?.message || error.message);
+           throw new Error(error.response?.data?.message || "Invalid credentials");
         }
     };
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
+        try {
+           await AsyncStorage.removeItem('userToken');
+           setUser(null);
+           setProfile(null);
+        } catch(error) {
+           console.error("SignOut Error", error);
+        }
     };
 
     const value = {

@@ -20,7 +20,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
 
     // DEBUG: Vérifie les logs pour t’assurer de la valeur
     // console.log("isPastMatch:", isPastMatch);
-    // console.log("isOwner:", isOwner);
+    // console.log("isOwner:", isOwner);s
     // console.log("match_time:", announcement.match_time);
 
     return (

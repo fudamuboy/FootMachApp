@@ -4,9 +4,9 @@ import {
     TouchableOpacity, Alert, Platform, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AddressScreen() {
@@ -21,16 +21,13 @@ export default function AddressScreen() {
     }, [profile]);
 
     const handleSave = async () => {
-        const { error } = await supabase
-            .from('profiles')
-            .update({ address })
-            .eq('id', profile?.id);
-
-        if (error) {
-            Alert.alert('Hata', 'Adres güncellenemedi.');
-        } else {
+        try {
+            await api.put('/user/profile', { address });
             Alert.alert('Başarılı', 'Adres kaydedildi.');
             navigation.goBack();
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Hata', 'Adres güncellenemedi.');
         }
     };
 
@@ -38,7 +35,7 @@ export default function AddressScreen() {
         <SafeAreaView style={styles.safeContainer}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#000" />
+                    <Feather name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.title}>Adres Bilgilerim</Text>
             </View>

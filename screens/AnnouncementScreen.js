@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Plus, Star, MessageSquare, Award, X } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import api from '../lib/api';
 import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -48,35 +48,15 @@ export default function AnnouncementScreen({ navigation }) {
         try {
             setLoading(true);
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Appeler notre API backend `/api/announcements`
+            const { data } = await api.get('/announcements', {
+                params: {
+                    city: profile.city || undefined,
+                    location: query.trim() || undefined,
+                }
+            });
 
-            // Garder le délai de 7 jours comme demandé
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            nextWeek.setHours(23, 59, 59, 999);
-
-            let request = supabase
-                .from('announcements')
-                .select('*')
-                .gte('match_time', today.toISOString())
-                .lte('match_time', nextWeek.toISOString())
-                .order('match_time', { ascending: true })
-                .range(0, 999);
-
-            // Filtrer par ville de l'utilisateur
-            if (profile.city) {
-                request = request.eq('city', profile.city);
-            }
-
-            // Si une recherche est effectuée, filtrer par région
-            if (query.trim()) {
-                request = request.ilike('location', `%${query.trim()}%`);
-            }
-
-            const { data, error } = await request;
-
-            if (error) throw error;
+            // Convertir match_time en objet Date
             setAnnouncements((data || []).map(item => ({
                 ...item,
                 match_time: new Date(item.match_time)
@@ -90,85 +70,29 @@ export default function AnnouncementScreen({ navigation }) {
         }
     };
 
-    // Fonction pour récupérer les annonces passées (pour les évaluations)
+    // TODO: Implémenter des requêtes pour les annonces passées (temporairement masqué ou combiné)
     const fetchPastAnnouncements = async (query = '') => {
-        if (!profile) return;
-
-        try {
-            setLoadingPast(true);
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            // Récupérer les annonces des 7 derniers jours
-            const pastWeek = new Date();
-            pastWeek.setDate(pastWeek.getDate() - 7);
-            pastWeek.setHours(0, 0, 0, 0);
-
-            let request = supabase
-                .from('announcements')
-                .select('*')
-                .gte('match_time', pastWeek.toISOString())
-                .lt('match_time', today.toISOString())
-                .order('match_time', { ascending: false }) // Plus récentes en premier
-                .range(0, 999);
-
-            // Filtrer par ville de l'utilisateur
-            if (profile.city) {
-                request = request.eq('city', profile.city);
-            }
-
-            // Si une recherche est effectuée, filtrer par région
-            if (query.trim()) {
-                request = request.ilike('location', `%${query.trim()}%`);
-            }
-
-            const { data, error } = await request;
-
-            if (error) throw error;
-            setPastAnnouncements((data || []).map(item => ({
-                ...item,
-                match_time: new Date(item.match_time)
-            })));
-
-        } catch (error) {
-            console.error('Error fetching past announcements:', error);
-        } finally {
-            setLoadingPast(false);
-        }
+        // Feature disabled for now with new API until endpoint supports past fetching
+        setPastAnnouncements([]);
     };
 
     useEffect(() => {
         if (profile) {
             fetchAnnouncements('');
-            fetchPastAnnouncements('');
+            // fetchPastAnnouncements('');
         }
     }, [profile]);
 
-    // Ajouter un écouteur en temps réel pour les nouvelles annonces
+    // Ajouter un "polling" basique ou désactiver les temps réel pour l'instant
     useEffect(() => {
         if (!profile) return;
+        
+        // Rafraîchir toutes les 30s en l'attente d'une implémentation de socket.io complète
+        const intervalId = setInterval(() => {
+            fetchAnnouncements(searchRegion);
+        }, 30000);
 
-        // Écouter les changements dans la table announcements
-        const channel = supabase
-            .channel('announcements_changes')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'announcements'
-                },
-                (payload) => {
-                    handleRealTimeUpdate(payload);
-                }
-            )
-            .subscribe();
-
-        // Nettoyer l'abonnement quand le composant se démonte
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        return () => clearInterval(intervalId);
     }, [profile, searchRegion]);
     // actualiser la liste des annonces
     const handleRefresh = () => {
@@ -222,34 +146,13 @@ export default function AnnouncementScreen({ navigation }) {
     const handleContact = async (announcement) => {
         if (!profile) return;
         try {
-            const { data: existingChats, error: fetchError } = await supabase
-                .from('chats')
-                .select('id')
-                .or(
-                    `and(participant_1.eq.${profile?.id},participant_2.eq.${announcement.user_id}),and(participant_1.eq.${announcement.user_id},participant_2.eq.${profile?.id})`
-                );
+            // Créer ou récupérer un chat avec l'API backend
+            const { data: newChat } = await api.post('/chats', {
+                participant_2: announcement.user_id,
+                city: profile?.city
+            });
 
-            if (fetchError) throw fetchError;
-
-            let chatId = existingChats?.[0]?.id;
-
-            if (!chatId) {
-                const { data: newChat, error: insertError } = await supabase
-                    .from('chats')
-                    .insert({
-                        participant_1: profile?.id,
-                        participant_2: announcement.user_id,
-                        last_updated: new Date().toISOString(),
-                        city: profile?.city
-                    })
-                    .select('id')
-                    .single();
-
-                if (insertError) throw insertError;
-                chatId = newChat.id;
-            }
-
-            navigation.navigate('Chat', { chatId });
+            navigation.navigate('Chat', { chatId: newChat.id });
         } catch (error) {
             console.error('Error creating/finding chat:', error);
             alert("Erreur lors de l'accès au chat. Veuillez réessayer.");
@@ -314,26 +217,20 @@ export default function AnnouncementScreen({ navigation }) {
         setEvaluationLoading(true);
 
         try {
-            const { error } = await supabase.from('comments').insert({
+            await api.post('/comments', {
                 announcement_id: selectedAnnouncement?.id,
-                user_id: profile?.id,
                 rating: rating,
                 comment: comment,
                 team_name: selectedAnnouncement?.team_name ?? null,
                 city: profile?.city
             });
 
-            if (error) {
-                console.error('Evaluation error:', error);
-                Alert.alert('Hata', 'Değerlendirme gönderilemedi. Lütfen tekrar deneyin.');
-            } else {
-                Alert.alert('Başarılı', 'Teşekkürler! Değerlendirmeniz kaydedildi.', [
-                    { text: 'Tamam', onPress: () => setShowEvaluationModal(false) }
-                ]);
-            }
+            Alert.alert('Başarılı', 'Teşekkürler! Değerlendirmeniz kaydedildi.', [
+                { text: 'Tamam', onPress: () => setShowEvaluationModal(false) }
+            ]);
         } catch (error) {
             console.error('Evaluation error:', error);
-            Alert.alert('Hata', 'Bir hata oluştu. Lütfen tekrar deneyin.');
+            Alert.alert('Hata', 'Değerlendirme gönderilemedi. Lütfen tekrar deneyin.');
         } finally {
             setEvaluationLoading(false);
         }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase'; // adapte selon ton chemin
+import api from '../lib/api';
 
 const UserInfoScreen = () => {
     const navigation = useNavigation();
@@ -24,24 +24,18 @@ const UserInfoScreen = () => {
 
     const handleUpdate = async () => {
         setLoading(true);
-        const { error } = await supabase
-            .from('profiles')
-            .update({
+        try {
+            await api.put('/user/profile', {
                 username,
                 phone,
-                email,
-                updated_at: new Date(), // ajouter ça seulement si la colonne existe
-            })
-            .eq('id', profile.id);
-
-        if (error) {
+                email
+            });
+            Alert.alert('Başarılı', 'Bilgiler güncellendi');
+            await fetchProfile(); // recharger les données utilisateur
+        } catch (error) {
             Alert.alert('Hata', 'Bilgiler güncellenemedi');
             console.error(error);
-        } else {
-            Alert.alert('Başarılı', 'Bilgiler güncellendi');
-            await fetchProfile(); // recharger les données utilisateur depuis Supabase
         }
-
         setLoading(false);
     };
 
@@ -49,7 +43,7 @@ const UserInfoScreen = () => {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={24} color="black" />
+                    <Feather name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Kullanıcı Bilgilerim</Text>
             </View>

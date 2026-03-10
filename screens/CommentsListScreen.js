@@ -9,7 +9,7 @@ import {
     Platform,
     StatusBar
 } from 'react-native';
-import { supabase } from '../lib/supabase';
+import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function CommentsListScreen() {
@@ -21,16 +21,16 @@ export default function CommentsListScreen() {
     }, []);
 
     const fetchComments = async () => {
-        const { data, error } = await supabase
-            .from('comments')
-            .select('*')
-            .eq('city', profile?.city)
-            .order('rating', { ascending: false });
-
-        if (error) {
+        try {
+            // Appeler notre endpoint backend au lieu de supabase
+            const { data } = await api.get('/comments', {
+                params: {
+                    city: profile?.city || undefined
+                }
+            });
+            setComments(data || []);
+        } catch (error) {
             console.error('Erreur récupération commentaires :', error);
-        } else {
-            setComments(data);
         }
     };
 
@@ -40,7 +40,7 @@ export default function CommentsListScreen() {
                 ⭐ {item.rating} | {item.team_name || 'Bilinmeyen takım'}
             </Text>
             <Text style={styles.commentUser}>
-                {item.profiles?.full_name || 'anonim'}
+                {item.username || 'anonim'}
             </Text>
             <Text style={styles.commentText}>{item.comment}</Text>
         </View>

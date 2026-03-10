@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, StatusBar } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
@@ -33,7 +34,7 @@ export default function ProfileScreen() {
                     });
                 }}
                     style={styles.logoutIcon}>
-                    <Ionicons name="log-out-outline" size={24} color="red" />
+                    <MaterialIcons name="exit-to-app" size={24} color="red" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
 
                 <Text style={styles.headerText}>Hesabım</Text>
@@ -60,20 +61,20 @@ export default function ProfileScreen() {
                     style={styles.item}
                     onPress={() => navigation.navigate('UserInfoScreen')}
                 >
-                    <Ionicons name="person-outline" size={20} color="#000" />
+                    <Feather name="user" size={24} color="black" />
                     <Text style={styles.itemText}>Kullanıcı Bilgilerim</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#aaa" style={{ marginLeft: 'auto' }} />
+                    <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
+
                     style={styles.item}
                     onPress={() => navigation.navigate('AddressScreen')}
                 >
-                    <Ionicons name="location-outline" size={20} color="#000" />
+                    <Feather name="map-pin" size={24} color="black" />
                     <Text style={styles.itemText}>Adres Bilgilerim</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#aaa" style={{ marginLeft: 'auto' }} />
+                    <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
-
                 {/* Ce bouton est désormais remplacé par l’icône en haut */}
                 {/* Tu peux le supprimer si tu veux */}
             </ImageBackground>

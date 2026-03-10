@@ -1,6 +1,6 @@
 // contexts/UnreadMessagesContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import api from '../lib/api';
 import { useAuth } from './AuthContext';
 
 const UnreadMessagesContext = createContext();
@@ -12,18 +12,12 @@ export const UnreadMessagesProvider = ({ children }) => {
     const fetchUnreadMessages = async () => {
         if (!profile?.id) return;
 
-        const { data, error } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('is_read', false)
-            .neq('sender_id', profile?.id);
-
-        if (error) {
+        try {
+            const { data } = await api.get('/chats/unread-count');
+            setUnreadCount(data.unreadCount || 0);
+        } catch (error) {
             console.error('Erreur lecture messages non lus :', error);
-            return;
         }
-
-        setUnreadCount(data.length);
     };
 
     useEffect(() => {

@@ -9,18 +9,19 @@ import {
     ScrollView,
     ActivityIndicator,
     Platform,
-    Keyboard
+    Keyboard,
+    ActionSheetIOS
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { X, Users, Clock, MapPin, FileText } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import api from '../lib/api';
 
 const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const { profile } = useAuth();
     const [teamName, setTeamName] = useState('');
-    const [playersNeeded, setPlayersNeeded] = useState(1);
+    const [playersNeeded, setPlayersNeeded] = useState(0);
     const [matchTime, setMatchTime] = useState('');
     const [tempDate, setTempDate] = useState(null);
     const [location, setLocation] = useState('');
@@ -29,6 +30,22 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const [error, setError] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+
+    const showPlayersPickerIOS = () => {
+        const options = ['', ...Array.from({ length: 13 }, (_, i) => `${i + 1} oyuncu aranıyor`), 'İptal'];
+        const cancelButtonIndex = options.length - 1;
+        ActionSheetIOS.showActionSheetWithOptions(
+            {
+                options,
+                cancelButtonIndex,
+                title: 'Kaç oyuncu aranıyor?'
+            },
+            (buttonIndex) => {
+                if (buttonIndex === cancelButtonIndex || buttonIndex === 0) return;
+                setPlayersNeeded(buttonIndex); // because index 1 => value 1
+            }
+        );
+    };
 
     const handleSubmit = async () => {
         if (!profile || !teamName || !matchTime || !location) {
@@ -40,23 +57,18 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
         setError(null);
 
         try {
-            const { error } = await supabase
-                .from('announcements')
-                .insert({
-                    user_id: profile?.id,
-                    team_name: teamName,
-                    players_needed: playersNeeded,
-                    match_time: matchTime,
-                    location,
-                    description,
-                    city: profile?.city,
-                    region: profile?.region,
-                });
-
-            if (error) throw error;
+            await api.post('/announcements', {
+                team_name: teamName,
+                players_needed: playersNeeded || 1,
+                match_time: matchTime,
+                location,
+                description,
+                city: profile?.city,
+                region: profile?.region,
+            });
 
             setTeamName('');
-            setPlayersNeeded(1);
+            setPlayersNeeded(0);
             setMatchTime('');
             setLocation('');
             setDescription('');
@@ -100,19 +112,28 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     <View style={styles.inputContainer}>
                         <Users size={20} color="#666" style={styles.inputIcon} />
-                        <Picker
-                            selectedValue={playersNeeded}
-                            onValueChange={setPlayersNeeded}
-                            style={styles.picker}
-                        >
-                            {[...Array(11).keys()].map(i => (
-                                <Picker.Item
-                                    key={i + 1}
-                                    label={`${i + 1} oyuncu${i > 0 ? 's' : ''} aranıyor${i > 0 ? 's' : ''}`}
-                                    value={i + 1}
-                                />
-                            ))}
-                        </Picker>
+                        {Platform.OS === 'ios' ? (
+                            <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={showPlayersPickerIOS}>
+                                <Text style={styles.inputTextButton}>
+                                    {playersNeeded > 0 ? `${playersNeeded} oyuncu aranıyor` : 'Kaç oyuncu aranıyor?'}
+                                </Text>
+                            </TouchableOpacity>
+                        ) : (
+                            <Picker
+                                selectedValue={playersNeeded}
+                                onValueChange={setPlayersNeeded}
+                                style={styles.picker}
+                            >
+                                <Picker.Item label="Kaç oyuncu aranıyor?" value={0} />
+                                {[...Array(11).keys()].map(i => (
+                                    <Picker.Item
+                                        key={i + 1}
+                                        label={`${i + 1} oyuncu aranıyor`}
+                                        value={i + 1}
+                                    />
+                                ))}
+                            </Picker>
+                        )}
                     </View>
 
                     <View style={styles.inputContainer}>
@@ -278,6 +299,12 @@ const styles = StyleSheet.create({
     textArea: {
         height: 80,
         paddingTop: 12,
+    },
+    inputTextButton: {
+        height: 50,
+        lineHeight: 50,
+        fontSize: 16,
+        color: '#1f2937',
     },
     picker: {
         flex: 1,

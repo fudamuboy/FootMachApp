@@ -38,8 +38,7 @@ export default function ChatsScreen({ navigation }) {
                     ...chat,
                     other_user_name: isOwn ? chat.participant_2_username : chat.participant_1_username || 'Bilinmeyen kullanıcı',
                     other_user_avatar: isOwn ? chat.participant_2_avatar : chat.participant_1_avatar || null,
-                    // Note: unread count comes back from individual messages check, or we can use another aggregated field if provided by API
-                    // To keep it simple, we use the specific endpoint we added for total unread_count initially
+                    other_user_id: isOwn ? chat.participant_2 : chat.participant_1,
                     unread_count: parseInt(chat.unread_count) || 0,
                 };
             });
@@ -103,7 +102,8 @@ export default function ChatsScreen({ navigation }) {
             onPress={() => navigation.navigate('Chat', { 
                 chatId: item.id,
                 otherUserName: item.other_user_name,
-                otherUserAvatar: item.other_user_avatar
+                otherUserAvatar: item.other_user_avatar,
+                otherUserId: item.other_user_id,
             })}
         >
             <Image

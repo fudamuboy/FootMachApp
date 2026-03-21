@@ -28,7 +28,7 @@ const getAvatarUrl = (avatar_url, username) => {
 
 
 export default function ChatScreen({ route, navigation }) {
-    const { chatId, otherUserName: initialName, otherUserAvatar: initialAvatar } = route.params;
+    const { chatId, otherUserName: initialName, otherUserAvatar: initialAvatar, otherUserId } = route.params;
     const { profile } = useAuth();
     const { fetchUnreadMessages } = useUnreadMessages();
     const [messages, setMessages] = useState([]);
@@ -208,16 +208,20 @@ export default function ChatScreen({ route, navigation }) {
                         <ArrowLeft size={24} color="#1f2937" />
                     </TouchableOpacity>
                     
-                    <View style={styles.headerUserInfo}>
+                    <TouchableOpacity
+                        style={styles.headerUserInfo}
+                        onPress={() => otherUserId && navigation.navigate('PublicProfile', { userId: otherUserId })}
+                        activeOpacity={otherUserId ? 0.7 : 1}
+                    >
                         <Image
                             source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
                             style={styles.headerAvatar}
                         />
                         <View style={styles.headerTextContainer}>
                              <Text style={styles.headerTitle} numberOfLines={1}>{otherUserName || 'Yükleniyor...'}</Text>
-                             <Text style={styles.headerStatus}>çevrimiçi</Text>
+                             <Text style={styles.headerStatus}>{otherUserId ? 'profile görüntüle →' : 'çevrimiçi'}</Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                     
                     <View style={styles.headerActions} />
                 </View>

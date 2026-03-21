@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
+import {
+    View, Text, TextInput, TouchableOpacity, StyleSheet,
+    SafeAreaView, Platform, StatusBar, Alert, ScrollView
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,14 +13,14 @@ const UserInfoScreen = () => {
     const { profile, fetchProfile } = useAuth();
 
     const [username, setUsername] = useState('');
-    const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [phone, setPhone]       = useState('');
+    const [email, setEmail]       = useState('');
+    const [loading, setLoading]   = useState(false);
 
     useEffect(() => {
         if (profile) {
             setUsername(profile.username || '');
-            setPhone(profile.phone || '');
+            setPhone(profile.phone_number || '');
             setEmail(profile.email || '');
         }
     }, [profile]);
@@ -25,13 +28,9 @@ const UserInfoScreen = () => {
     const handleUpdate = async () => {
         setLoading(true);
         try {
-            await api.put('/user/profile', {
-                username,
-                phone,
-                email
-            });
+            await api.put('/auth/profile', { username, phone, email });
             Alert.alert('Başarılı', 'Bilgiler güncellendi');
-            await fetchProfile(); // recharger les données utilisateur
+            await fetchProfile();
         } catch (error) {
             Alert.alert('Hata', 'Bilgiler güncellenemedi');
             console.error(error);
@@ -48,114 +47,88 @@ const UserInfoScreen = () => {
                 <Text style={styles.headerTitle}>Kullanıcı Bilgilerim</Text>
             </View>
 
-            <View style={styles.content}>
-                <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
-                <Text style={styles.subText}>
-                    Bu bilgileri değiştirebilmek için yeni e-posta adresinizi veya telefon numaranızı doğrulamanız istenebilir.
-                </Text>
+            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
+                    <Text style={styles.subText}>
+                        Bu bilgileri değiştirebilmek için yeni e-posta adresinizi veya telefon numaranızı doğrulamanız istenebilir.
+                    </Text>
 
-                <Text style={styles.label}>Cep Telefonu:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={phone}
-                    onChangeText={setPhone}
-                />
+                    {/* City — read-only, set at registration */}
+                    <Text style={styles.label}>Şehir:</Text>
+                    <View style={styles.readOnlyField}>
+                        <Text style={styles.readOnlyText}>{profile?.city || '—'}</Text>
+                    </View>
 
-                <Text style={styles.label}>E-Posta:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={email}
-                    onChangeText={setEmail}
-                />
+                    {/* Region — read-only, set at registration */}
+                    <Text style={styles.label}>Bölge:</Text>
+                    <View style={styles.readOnlyField}>
+                        <Text style={styles.readOnlyText}>{profile?.region || '—'}</Text>
+                    </View>
 
-                <Text style={styles.label}>Görüntü Adı:</Text>
-                <TextInput
-                    style={styles.input}
-                    value={username}
-                    onChangeText={setUsername}
-                />
+                    <Text style={styles.label}>Cep Telefonu:</Text>
+                    <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+90 5xx xxx xx xx" />
 
-                <TouchableOpacity
-                    style={styles.saveButton}
-                    onPress={handleUpdate}
-                    disabled={loading}
-                >
-                    <Text style={styles.saveText}>Bilgileri Güncelle</Text>
-                </TouchableOpacity>
+                    <Text style={styles.label}>E-Posta:</Text>
+                    <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
 
-                <TouchableOpacity style={styles.deleteButton}>
-                    <Text style={styles.deleteText}>Hesabı Sil</Text>
-                </TouchableOpacity>
-            </View>
+                    <Text style={styles.label}>Görüntü Adı:</Text>
+                    <TextInput style={styles.input} value={username} onChangeText={setUsername} />
+                </View>
+
+                <View style={styles.section}>
+                    <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
+                        <Text style={styles.saveText}>{loading ? 'Kaydediliyor...' : 'Bilgileri Güncelle'}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.deleteButton}>
+                        <Text style={styles.deleteText}>Hesabı Sil</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
+
 export default UserInfoScreen;
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#f9fafb',
+        flex: 1, backgroundColor: '#f9fafb',
         paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: 10,
-        paddingBottom: 10,
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10,
+        backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
     },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginLeft: 10,
+    headerTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
+    scroll: { flex: 1 },
+    section: {
+        backgroundColor: 'white', marginHorizontal: 16, marginTop: 16,
+        borderRadius: 12, padding: 16,
+        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
     },
-    content: {
-        paddingHorizontal: 16,
-        paddingTop: 10,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    subText: {
-        fontSize: 14,
-        color: '#6b7280',
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
+    sectionTitle: { fontSize: 17, fontWeight: 'bold', marginBottom: 4, color: '#1f2937' },
+    subText: { fontSize: 13, color: '#6b7280', marginBottom: 16 },
+    label: { fontSize: 15, fontWeight: '600', marginBottom: 6, color: '#374151' },
     input: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
+        backgroundColor: '#f9fafb', borderRadius: 8, padding: 12,
+        marginBottom: 14, borderWidth: 1, borderColor: '#e5e7eb', fontSize: 15,
+    },
+    readOnlyField: {
+        backgroundColor: '#f0f0f0', borderRadius: 8, padding: 12,
+        marginBottom: 14, borderWidth: 1, borderColor: '#e5e7eb',
+    },
+    readOnlyText: {
+        fontSize: 15, color: '#6b7280',
     },
     saveButton: {
-        backgroundColor: '#3b82f6',
-        padding: 14,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginBottom: 10,
+        backgroundColor: '#3b82f6', padding: 14, borderRadius: 10, alignItems: 'center', marginBottom: 10,
     },
-    saveText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
+    saveText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
     deleteButton: {
-        backgroundColor: '#ef4444',
-        padding: 14,
-        borderRadius: 8,
-        alignItems: 'center',
+        backgroundColor: '#ef4444', padding: 14, borderRadius: 10, alignItems: 'center',
     },
-    deleteText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
+    deleteText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 });

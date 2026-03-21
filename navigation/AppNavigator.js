@@ -10,7 +10,8 @@ import AuthScreen from '../screens/AuthScreen';
 import SplashScreen from '../screens/SplashScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import UserInfoScreen from '../screens/UserInfoScreen';
-import AddressScreen from '../screens/AddressScreen';
+import FootballProfileScreen from '../screens/FootballProfileScreen';
+import PublicProfileScreen from '../screens/PublicProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -44,7 +45,8 @@ export const AppNavigator = () => {
                         <Stack.Screen name="Main" component={MainTabNavigator} />
                         <Stack.Screen name="Chat" component={ChatScreen} />
                         <Stack.Screen name="UserInfoScreen" component={UserInfoScreen} />
-                        <Stack.Screen name="AddressScreen" component={AddressScreen} />
+                        <Stack.Screen name="FootballProfileScreen" component={FootballProfileScreen} />
+                        <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
                     </>
                 ) : (
                     <>

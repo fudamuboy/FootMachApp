@@ -51,6 +51,20 @@ export default function ProfileScreen() {
                         </Text>
                     </View>
                     <Text style={styles.name}>{profile?.username}</Text>
+                    {(profile?.position || profile?.preferred_foot) && (
+                        <View style={styles.footballBadgeRow}>
+                            {profile?.position && (
+                                <View style={styles.footballBadge}>
+                                    <Text style={styles.footballBadgeText}>⚽ {profile.position}</Text>
+                                </View>
+                            )}
+                            {profile?.preferred_foot && (
+                                <View style={styles.footballBadge}>
+                                    <Text style={styles.footballBadgeText}>🦶 {profile.preferred_foot}</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
                 </View>
 
                 <TouchableOpacity
@@ -63,12 +77,11 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-
                     style={styles.item}
-                    onPress={() => navigation.navigate('AddressScreen')}
+                    onPress={() => navigation.navigate('FootballProfileScreen')}
                 >
-                    <Feather name="map-pin" size={24} color="black" />
-                    <Text style={styles.itemText}>Adres Bilgilerim</Text>
+                    <Feather name="target" size={24} color="black" />
+                    <Text style={styles.itemText}>Futbol Bilgilerim</Text>
                     <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
                 {/* Ce bouton est désormais remplacé par l’icône en haut */}
@@ -124,6 +137,22 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginTop: 10,
         fontWeight: '600',
+    },
+    footballBadgeRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 8,
+    },
+    footballBadge: {
+        backgroundColor: '#9DB88D',
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    footballBadgeText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 13,
     },
     item: {
         flexDirection: 'row',

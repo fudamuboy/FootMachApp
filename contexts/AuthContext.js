@@ -91,6 +91,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const fetchProfile = async () => {
+        try {
+            const { data } = await api.get('/auth/me');
+            setUser(data);
+            setProfile(data);
+        } catch (error) {
+            console.warn('fetchProfile error:', error.message);
+        }
+    };
+
     const value = {
         user,
         profile,
@@ -98,6 +108,7 @@ export const AuthProvider = ({ children }) => {
         signUp,
         signIn,
         signOut,
+        fetchProfile,
     };
 
     return (

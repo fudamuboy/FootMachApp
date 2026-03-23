@@ -6,15 +6,15 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
+import { SvgUri } from 'react-native-svg';
 import api from '../lib/api';
 
 const POSITION_LABELS = { GK: '🥅 Kaleci', DF: '🛡️ Defans', CM: '🔄 Orta Saha', LW: '⬅️ Sol Kanat', RW: '➡️ Sağ Kanat', ST: '🎯 Forvet' };
 const FOOT_LABELS    = { Sağ: '🦶 Sağ Ayak', Sol: '🦶 Sol Ayak', 'Her İkisi': '🦶 Her İkisi' };
 
-const getAvatarUrl = (avatar_url, username) =>
-    avatar_url
-        ? avatar_url
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'U')}&background=9DB88D&color=ffffff&bold=true&size=128`;
+const getAvatarUrl = (style, seed) => {
+    return `https://api.dicebear.com/9.x/${style || 'initials'}/svg?seed=${encodeURIComponent(seed || 'User')}`;
+};
 
 export default function PublicProfileScreen() {
     const navigation  = useNavigation();
@@ -79,10 +79,13 @@ export default function PublicProfileScreen() {
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
                 {/* Avatar + name */}
                 <View style={styles.avatarSection}>
-                    <Image
-                        source={{ uri: getAvatarUrl(user.avatar_url, user.username) }}
-                        style={styles.avatar}
-                    />
+                    <View style={styles.avatarWrapper}>
+                        <SvgUri
+                            width="90"
+                            height="90"
+                            uri={getAvatarUrl(user.avatar_style, user.avatar_seed || user.username)}
+                        />
+                    </View>
                     <Text style={styles.username}>{user.username}</Text>
                     {user.city && (
                         <Text style={styles.cityText}>📍 {user.city}{user.region ? `, ${user.region}` : ''}</Text>
@@ -158,7 +161,16 @@ const styles = StyleSheet.create({
     headerTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 12 },
     scroll: { padding: 16 },
     avatarSection: { alignItems: 'center', marginBottom: 20 },
-    avatar: { width: 90, height: 90, borderRadius: 45, marginBottom: 12 },
+    avatarWrapper: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        overflow: 'hidden',
+        backgroundColor: '#f3f4f6',
+        marginBottom: 12,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
     username: { fontSize: 22, fontWeight: 'bold', color: '#1f2937' },
     cityText: { fontSize: 14, color: '#6b7280', marginTop: 4 },
     badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10, justifyContent: 'center' },

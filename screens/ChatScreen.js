@@ -13,6 +13,7 @@ import {
     ImageBackground,
     StatusBar
 } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { ArrowLeft, Send } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useUnreadMessages } from '../contexts/UnreadmesagContext';
@@ -20,22 +21,28 @@ import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 
-const getAvatarUrl = (avatar_url, username) => {
-    return avatar_url
-        ? avatar_url
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=random`;
+const getAvatarUrl = (style, seed) => {
+    return `https://api.dicebear.com/9.x/${style || 'initials'}/svg?seed=${encodeURIComponent(seed || 'User')}`;
 };
 
 
 export default function ChatScreen({ route, navigation }) {
-    const { chatId, otherUserName: initialName, otherUserAvatar: initialAvatar, otherUserId } = route.params;
+    const { 
+        chatId, 
+        otherUserName: initialName, 
+        otherUserAvatar: initialAvatar, 
+        otherUserAvatarStyle: initialStyle,
+        otherUserAvatarSeed: initialSeed,
+        otherUserId 
+    } = route.params;
     const { profile } = useAuth();
     const { fetchUnreadMessages } = useUnreadMessages();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [otherUserName, setOtherUserName] = useState(initialName || '');
-    const [otherUserAvatar, setOtherUserAvatar] = useState(initialAvatar || '');
+    const [otherUserAvatarStyle, setOtherUserAvatarStyle] = useState(initialStyle || 'initials');
+    const [otherUserAvatarSeed, setOtherUserAvatarSeed] = useState(initialSeed || initialName || 'User');
     const flatListRef = useRef(null);
 
 
@@ -213,10 +220,13 @@ export default function ChatScreen({ route, navigation }) {
                         onPress={() => otherUserId && navigation.navigate('PublicProfile', { userId: otherUserId })}
                         activeOpacity={otherUserId ? 0.7 : 1}
                     >
-                        <Image
-                            source={{ uri: getAvatarUrl(otherUserAvatar, otherUserName) }}
-                            style={styles.headerAvatar}
-                        />
+                        <View style={styles.headerAvatarWrapper}>
+                            <SvgUri
+                                width="40"
+                                height="40"
+                                uri={getAvatarUrl(otherUserAvatarStyle, otherUserAvatarSeed)}
+                            />
+                        </View>
                         <View style={styles.headerTextContainer}>
                              <Text style={styles.headerTitle} numberOfLines={1}>{otherUserName || 'Yükleniyor...'}</Text>
                              <Text style={styles.headerStatus}>{otherUserId ? 'profile görüntüle →' : 'çevrimiçi'}</Text>
@@ -298,11 +308,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    headerAvatar: {
+    headerAvatarWrapper: {
         width: 40,
         height: 40,
         borderRadius: 20,
+        overflow: 'hidden',
         backgroundColor: '#e5e7eb',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     headerTextContainer: {
         marginLeft: 12,

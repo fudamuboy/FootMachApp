@@ -4,20 +4,15 @@ import {
     RefreshControl, ActivityIndicator, Image,
     ImageBackground
 } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 import { useFocusEffect } from '@react-navigation/native';
 import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 
-const getAvatarUrl = (avatar_url, username) => {
-    if (avatar_url) return avatar_url;
-    const name = username?.trim() || 'User';
-    const initials = name.split(' ').length === 1
-        ? name.slice(0, 2).toUpperCase()
-        : (name[0] + name.split(' ')[1][0]).toUpperCase();
-
-    return `https://ui-avatars.com/api/?name=${initials}&background=random&color=ffffff&bold=true`;
+const getAvatarUrl = (style, seed) => {
+    return `https://api.dicebear.com/9.x/${style || 'initials'}/svg?seed=${encodeURIComponent(seed || 'User')}`;
 };
 
 export default function ChatsScreen({ navigation }) {
@@ -40,6 +35,8 @@ export default function ChatsScreen({ navigation }) {
                     ...chat,
                     other_user_name: isOwn ? chat.participant_2_username : chat.participant_1_username || t('chats.unknownUser'),
                     other_user_avatar: isOwn ? chat.participant_2_avatar : chat.participant_1_avatar || null,
+                    other_user_avatar_style: isOwn ? chat.participant_2_avatar_style : chat.participant_1_avatar_style,
+                    other_user_avatar_seed: isOwn ? chat.participant_2_avatar_seed : chat.participant_1_avatar_seed,
                     other_user_id: isOwn ? chat.participant_2 : chat.participant_1,
                     unread_count: parseInt(chat.unread_count) || 0,
                 };
@@ -105,13 +102,18 @@ export default function ChatsScreen({ navigation }) {
                 chatId: item.id,
                 otherUserName: item.other_user_name,
                 otherUserAvatar: item.other_user_avatar,
+                otherUserAvatarStyle: item.other_user_avatar_style,
+                otherUserAvatarSeed: item.other_user_avatar_seed,
                 otherUserId: item.other_user_id,
             })}
         >
-            <Image
-                source={{ uri: getAvatarUrl(item.other_user_avatar, item.other_user_name) }}
-                style={styles.chatAvatar}
-            />
+            <View style={styles.chatAvatarWrapper}>
+                <SvgUri
+                    width="40"
+                    height="40"
+                    uri={getAvatarUrl(item.other_user_avatar_style, item.other_user_avatar_seed || item.other_user_name)}
+                />
+            </View>
             <View style={styles.chatContent}>
                 <Text style={styles.chatName}>{item.other_user_name}</Text>
                 <Text style={styles.chatMessage} numberOfLines={1}>
@@ -244,12 +246,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 24,
     },
-    chatAvatar: {
+    chatAvatarWrapper: {
         width: 40,
         height: 40,
         borderRadius: 20,
+        overflow: 'hidden',
         backgroundColor: '#e5e7eb',
         marginRight: 12,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     chatRightSide: {
         alignItems: 'flex-end',

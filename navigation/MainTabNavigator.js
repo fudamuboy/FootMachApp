@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Megaphone, MessageCircle, User } from 'lucide-react-native';
+import { Megaphone, MessageCircle, User, Star } from 'lucide-react-native';
 import AnnouncementScreen from '../screens/AnnouncementScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import Profile from '../screens/Profile';
@@ -32,11 +32,15 @@ const MainTabNavigator = () => {
                 tabBarInactiveTintColor: '#6b7280',
                 tabBarStyle: {
                     backgroundColor: 'white',
-                    borderTopWidth: 1,
-                    borderTopColor: '#e5e7eb',
-                    paddingBottom: 20,
+                    borderTopWidth: 0,
+                    elevation: 8,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: -4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 12,
+                    paddingBottom: 24,
                     paddingTop: 8,
-                    height: 80,
+                    height: 85,
                     position: 'absolute',
                 },
                 tabBarLabelStyle: {
@@ -50,8 +54,8 @@ const MainTabNavigator = () => {
                 component={Profile}
                 options={{
                     title: 'Profil',
-                    tabBarIcon: ({ size, color }) => (
-                        <User size={size} color={color} />
+                    tabBarIcon: ({ focused, size, color }) => (
+                        <User size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -60,8 +64,8 @@ const MainTabNavigator = () => {
                 component={AnnouncementScreen}
                 options={{
                     title: 'Ilan',
-                    tabBarIcon: ({ size, color }) => (
-                        <Megaphone size={size} color={color} />
+                    tabBarIcon: ({ focused, size, color }) => (
+                        <Megaphone size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -77,8 +81,8 @@ const MainTabNavigator = () => {
                         fontSize: 10,
                         fontWeight: 'bold',
                     },
-                    tabBarIcon: ({ size, color }) => (
-                        <MessageCircle size={size} color={color} />
+                    tabBarIcon: ({ focused, size, color }) => (
+                        <MessageCircle size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -88,9 +92,9 @@ const MainTabNavigator = () => {
                 name="CommentsListScreen"
                 component={CommentsListScreen}
                 options={{
-                    tabBarLabel: 'Değerlendirme',
-                    tabBarIcon: ({ color, size }) => (
-                        <Entypo name="star-outlined" size={size} color={color} />
+                    title: 'Yorumlar',
+                    tabBarIcon: ({ focused, color, size }) => (
+                        <Star size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />

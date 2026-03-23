@@ -21,9 +21,9 @@ import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
-const FORMAT_OPTIONS = ['Tümü', '5v5', '7v7', '11v11'];
-const TIME_OPTIONS   = ['Tümü', 'Bugün', 'Bu Hafta'];
-const FEE_OPTIONS    = ['Tümü', 'Ücretsiz', 'Ücretli'];
+const FORMAT_OPTIONS = ['5v5', '7v7', '11v11'];
+const TIME_OPTIONS   = ['Bugün', 'Bu Hafta'];
+const FEE_OPTIONS    = ['Ücretsiz', 'Ücretli'];
 
 const isToday = (date) => {
     const now = new Date();
@@ -249,22 +249,7 @@ export default function AnnouncementScreen({ navigation }) {
         </View>
     );
 
-    // ─── Render: filter bar ───────────────────────────────────────────────────
-    const FilterBar = ({ options, selected, onSelect }) => (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterBar} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
-            {options.map(opt => (
-                <TouchableOpacity
-                    key={opt}
-                    style={[styles.filterChip, selected === opt && styles.filterChipActive]}
-                    onPress={() => onSelect(opt)}
-                >
-                    <Text style={[styles.filterChipText, selected === opt && styles.filterChipTextActive]}>
-                        {opt}
-                    </Text>
-                </TouchableOpacity>
-            ))}
-        </ScrollView>
-    );
+    // ─── Render: single filter row ────────────────────────────────────────────
 
     return (
         <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
@@ -319,9 +304,41 @@ export default function AnnouncementScreen({ navigation }) {
                 {/* Filters (only for upcoming) */}
                 {activeTab === 'upcoming' && (
                     <View style={styles.filtersWrapper}>
-                        <FilterBar options={FORMAT_OPTIONS} selected={filterFormat} onSelect={setFilterFormat} />
-                        <FilterBar options={TIME_OPTIONS}   selected={filterTime}   onSelect={setFilterTime} />
-                        <FilterBar options={FEE_OPTIONS}    selected={filterFee}    onSelect={setFilterFee} />
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.singleFilterRow}>
+                            {FORMAT_OPTIONS.map(opt => (
+                                <TouchableOpacity
+                                    key={opt}
+                                    style={[styles.filterChip, filterFormat === opt && styles.filterChipActive]}
+                                    onPress={() => setFilterFormat(filterFormat === opt ? 'Tümü' : opt)}
+                                >
+                                    <Text style={[styles.filterChipText, filterFormat === opt && styles.filterChipTextActive]}>
+                                        {opt}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                            {TIME_OPTIONS.map(opt => (
+                                <TouchableOpacity
+                                    key={opt}
+                                    style={[styles.filterChip, filterTime === opt && styles.filterChipActive]}
+                                    onPress={() => setFilterTime(filterTime === opt ? 'Tümü' : opt)}
+                                >
+                                    <Text style={[styles.filterChipText, filterTime === opt && styles.filterChipTextActive]}>
+                                        {opt}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                            {FEE_OPTIONS.map(opt => (
+                                <TouchableOpacity
+                                    key={opt}
+                                    style={[styles.filterChip, filterFee === opt && styles.filterChipActive]}
+                                    onPress={() => setFilterFee(filterFee === opt ? 'Tümü' : opt)}
+                                >
+                                    <Text style={[styles.filterChipText, filterFee === opt && styles.filterChipTextActive]}>
+                                        {opt}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
                     </View>
                 )}
 
@@ -477,8 +494,8 @@ const styles = StyleSheet.create({
     tabText: { fontSize: 13, fontWeight: 'bold', color: '#6b7280' },
     activeTabText: { color: 'white' },
     // Filter chips
-    filtersWrapper: { paddingHorizontal: 12, paddingTop: 8, gap: 6 },
-    filterBar: { marginBottom: 2 },
+    filtersWrapper: { paddingVertical: 10 },
+    singleFilterRow: { gap: 8, paddingHorizontal: 16 },
     filterChip: {
         paddingHorizontal: 14, paddingVertical: 5,
         borderRadius: 16, borderWidth: 1, borderColor: '#d1d5db',

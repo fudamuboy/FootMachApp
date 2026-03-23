@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
             setProfile(newUser);
             console.log('✅ Profil inséré avec succès');
         } catch (error) {
-            console.error('❌ Erreur lors de la création du profil:', error.response?.data?.message || error.message);
+            console.log('❌ Erreur lors de la création du profil:', error.response?.data?.message || error.message);
             throw new Error(error.response?.data?.message || "Erreur de création de compte");
         }
     };
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
             setUser(loggedInUser);
             setProfile(loggedInUser);
         } catch (error) {
-           console.error('SignIn error:', error.response?.data?.message || error.message);
+           console.log('SignIn error:', error.response?.data?.message || error.message);
            throw new Error(error.response?.data?.message || "Invalid credentials");
         }
     };

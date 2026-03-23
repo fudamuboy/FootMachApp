@@ -15,10 +15,12 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { X, Users, Clock, MapPin, FileText, Trophy, Coins } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 
 const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const { profile } = useAuth();
+    const { t } = useTranslation();
     const [teamName, setTeamName] = useState('');
     const [playersNeeded, setPlayersNeeded] = useState(0);
     const [matchTime, setMatchTime] = useState('');
@@ -34,10 +36,10 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const [showTimePicker, setShowTimePicker] = useState(false);
 
     const showPlayersPickerIOS = () => {
-        const options = ['', ...Array.from({ length: 13 }, (_, i) => `${i + 1} oyuncu aranıyor`), 'İptal'];
+        const options = ['', ...Array.from({ length: 13 }, (_, i) => `${i + 1} ${t('createAnnouncement.playersSelected')}`), t('createAnnouncement.cancel')];
         const cancelButtonIndex = options.length - 1;
         ActionSheetIOS.showActionSheetWithOptions(
-            { options, cancelButtonIndex, title: 'Kaç oyuncu aranıyor?' },
+            { options, cancelButtonIndex, title: t('createAnnouncement.playersNeeded') },
             (buttonIndex) => {
                 if (buttonIndex === cancelButtonIndex || buttonIndex === 0) return;
                 setPlayersNeeded(buttonIndex);
@@ -47,7 +49,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
     const handleSubmit = async () => {
         if (!profile || !teamName || !matchTime || !location) {
-            setError('Lütfen tüm zorunlu alanları doldurun');
+            setError(t('createAnnouncement.fillAllFields'));
             return;
         }
 
@@ -116,7 +118,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <X size={24} color="#6b7280" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>İlan oluşturma</Text>
+                    <Text style={styles.title}>{t('createAnnouncement.title')}</Text>
                     <View style={styles.placeholder} />
                 </View>
 
@@ -132,7 +134,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <Users size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Takımın adı"
+                            placeholder={t('createAnnouncement.teamName')}
                             value={teamName}
                             onChangeText={setTeamName}
                         />
@@ -144,13 +146,13 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         {Platform.OS === 'ios' ? (
                             <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={showPlayersPickerIOS}>
                                 <Text style={styles.inputTextButton}>
-                                    {playersNeeded > 0 ? `${playersNeeded} oyuncu aranıyor` : 'Kaç oyuncu aranıyor?'}
+                                    {playersNeeded > 0 ? `${playersNeeded} ${t('createAnnouncement.playersSelected')}` : t('createAnnouncement.playersNeeded')}
                                 </Text>
                             </TouchableOpacity>
                         ) : (
                             <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={showPlayersPickerIOS}>
                                 <Text style={styles.inputTextButton}>
-                                    {playersNeeded > 0 ? `${playersNeeded} oyuncu aranıyor` : 'Kaç oyuncu aranıyor?'}
+                                    {playersNeeded > 0 ? `${playersNeeded} ${t('createAnnouncement.playersSelected')}` : t('createAnnouncement.playersNeeded')}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -170,7 +172,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                                         month: 'long', year: 'numeric',
                                         hour: '2-digit', minute: '2-digit'
                                     })
-                                    : 'Maç tarihi ve saati seç'}
+                                    : t('createAnnouncement.matchTimePlaceholder')}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -181,9 +183,9 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             <View style={styles.pickerContainer}>
                                 <View style={styles.pickerHeader}>
                                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={styles.pickerCancel}>İptal</Text>
+                                        <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.pickerTitle}>Tarih Seç</Text>
+                                    <Text style={styles.pickerTitle}>{t('createAnnouncement.selectDate')}</Text>
                                     <View style={{ width: 50 }} />
                                 </View>
                                 <DateTimePicker
@@ -207,7 +209,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                                         setTimeout(() => setShowTimePicker(true), 100);
                                     }}
                                 >
-                                    <Text style={styles.pickerConfirmText}>Saati Seç →</Text>
+                                    <Text style={styles.pickerConfirmText}>{t('createAnnouncement.selectTime')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -219,9 +221,9 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             <View style={styles.pickerContainer}>
                                 <View style={styles.pickerHeader}>
                                     <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                                        <Text style={styles.pickerCancel}>İptal</Text>
+                                        <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.pickerTitle}>Saat Seç</Text>
+                                    <Text style={styles.pickerTitle}>{t('createAnnouncement.selectTimeTitle')}</Text>
                                     <View style={{ width: 50 }} />
                                 </View>
                                 <DateTimePicker
@@ -246,7 +248,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                                         if (tempDate) setMatchTime(tempDate.toISOString());
                                     }}
                                 >
-                                    <Text style={styles.pickerConfirmText}>Tamam ✓</Text>
+                                    <Text style={styles.pickerConfirmText}>{t('createAnnouncement.done')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -257,7 +259,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <MapPin size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Maçın yeri (örn: Buca, İzmir)"
+                            placeholder={t('createAnnouncement.locationPlaceholder')}
                             value={location}
                             onChangeText={setLocation}
                         />
@@ -268,7 +270,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         <FileText size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                             style={[styles.input, styles.textArea]}
-                            placeholder="Açıklama (opsiyonel)"
+                            placeholder={t('createAnnouncement.descriptionPlaceholder')}
                             value={description}
                             onChangeText={setDescription}
                             multiline
@@ -279,7 +281,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     {/* ⚽ Match Format */}
                     <ChipSelector
-                        label="Maç Formatı"
+                        label={t('createAnnouncement.formatLabel')}
                         icon={<Text style={{ fontSize: 16, marginRight: 6 }}>⚽</Text>}
                         options={[
                             { label: '5v5', value: '5v5' },
@@ -292,12 +294,12 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     {/* 🏆 Skill Level */}
                     <ChipSelector
-                        label="Seviye"
+                        label={t('createAnnouncement.levelLabel')}
                         icon={<Trophy size={16} color="#6b7280" style={{ marginRight: 6 }} />}
                         options={[
-                            { label: 'Başlangıç', value: 'Başlangıç' },
-                            { label: 'Orta', value: 'Orta' },
-                            { label: 'Rekabetçi', value: 'Rekabetçi' },
+                            { label: t('createAnnouncement.levelBeginner'), value: 'Başlangıç' },
+                            { label: t('createAnnouncement.levelIntermediate'), value: 'Orta' },
+                            { label: t('createAnnouncement.levelCompetitive'), value: 'Rekabetçi' },
                         ]}
                         selected={skillLevel}
                         onSelect={setSkillLevel}
@@ -305,11 +307,11 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     {/* 💰 Match Fee */}
                     <ChipSelector
-                        label="Katılım Ücreti"
+                        label={t('createAnnouncement.feeLabel')}
                         icon={<Coins size={16} color="#6b7280" style={{ marginRight: 6 }} />}
                         options={[
-                            { label: '🆓 Ücretsiz', value: 'free' },
-                            { label: '💰 Ücretli', value: 'paid' },
+                            { label: t('createAnnouncement.free'), value: 'free' },
+                            { label: t('createAnnouncement.paid'), value: 'paid' },
                         ]}
                         selected={matchFee}
                         onSelect={setMatchFee}
@@ -317,7 +319,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-                            <Text style={styles.cancelButtonText}>İptal</Text>
+                            <Text style={styles.cancelButtonText}>{t('createAnnouncement.cancel')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -328,7 +330,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                             {loading ? (
                                 <ActivityIndicator color="white" />
                             ) : (
-                                <Text style={styles.submitButtonText}>Oluştur</Text>
+                                <Text style={styles.submitButtonText}>{t('createAnnouncement.create')}</Text>
                             )}
                         </TouchableOpacity>
                     </View>

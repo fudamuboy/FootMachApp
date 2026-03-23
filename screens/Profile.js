@@ -4,12 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 import { SvgUri } from 'react-native-svg';
 import api from '../lib/api';
 
 export default function ProfileScreen() {
     const { profile, signOut, fetchProfile } = useAuth();
     const navigation = useNavigation();
+    const { t } = useTranslation();
 
     // Avatar state
     const [modalVisible, setModalVisible] = React.useState(false);
@@ -37,7 +39,7 @@ export default function ProfileScreen() {
             setModalVisible(false);
         } catch (error) {
             console.error('Error saving avatar:', error);
-            alert('Profil güncellenirken bir hata oluştu');
+            alert(t('profile.errorUpdate'));
         } finally {
             setSaving(false);
         }
@@ -51,8 +53,8 @@ export default function ProfileScreen() {
         return (
             <View style={styles.container}>
                 <StatusBar backgroundColor="#B4C8A6" barStyle="dark-content" />
-                <Text style={styles.title}>Hesabım</Text>
-                <Text style={{ textAlign: 'center', color: 'black' }}>Oturum kapatıldı.</Text>
+                <Text style={styles.title}>{t('profile.title')}</Text>
+                <Text style={{ textAlign: 'center', color: 'black' }}>{t('profile.logout')}</Text>
             </View>
         );
     }
@@ -71,7 +73,7 @@ export default function ProfileScreen() {
                     <MaterialIcons name="exit-to-app" size={24} color="red" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
 
-                <Text style={styles.headerText}>Hesabım</Text>
+                <Text style={styles.headerText}>{t('profile.title')}</Text>
             </View>
 
             <ImageBackground
@@ -115,7 +117,7 @@ export default function ProfileScreen() {
                     onPress={() => navigation.navigate('UserInfoScreen')}
                 >
                     <Feather name="user" size={24} color="black" />
-                    <Text style={styles.itemText}>Kullanıcı Bilgilerim</Text>
+                    <Text style={styles.itemText}>{t('profile.userInfo')}</Text>
                     <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
 
@@ -124,7 +126,7 @@ export default function ProfileScreen() {
                     onPress={() => navigation.navigate('FootballProfileScreen')}
                 >
                     <Feather name="target" size={24} color="black" />
-                    <Text style={styles.itemText}>Futbol Bilgilerim</Text>
+                    <Text style={styles.itemText}>{t('profile.footballInfo')}</Text>
                     <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
                 {/* Avatar Selection Modal */}
@@ -132,7 +134,7 @@ export default function ProfileScreen() {
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalContent}>
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Avatarı Düzenle</Text>
+                                <Text style={styles.modalTitle}>{t('profile.editAvatar')}</Text>
                                 <TouchableOpacity onPress={() => setModalVisible(false)}>
                                     <Feather name="x" size={24} color="black" />
                                 </TouchableOpacity>
@@ -152,10 +154,10 @@ export default function ProfileScreen() {
                                 onPress={() => setSelectedSeed(Math.random().toString(36).substring(7))}
                             >
                                 <Feather name="refresh-cw" size={16} color="white" />
-                                <Text style={styles.randomButtonText}>Rastgele Oluştur</Text>
+                                <Text style={styles.randomButtonText}>{t('profile.randomize')}</Text>
                             </TouchableOpacity>
 
-                            <Text style={styles.sectionTitle}>Stil Seçimi</Text>
+                            <Text style={styles.sectionTitle}>{t('profile.styleSelection')}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.styleList}>
                                 {AVATAR_STYLES.map(style => (
                                     <TouchableOpacity
@@ -169,7 +171,7 @@ export default function ProfileScreen() {
                                             uri={getAvatarUrl(style, selectedSeed)}
                                         />
                                         <Text style={[styles.styleOptionText, selectedStyle === style && styles.styleOptionTextSelected]}>
-                                            {style === 'initials' ? 'Harf' : style}
+                                            {style === 'initials' ? t('profile.initials') : style}
                                         </Text>
                                     </TouchableOpacity>
                                 ))}
@@ -180,7 +182,7 @@ export default function ProfileScreen() {
                                 onPress={handleSaveAvatar}
                                 disabled={saving}
                             >
-                                {saving ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>Kaydet</Text>}
+                                {saving ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>{t('profile.save')}</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>

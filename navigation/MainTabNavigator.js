@@ -5,6 +5,7 @@ import AnnouncementScreen from '../screens/AnnouncementScreen';
 import ChatsScreen from '../screens/ChatsScreen';
 import Profile from '../screens/Profile';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { View, Text } from 'react-native'; // ✅ Ajout de Text
 import api from '../lib/api';
 
@@ -23,6 +24,7 @@ const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
     const { unreadCount } = useUnreadMessages();
+    const { t } = useTranslation();
 
     return (
         <Tab.Navigator
@@ -53,7 +55,7 @@ const MainTabNavigator = () => {
                 name="Profile"
                 component={Profile}
                 options={{
-                    title: 'Profil',
+                    title: t('tabs.profile'),
                     tabBarIcon: ({ focused, size, color }) => (
                         <User size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
@@ -63,7 +65,7 @@ const MainTabNavigator = () => {
                 name="Announcements"
                 component={AnnouncementScreen}
                 options={{
-                    title: 'Ilan',
+                    title: t('tabs.announcements'),
                     tabBarIcon: ({ focused, size, color }) => (
                         <Megaphone size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),
@@ -73,7 +75,7 @@ const MainTabNavigator = () => {
                 name="Chats"
                 component={ChatsScreen}
                 options={{
-                    title: 'Mesajlar',
+                    title: t('tabs.chats'),
                     tabBarBadge: unreadCount > 0 ? unreadCount : null,
                     tabBarBadgeStyle: {
                         backgroundColor: '#ef4444',
@@ -92,7 +94,7 @@ const MainTabNavigator = () => {
                 name="CommentsListScreen"
                 component={CommentsListScreen}
                 options={{
-                    title: 'Yorumlar',
+                    title: t('tabs.reviews'),
                     tabBarIcon: ({ focused, color, size }) => (
                         <Star size={size} color={color} fill={focused ? color : 'transparent'} />
                     ),

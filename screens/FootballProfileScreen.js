@@ -4,6 +4,7 @@ import {
     SafeAreaView, Platform, StatusBar, Alert, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
@@ -14,6 +15,7 @@ const FEET = ['Sağ', 'Sol', 'Her İkisi'];
 export default function FootballProfileScreen() {
     const navigation = useNavigation();
     const { profile, fetchProfile } = useAuth();
+    const { t } = useTranslation();
 
     const [position, setPosition]       = useState(null);
     const [preferredFoot, setPreferredFoot] = useState(null);
@@ -33,10 +35,10 @@ export default function FootballProfileScreen() {
                 position: position || null,
                 preferred_foot: preferredFoot || null,
             });
-            Alert.alert('Başarılı', 'Futbol bilgilerin güncellendi!');
+            Alert.alert(t('footballInfo.successTitle'), t('footballInfo.successMsg'));
             await fetchProfile();
         } catch (error) {
-            Alert.alert('Hata', 'Bilgiler güncellenemedi.');
+            Alert.alert(t('footballInfo.errorTitle'), t('footballInfo.errorMsg'));
             console.error(error);
         }
         setLoading(false);
@@ -51,7 +53,7 @@ export default function FootballProfileScreen() {
                     onPress={() => onSelect(selected === opt ? null : opt)}
                 >
                     <Text style={[styles.chipText, selected === opt && styles.chipTextSelected]}>
-                        {opt}
+                        {opt === 'Sağ' ? t('footballInfo.footRight') : opt === 'Sol' ? t('footballInfo.footLeft') : opt === 'Her İkisi' ? t('footballInfo.footBoth') : opt}
                     </Text>
                 </TouchableOpacity>
             ))}
@@ -64,19 +66,19 @@ export default function FootballProfileScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Feather name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>⚽ Futbol Bilgilerim</Text>
+                <Text style={styles.headerTitle}>{t('footballInfo.title')}</Text>
             </View>
 
             <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
                 <View style={styles.section}>
                     <Text style={styles.subText}>
-                        Rakiplerinizin sizi daha iyi tanımasını sağlayın.
+                        {t('footballInfo.desc')}
                     </Text>
 
-                    <Text style={styles.label}>Mevki:</Text>
+                    <Text style={styles.label}>{t('footballInfo.position')}</Text>
                     <ChipRow options={POSITIONS} selected={position} onSelect={setPosition} />
 
-                    <Text style={[styles.label, { marginTop: 20 }]}>Baskın Ayak:</Text>
+                    <Text style={[styles.label, { marginTop: 20 }]}>{t('footballInfo.strongFoot')}</Text>
                     <ChipRow options={FEET} selected={preferredFoot} onSelect={setPreferredFoot} />
                 </View>
 
@@ -87,7 +89,7 @@ export default function FootballProfileScreen() {
                         disabled={loading}
                     >
                         <Text style={styles.saveText}>
-                            {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                            {loading ? t('footballInfo.saving') : t('footballInfo.save')}
                         </Text>
                     </TouchableOpacity>
                 </View>

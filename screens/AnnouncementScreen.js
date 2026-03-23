@@ -19,11 +19,12 @@ import api from '../lib/api';
 import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
 const FORMAT_OPTIONS = ['5v5', '7v7', '11v11'];
-const TIME_OPTIONS   = ['Bugün', 'Bu Hafta'];
-const FEE_OPTIONS    = ['Ücretsiz', 'Ücretli'];
+const TIME_OPTIONS   = ['today', 'thisWeek'];
+const FEE_OPTIONS    = ['free', 'paid'];
 
 const isToday = (date) => {
     const now = new Date();
@@ -39,6 +40,7 @@ const isThisWeek = (date) => {
 
 export default function AnnouncementScreen({ navigation }) {
     const { profile } = useAuth();
+    const { t } = useTranslation();
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -52,9 +54,9 @@ export default function AnnouncementScreen({ navigation }) {
     const [loadingPast, setLoadingPast] = useState(false);
 
     // Filters
-    const [filterFormat, setFilterFormat] = useState('Tümü');
-    const [filterTime, setFilterTime] = useState('Tümü');
-    const [filterFee, setFilterFee]   = useState('Tümü');
+    const [filterFormat, setFilterFormat] = useState('all');
+    const [filterTime, setFilterTime] = useState('all');
+    const [filterFee, setFilterFee]   = useState('all');
 
     // Sub-criteria evaluation
     const [fairPlay, setFairPlay]     = useState(0);
@@ -135,11 +137,11 @@ export default function AnnouncementScreen({ navigation }) {
     const applyFilters = (list) => {
         return list.filter(item => {
             // strict format filter: only show announcements that exactly match the selected format
-            if (filterFormat !== 'Tümü' && item.match_format !== filterFormat) return false;
-            if (filterFee === 'Ücretsiz' && item.match_fee !== 'free') return false;
-            if (filterFee === 'Ücretli'  && item.match_fee !== 'paid') return false;
-            if (filterTime === 'Bugün'    && !isToday(item.match_time))    return false;
-            if (filterTime === 'Bu Hafta' && !isThisWeek(item.match_time)) return false;
+            if (filterFormat !== 'all' && item.match_format !== filterFormat) return false;
+            if (filterFee === 'free' && item.match_fee !== 'free') return false;
+            if (filterFee === 'paid'  && item.match_fee !== 'paid') return false;
+            if (filterTime === 'today'    && !isToday(item.match_time))    return false;
+            if (filterTime === 'thisWeek' && !isThisWeek(item.match_time)) return false;
             return true;
         });
     };
@@ -256,7 +258,7 @@ export default function AnnouncementScreen({ navigation }) {
             <View style={styles.container}>
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.title}>İlanlar</Text>
+                        <Text style={styles.title}>{t('announcements.title')}</Text>
                         <Text style={styles.subtitle}>
                             {searchRegion ? `Arama: ${searchRegion}` : `${profile?.city || 'Tüm şehirler'}`}
                         </Text>
@@ -288,7 +290,7 @@ export default function AnnouncementScreen({ navigation }) {
                         onPress={() => setActiveTab('upcoming')}
                     >
                         <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>
-                            Yaklaşan ({announcements.length})
+                            {t('announcements.upcoming')} ({announcements.length})
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -296,7 +298,7 @@ export default function AnnouncementScreen({ navigation }) {
                         onPress={() => setActiveTab('past')}
                     >
                         <Text style={[styles.tabText, activeTab === 'past' && styles.activeTabText]}>
-                            Geçmiş ({pastAnnouncements.length})
+                            {t('announcements.past')} ({pastAnnouncements.length})
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -309,7 +311,7 @@ export default function AnnouncementScreen({ navigation }) {
                                 <TouchableOpacity
                                     key={opt}
                                     style={[styles.filterChip, filterFormat === opt && styles.filterChipActive]}
-                                    onPress={() => setFilterFormat(filterFormat === opt ? 'Tümü' : opt)}
+                                    onPress={() => setFilterFormat(filterFormat === opt ? 'all' : opt)}
                                 >
                                     <Text style={[styles.filterChipText, filterFormat === opt && styles.filterChipTextActive]}>
                                         {opt}
@@ -320,10 +322,10 @@ export default function AnnouncementScreen({ navigation }) {
                                 <TouchableOpacity
                                     key={opt}
                                     style={[styles.filterChip, filterTime === opt && styles.filterChipActive]}
-                                    onPress={() => setFilterTime(filterTime === opt ? 'Tümü' : opt)}
+                                    onPress={() => setFilterTime(filterTime === opt ? 'all' : opt)}
                                 >
                                     <Text style={[styles.filterChipText, filterTime === opt && styles.filterChipTextActive]}>
-                                        {opt}
+                                        {t(`announcements.${opt}`)}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
@@ -331,10 +333,10 @@ export default function AnnouncementScreen({ navigation }) {
                                 <TouchableOpacity
                                     key={opt}
                                     style={[styles.filterChip, filterFee === opt && styles.filterChipActive]}
-                                    onPress={() => setFilterFee(filterFee === opt ? 'Tümü' : opt)}
+                                    onPress={() => setFilterFee(filterFee === opt ? 'all' : opt)}
                                 >
                                     <Text style={[styles.filterChipText, filterFee === opt && styles.filterChipTextActive]}>
-                                        {opt}
+                                        {t(`announcements.${opt}`)}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

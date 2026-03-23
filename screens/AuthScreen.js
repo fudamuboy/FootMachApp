@@ -13,6 +13,7 @@ import {
     SafeAreaView
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, User, MapPin, Eye, EyeOff, ChevronDown } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -37,7 +38,8 @@ export default function AuthScreen() {
     const [showRegionPicker, setShowRegionPicker] = useState(false);
 
     const { signIn, signUp } = useAuth();
-    const navigation = useNavigation()
+    const navigation = useNavigation();
+    const { t, i18n } = useTranslation();
 
     // Obtenir toutes les villes
     const cities = getAllCities();
@@ -47,12 +49,12 @@ export default function AuthScreen() {
 
     const handleSubmit = async () => {
         if (!email || !password) {
-            setError('Veuillez remplir tous les champs');
+            setError(t('auth.fillAllFields'));
             return;
         }
 
         if (!isLogin && (!displayName || !selectedCity || !region)) {
-            setError('Veuillez remplir tous les champs');
+            setError(t('auth.fillAllFields'));
             return;
         }
 
@@ -68,9 +70,11 @@ export default function AuthScreen() {
             }
         } catch (error) {
             if (error.message.includes("User already registered")) {
-                setError("Bu e-posta adresi zaten kullanılıyor.");
+                setError(t('auth.userExists'));
+            } else if (error.message.includes("Invalid credentials") || error.message.includes("Invalid login")) {
+                setError(t('auth.invalidCredentials'));
             } else {
-                setError(error.message || "Une erreur est survenue");
+                setError(error.message || t('auth.genericError'));
             }
         } finally {
             setLoading(false);
@@ -127,8 +131,8 @@ export default function AuthScreen() {
                         <View style={styles.logo}>
                             <Text style={styles.logoText}>⚽</Text>
                         </View>
-                        <Text style={styles.title}>Rakibim</Text>
-                        <Text style={styles.subtitle}>İlk golü yiyen bip'i giyer </Text>
+                        <Text style={styles.title}>{t('auth.loginTitle')}</Text>
+                        <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
                     </View>
 
                     <View style={styles.form}>
@@ -142,7 +146,7 @@ export default function AuthScreen() {
                             <Mail size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Email"
+                                placeholder={t('auth.emailPlaceholder')}
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
@@ -156,7 +160,7 @@ export default function AuthScreen() {
                             <Lock size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={[styles.input, { paddingRight: 50 }]}
-                                placeholder="Şifre"
+                                placeholder={t('auth.passwordPlaceholder')}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPassword}
@@ -179,7 +183,7 @@ export default function AuthScreen() {
                         {isLogin && (
                             <TouchableOpacity onPress={() => setShowResetModal(true)}>
                                 <Text style={{ color: '#3b82f6', textAlign: 'right', marginBottom: 10 }}>
-                                    Şifremi unuttum
+                                    {t('auth.forgotPassword')}
                                 </Text>
                             </TouchableOpacity>
                         )}
@@ -189,7 +193,7 @@ export default function AuthScreen() {
                                     <User size={20} color="#666" style={styles.inputIcon} />
                                     <TextInput
                                         style={styles.input}
-                                        placeholder="Adiniz"
+                                        placeholder={t('auth.namePlaceholder')}
                                         value={displayName}
                                         onChangeText={setDisplayName}
                                         autoComplete="name"
@@ -218,7 +222,7 @@ export default function AuthScreen() {
                                             onPress={() => setShowCityPicker(true)}
                                         >
                                             <Text style={[styles.pickerText, !selectedCity && styles.pickerPlaceholder]}>
-                                                {selectedCity || 'Şehir seçin'}
+                                                {selectedCity || t('auth.cityPlaceholder')}
                                             </Text>
                                         </TouchableOpacity>
                                         <ChevronDown size={18} color="#9ca3af" style={styles.chevronIcon} pointerEvents="none" />
@@ -234,7 +238,7 @@ export default function AuthScreen() {
                                             }}
                                             style={styles.picker}
                                         >
-                                            <Picker.Item label="Şehir seçin" value="" />
+                                            <Picker.Item label={t('auth.cityPlaceholder')} value="" />
                                             {cities.map((city) => (
                                                 <Picker.Item key={city} label={city} value={city} />
                                             ))}
@@ -252,7 +256,7 @@ export default function AuthScreen() {
                                             disabled={!selectedCity}
                                         >
                                             <Text style={[styles.pickerText, !region && styles.pickerPlaceholder]}>
-                                                {region || 'Bölgenizi seçin'}
+                                                {region || t('auth.regionPlaceholder')}
                                             </Text>
                                         </TouchableOpacity>
                                         <ChevronDown size={18} color="#9ca3af" style={styles.chevronIcon} pointerEvents="none" />
@@ -265,7 +269,7 @@ export default function AuthScreen() {
                                             onValueChange={setRegion}
                                             style={styles.picker}
                                         >
-                                            <Picker.Item label="Bölgenizi seçin" value="" />
+                                            <Picker.Item label={t('auth.regionPlaceholder')} value="" />
                                             {regions.map((r) => (
                                                 <Picker.Item key={r} label={r} value={r} />
                                             ))}
@@ -285,7 +289,7 @@ export default function AuthScreen() {
                                 <ActivityIndicator color="white" />
                             ) : (
                                 <Text style={styles.submitButtonText}>
-                                    {isLogin ? 'Oturum aç' : 'Kayit olun'}
+                                    {isLogin ? t('auth.loginButton') : t('auth.signupButton')}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -299,10 +303,24 @@ export default function AuthScreen() {
                         >
                             <Text style={styles.switchButtonText}>
                                 {isLogin
-                                    ? 'Henüz hesap yok mu? kayıt olun'
-                                    : 'Zaten bir hesap mı? Oturum aç'}
+                                    ? t('auth.noAccount')
+                                    : t('auth.hasAccount')}
                             </Text>
                         </TouchableOpacity>
+
+                        <View style={styles.languageSwitcher}>
+                            <TouchableOpacity onPress={() => i18n.changeLanguage('tr')}>
+                                <Text style={[styles.langText, i18n.language === 'tr' && styles.activeLangText]}>TR</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.langDivider}>|</Text>
+                            <TouchableOpacity onPress={() => i18n.changeLanguage('en')}>
+                                <Text style={[styles.langText, i18n.language === 'en' && styles.activeLangText]}>EN</Text>
+                            </TouchableOpacity>
+                            <Text style={styles.langDivider}>|</Text>
+                            <TouchableOpacity onPress={() => i18n.changeLanguage('fr')}>
+                                <Text style={[styles.langText, i18n.language === 'fr' && styles.activeLangText]}>FR</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                         
                     <Modal visible={showResetModal} animationType="slide" transparent={true}>
@@ -356,7 +374,7 @@ export default function AuthScreen() {
                                         <TouchableOpacity onPress={() => setShowCityPicker(false)}>
                                             <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Kapat</Text>
                                         </TouchableOpacity>
-                                        <Text style={{ fontWeight: '600' }}>Şehir seçin</Text>
+                                        <Text style={{ fontWeight: '600' }}>{t('auth.cityPlaceholder')}</Text>
                                         <TouchableOpacity onPress={() => setShowCityPicker(false)}>
                                             <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Bitti</Text>
                                         </TouchableOpacity>
@@ -368,7 +386,7 @@ export default function AuthScreen() {
                                             setRegion('');
                                         }}
                                     >
-                                        <Picker.Item label="Şehir seçin" value="" />
+                                        <Picker.Item label={t('auth.cityPlaceholder')} value="" />
                                         {cities.map((city) => (
                                             <Picker.Item key={city} label={city} value={city} />
                                         ))}
@@ -386,7 +404,7 @@ export default function AuthScreen() {
                                         <TouchableOpacity onPress={() => setShowRegionPicker(false)}>
                                             <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Kapat</Text>
                                         </TouchableOpacity>
-                                        <Text style={{ fontWeight: '600' }}>Bölgenizi seçin</Text>
+                                        <Text style={{ fontWeight: '600' }}>{t('auth.regionPlaceholder')}</Text>
                                         <TouchableOpacity onPress={() => setShowRegionPicker(false)}>
                                             <Text style={{ color: '#3b82f6', fontWeight: '600' }}>Bitti</Text>
                                         </TouchableOpacity>
@@ -395,7 +413,7 @@ export default function AuthScreen() {
                                         selectedValue={region}
                                         onValueChange={setRegion}
                                     >
-                                        <Picker.Item label="Bölgenizi seçin" value="" />
+                                        <Picker.Item label={t('auth.regionPlaceholder')} value="" />
                                         {regions.map((r) => (
                                             <Picker.Item key={r} label={r} value={r} />
                                         ))}
@@ -567,6 +585,25 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: '#1f2937',
+    },
+    languageSwitcher: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 30,
+        gap: 15,
+    },
+    langText: {
+        fontSize: 16,
+        color: '#9ca3af',
+        fontWeight: '500',
+    },
+    activeLangText: {
+        color: '#9DB88D',
+        fontWeight: 'bold',
+    },
+    langDivider: {
+        color: '#d1d5db',
     },
 
 });

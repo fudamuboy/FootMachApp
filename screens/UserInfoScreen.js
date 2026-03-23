@@ -4,6 +4,7 @@ import {
     SafeAreaView, Platform, StatusBar, Alert, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
@@ -11,6 +12,7 @@ import api from '../lib/api';
 const UserInfoScreen = () => {
     const navigation = useNavigation();
     const { profile, fetchProfile } = useAuth();
+    const { t } = useTranslation();
 
     const [username, setUsername] = useState('');
     const [phone, setPhone]       = useState('');
@@ -29,10 +31,10 @@ const UserInfoScreen = () => {
         setLoading(true);
         try {
             await api.put('/auth/profile', { username, phone, email });
-            Alert.alert('Başarılı', 'Bilgiler güncellendi');
+            Alert.alert(t('userInfo.successTitle'), t('userInfo.successMsg'));
             await fetchProfile();
         } catch (error) {
-            Alert.alert('Hata', 'Bilgiler güncellenemedi');
+            Alert.alert(t('userInfo.errorTitle'), t('userInfo.errorMsg'));
             console.error(error);
         }
         setLoading(false);
@@ -44,44 +46,44 @@ const UserInfoScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Feather name="arrow-left" size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Kullanıcı Bilgilerim</Text>
+                <Text style={styles.headerTitle}>{t('userInfo.title')}</Text>
             </View>
 
             <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>İletişim Bilgileri</Text>
+                    <Text style={styles.sectionTitle}>{t('userInfo.contactInfo')}</Text>
                     <Text style={styles.subText}>
-                        Bu bilgileri değiştirebilmek için yeni e-posta adresinizi veya telefon numaranızı doğrulamanız istenebilir.
+                        {t('userInfo.contactDesc')}
                     </Text>
 
                     {/* City — read-only, set at registration */}
-                    <Text style={styles.label}>Şehir:</Text>
+                    <Text style={styles.label}>{t('userInfo.city')}</Text>
                     <View style={styles.readOnlyField}>
                         <Text style={styles.readOnlyText}>{profile?.city || '—'}</Text>
                     </View>
 
                     {/* Region — read-only, set at registration */}
-                    <Text style={styles.label}>Bölge:</Text>
+                    <Text style={styles.label}>{t('userInfo.region')}</Text>
                     <View style={styles.readOnlyField}>
                         <Text style={styles.readOnlyText}>{profile?.region || '—'}</Text>
                     </View>
 
-                    <Text style={styles.label}>Cep Telefonu:</Text>
+                    <Text style={styles.label}>{t('userInfo.phone')}</Text>
                     <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+90 5xx xxx xx xx" />
 
-                    <Text style={styles.label}>E-Posta:</Text>
+                    <Text style={styles.label}>{t('userInfo.email')}</Text>
                     <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
 
-                    <Text style={styles.label}>Görüntü Adı:</Text>
+                    <Text style={styles.label}>{t('userInfo.displayName')}</Text>
                     <TextInput style={styles.input} value={username} onChangeText={setUsername} />
                 </View>
 
                 <View style={styles.section}>
                     <TouchableOpacity style={styles.saveButton} onPress={handleUpdate} disabled={loading}>
-                        <Text style={styles.saveText}>{loading ? 'Kaydediliyor...' : 'Bilgileri Güncelle'}</Text>
+                        <Text style={styles.saveText}>{loading ? t('userInfo.saving') : t('userInfo.updateBtn')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.deleteButton}>
-                        <Text style={styles.deleteText}>Hesabı Sil</Text>
+                        <Text style={styles.deleteText}>{t('userInfo.deleteAccount')}</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const FOOT_ICON = { 'Sağ': '🦶R', 'Sol': '🦶L', 'Her İkisi': '🦶B' };
 
@@ -26,6 +27,7 @@ const SubRatingBadge = ({ label, emoji, value }) => {
 
 export default function CommentsListScreen() {
     const { profile } = useAuth();
+    const { t } = useTranslation();
     const [comments, setComments] = useState([]);
 
     useEffect(() => {
@@ -73,11 +75,11 @@ export default function CommentsListScreen() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
-                <Text style={styles.title}>Değerlendirmeler</Text>
-                <Text style={styles.subtitle}>{profile?.city || 'Tüm şehirler'}</Text>
+                <Text style={styles.title}>{t('reviews.title')}</Text>
+                <Text style={styles.subtitle}>{profile?.city || t('reviews.allCities')}</Text>
             </View>
             <View style={styles.contentContainer}>
-                <Text style={styles.countText}>{comments.length} değerlendirme</Text>
+                <Text style={styles.countText}>{comments.length} {t('reviews.countText')}</Text>
                 <ImageBackground
                     source={require('../assets/logos.jpg')}
                     style={styles.imageBackground}
@@ -89,7 +91,7 @@ export default function CommentsListScreen() {
                         renderItem={renderItem}
                         ListEmptyComponent={
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>Henüz değerlendirme yok</Text>
+                                <Text style={styles.emptyText}>{t('reviews.empty')}</Text>
                             </View>
                         }
                         contentContainerStyle={{ paddingBottom: 20 }}

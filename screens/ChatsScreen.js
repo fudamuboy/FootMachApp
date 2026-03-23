@@ -7,6 +7,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 
 const getAvatarUrl = (avatar_url, username) => {
@@ -21,6 +22,7 @@ const getAvatarUrl = (avatar_url, username) => {
 
 export default function ChatsScreen({ navigation }) {
     const { profile } = useAuth();
+    const { t } = useTranslation();
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -36,7 +38,7 @@ export default function ChatsScreen({ navigation }) {
                 
                 return {
                     ...chat,
-                    other_user_name: isOwn ? chat.participant_2_username : chat.participant_1_username || 'Bilinmeyen kullanıcı',
+                    other_user_name: isOwn ? chat.participant_2_username : chat.participant_1_username || t('chats.unknownUser'),
                     other_user_avatar: isOwn ? chat.participant_2_avatar : chat.participant_1_avatar || null,
                     other_user_id: isOwn ? chat.participant_2 : chat.participant_1,
                     unread_count: parseInt(chat.unread_count) || 0,
@@ -113,7 +115,7 @@ export default function ChatsScreen({ navigation }) {
             <View style={styles.chatContent}>
                 <Text style={styles.chatName}>{item.other_user_name}</Text>
                 <Text style={styles.chatMessage} numberOfLines={1}>
-                    {item.last_message || 'Yeni konuşma'}
+                    {item.last_message || t('chats.newChat')}
                 </Text>
             </View>
             <View style={styles.chatRightSide}>
@@ -132,9 +134,9 @@ export default function ChatsScreen({ navigation }) {
             <View style={styles.emptyIcon}>
                 <MessageCircle size={48} color="#9ca3af" />
             </View>
-            <Text style={styles.emptyTitle}>Konuşma yok</Text>
+            <Text style={styles.emptyTitle}>{t('chats.noChats')}</Text>
             <Text style={styles.emptySubtitle}>
-                Sohbete başlamak için duyurulardan bir ekiple iletişime geçin!
+                {t('chats.noChatsDesc')}
             </Text>
         </View>
     );
@@ -151,8 +153,8 @@ export default function ChatsScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Mesajlar</Text>
-                <Text style={styles.subtitle}>{profile?.city || 'Tüm şehirler'}</Text>
+                <Text style={styles.title}>{t('chats.title')}</Text>
+                <Text style={styles.subtitle}>{profile?.city || t('chats.allCities')}</Text>
             </View>
 
             <ImageBackground

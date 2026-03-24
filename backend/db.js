@@ -4,8 +4,8 @@ require('dotenv').config();
 const pool = process.env.DATABASE_URL
   ? new Pool({ 
       connectionString: process.env.DATABASE_URL,
-      // For some providers (like Render or Railway), we might need ssl: { rejectUnauthorized: false }
-      // but let's try standard first as it's cleaner.
+      // Render, Railway et certains hébergeurs demandent SSL pour les DB externes (Supabase, Neon, etc.)
+      ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
     })
   : new Pool({
       user: process.env.DB_USER || 'postgres',

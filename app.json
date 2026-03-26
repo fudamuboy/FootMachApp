@@ -2,7 +2,7 @@
   "expo": {
     "scheme": "myapp",
     "deepLinking": true,
-    "name": "E-Sport",
+    "name": "Dokuz",
     "slug": "E-Sport",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logos.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

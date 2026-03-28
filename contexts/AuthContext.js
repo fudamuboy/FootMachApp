@@ -57,8 +57,9 @@ export const AuthProvider = ({ children }) => {
             setProfile(newUser);
             console.log('✅ Profil inséré avec succès');
         } catch (error) {
-            console.log('❌ Erreur lors de la création du profil:', error.response?.data?.message || error.message);
-            throw new Error(error.response?.data?.message || "Erreur de création de compte");
+            const errorMessage = error.response?.data?.message || error.message;
+            console.log('❌ Erreur lors de la création du profil:', errorMessage);
+            throw new Error(errorMessage);
         }
     };
 

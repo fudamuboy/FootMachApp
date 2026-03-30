@@ -13,6 +13,7 @@ import {
     ActionSheetIOS
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 import { X, Users, Clock, MapPin, FileText, Trophy, Coins } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +35,7 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
     const [error, setError] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+    const [showPlayersModal, setShowPlayersModal] = useState(false);
 
     const showPlayersPickerIOS = () => {
         const options = ['', ...Array.from({ length: 13 }, (_, i) => `${i + 1} ${t('createAnnouncement.playersSelected')}`), t('createAnnouncement.cancel')];
@@ -45,6 +47,14 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                 setPlayersNeeded(buttonIndex);
             }
         );
+    };
+
+    const handlePlayersPress = () => {
+        if (Platform.OS === 'ios') {
+            showPlayersPickerIOS();
+        } else {
+            setShowPlayersModal(true);
+        }
     };
 
     const handleSubmit = async () => {
@@ -143,19 +153,11 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                     {/* Players needed */}
                     <View style={styles.inputContainer}>
                         <Users size={20} color="#666" style={styles.inputIcon} />
-                        {Platform.OS === 'ios' ? (
-                            <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={showPlayersPickerIOS}>
-                                <Text style={styles.inputTextButton}>
-                                    {playersNeeded > 0 ? `${playersNeeded} ${t('createAnnouncement.playersSelected')}` : t('createAnnouncement.playersNeeded')}
-                                </Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={showPlayersPickerIOS}>
-                                <Text style={styles.inputTextButton}>
-                                    {playersNeeded > 0 ? `${playersNeeded} ${t('createAnnouncement.playersSelected')}` : t('createAnnouncement.playersNeeded')}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
+                        <TouchableOpacity style={{ flex: 1, height: 50, justifyContent: 'center' }} onPress={handlePlayersPress}>
+                            <Text style={styles.inputTextButton}>
+                                {playersNeeded > 0 ? `${playersNeeded} ${t('createAnnouncement.playersSelected')}` : t('createAnnouncement.playersNeeded')}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
 
                     {/* Match time */}
@@ -177,79 +179,152 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Date picker modal */}
-                    <Modal visible={showDatePicker} transparent animationType="slide">
-                        <View style={styles.pickerOverlay}>
-                            <View style={styles.pickerContainer}>
-                                <View style={styles.pickerHeader}>
-                                    <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                                        <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
-                                    </TouchableOpacity>
-                                    <Text style={styles.pickerTitle}>{t('createAnnouncement.selectDate')}</Text>
-                                    <View style={{ width: 50 }} />
+                    {/* Date picker */}
+                    {showDatePicker && (
+                        Platform.OS === 'ios' ? (
+                            <Modal visible={showDatePicker} transparent animationType="slide">
+                                <View style={styles.pickerOverlay}>
+                                    <View style={styles.pickerContainer}>
+                                        <View style={styles.pickerHeader}>
+                                            <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                                                <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
+                                            </TouchableOpacity>
+                                            <Text style={styles.pickerTitle}>{t('createAnnouncement.selectDate')}</Text>
+                                            <View style={{ width: 50 }} />
+                                        </View>
+                                        <DateTimePicker
+                                            value={matchTime ? new Date(matchTime) : new Date()}
+                                            mode="date"
+                                            display="spinner"
+                                            locale="tr-TR"
+                                            minimumDate={new Date()}
+                                            maximumDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+                                            onChange={(event, selectedDate) => {
+                                                if (event.type === 'set' && selectedDate) {
+                                                    setTempDate(selectedDate);
+                                                }
+                                            }}
+                                            style={{ width: '100%' }}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.pickerConfirm}
+                                            onPress={() => {
+                                                setShowDatePicker(false);
+                                                setTimeout(() => setShowTimePicker(true), 100);
+                                            }}
+                                        >
+                                            <Text style={styles.pickerConfirmText}>{t('createAnnouncement.selectTime')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                                <DateTimePicker
-                                    value={matchTime ? new Date(matchTime) : new Date()}
-                                    mode="date"
-                                    display="spinner"
-                                    locale="tr-TR"
-                                    minimumDate={new Date()}
-                                    maximumDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
-                                    onChange={(event, selectedDate) => {
-                                        if (event.type === 'set' && selectedDate) {
-                                            setTempDate(selectedDate);
-                                        }
-                                    }}
-                                    style={{ width: '100%' }}
-                                />
-                                <TouchableOpacity
-                                    style={styles.pickerConfirm}
-                                    onPress={() => {
+                            </Modal>
+                        ) : (
+                            <DateTimePicker
+                                value={matchTime ? new Date(matchTime) : new Date()}
+                                mode="date"
+                                display="default"
+                                minimumDate={new Date()}
+                                maximumDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+                                onChange={(event, selectedDate) => {
+                                    if (event.type === 'dismissed') {
                                         setShowDatePicker(false);
+                                    } else if (event.type === 'set' && selectedDate) {
+                                        setTempDate(selectedDate);
+                                        setShowDatePicker(false);
+                                        // On Android, show time picker immediately after date selection
                                         setTimeout(() => setShowTimePicker(true), 100);
-                                    }}
-                                >
-                                    <Text style={styles.pickerConfirmText}>{t('createAnnouncement.selectTime')}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </Modal>
+                                    }
+                                }}
+                            />
+                        )
+                    )}
 
-                    {/* Time picker modal */}
-                    <Modal visible={showTimePicker} transparent animationType="slide">
+                    {/* Time picker */}
+                    {showTimePicker && (
+                        Platform.OS === 'ios' ? (
+                            <Modal visible={showTimePicker} transparent animationType="slide">
+                                <View style={styles.pickerOverlay}>
+                                    <View style={styles.pickerContainer}>
+                                        <View style={styles.pickerHeader}>
+                                            <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                                <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
+                                            </TouchableOpacity>
+                                            <Text style={styles.pickerTitle}>{t('createAnnouncement.selectTimeTitle')}</Text>
+                                            <View style={{ width: 50 }} />
+                                        </View>
+                                        <DateTimePicker
+                                            value={tempDate || new Date()}
+                                            mode="time"
+                                            display="spinner"
+                                            locale="tr-TR"
+                                            onChange={(event, selectedTime) => {
+                                                if (event.type === 'set' && selectedTime) {
+                                                    const base = new Date(tempDate || new Date());
+                                                    base.setHours(selectedTime.getHours());
+                                                    base.setMinutes(selectedTime.getMinutes());
+                                                    setTempDate(base);
+                                                }
+                                            }}
+                                            style={{ width: '100%' }}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.pickerConfirm}
+                                            onPress={() => {
+                                                setShowTimePicker(false);
+                                                if (tempDate) setMatchTime(tempDate.toISOString());
+                                            }}
+                                        >
+                                            <Text style={styles.pickerConfirmText}>{t('createAnnouncement.done')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </Modal>
+                        ) : (
+                            <DateTimePicker
+                                value={tempDate || new Date()}
+                                mode="time"
+                                display="default"
+                                onChange={(event, selectedTime) => {
+                                    if (event.type === 'dismissed') {
+                                        setShowTimePicker(false);
+                                    } else if (event.type === 'set' && selectedTime) {
+                                        const base = new Date(tempDate || new Date());
+                                        base.setHours(selectedTime.getHours());
+                                        base.setMinutes(selectedTime.getMinutes());
+                                        setMatchTime(base.toISOString());
+                                        setShowTimePicker(false);
+                                    }
+                                }}
+                            />
+                        )
+                    )}
+
+                    {/* Players needed modal (Android) */}
+                    <Modal visible={showPlayersModal} transparent animationType="slide">
                         <View style={styles.pickerOverlay}>
                             <View style={styles.pickerContainer}>
                                 <View style={styles.pickerHeader}>
-                                    <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                                    <TouchableOpacity onPress={() => setShowPlayersModal(false)}>
                                         <Text style={styles.pickerCancel}>{t('createAnnouncement.cancel')}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.pickerTitle}>{t('createAnnouncement.selectTimeTitle')}</Text>
-                                    <View style={{ width: 50 }} />
+                                    <Text style={styles.pickerTitle}>{t('createAnnouncement.playersNeeded')}</Text>
+                                    <TouchableOpacity onPress={() => setShowPlayersModal(false)}>
+                                        <Text style={styles.pickerConfirmText}>{t('createAnnouncement.done')}</Text>
+                                    </TouchableOpacity>
                                 </View>
-                                <DateTimePicker
-                                    value={tempDate || new Date()}
-                                    mode="time"
-                                    display="spinner"
-                                    locale="tr-TR"
-                                    onChange={(event, selectedTime) => {
-                                        if (event.type === 'set' && selectedTime) {
-                                            const base = new Date(tempDate || new Date());
-                                            base.setHours(selectedTime.getHours());
-                                            base.setMinutes(selectedTime.getMinutes());
-                                            setTempDate(base);
-                                        }
-                                    }}
-                                    style={{ width: '100%' }}
-                                />
-                                <TouchableOpacity
-                                    style={styles.pickerConfirm}
-                                    onPress={() => {
-                                        setShowTimePicker(false);
-                                        if (tempDate) setMatchTime(tempDate.toISOString());
-                                    }}
+                                <Picker
+                                    selectedValue={playersNeeded}
+                                    onValueChange={(itemValue) => setPlayersNeeded(itemValue)}
                                 >
-                                    <Text style={styles.pickerConfirmText}>{t('createAnnouncement.done')}</Text>
-                                </TouchableOpacity>
+                                    <Picker.Item label={t('createAnnouncement.playersNeeded')} value={0} />
+                                    {Array.from({ length: 13 }, (_, i) => (
+                                        <Picker.Item 
+                                            key={i + 1} 
+                                            label={`${i + 1} ${t('createAnnouncement.playersSelected')}`} 
+                                            value={i + 1} 
+                                        />
+                                    ))}
+                                </Picker>
                             </View>
                         </View>
                     </Modal>

@@ -14,6 +14,11 @@ app.get('/', (req, res) => {
   res.send('Rakibim API is running!');
 });
 
+// AdMob app-ads.txt validation
+app.get('/app-ads.txt', (req, res) => {
+  res.sendFile(__dirname + '/app-ads.txt');
+});
+
 // Import Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/announcements', require('./routes/announcements'));

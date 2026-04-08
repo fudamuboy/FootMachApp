@@ -24,7 +24,14 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
         <View style={styles.card}>
             {/* Header row: team name + evaluate button */}
             <View style={styles.header}>
-                <Text style={styles.teamName}>{announcement.team_name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    <Text style={styles.teamName}>{announcement.team_name}</Text>
+                    {announcement.is_boosted && (
+                        <View style={styles.boostBadge}>
+                            <Text style={styles.boostBadgeText}>⚡ ÖNE ÇIKAN</Text>
+                        </View>
+                    )}
+                </View>
                 {!isOwner && isPastMatch && (
                     <TouchableOpacity onPress={() => onEvaluate(announcement)}>
                         <Text style={styles.evaluateButton}>Değerlendir ⭐</Text>
@@ -88,6 +95,15 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
                 >
                     <MessageCircle size={18} color="white" />
                     <Text style={styles.contactButtonText}>Ekibiyle iletişime geç</Text>
+                </TouchableOpacity>
+            )}
+
+            {isOwner && !isPastMatch && !announcement.is_boosted && (
+                <TouchableOpacity
+                    style={styles.boostButton}
+                    onPress={() => onBoost && onBoost(announcement)}
+                >
+                    <Text style={styles.boostButtonText}>⚡ İlanı Öne Çıkar (Reklam İzle)</Text>
                 </TouchableOpacity>
             )}
         </View>
@@ -175,6 +191,32 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         marginLeft: 8,
+    },
+    boostButton: {
+        backgroundColor: '#fef3c7',
+        borderWidth: 1,
+        borderColor: '#f59e0b',
+        paddingVertical: 10,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    boostButtonText: {
+        color: '#92400e',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    boostBadge: {
+        backgroundColor: '#fef3c7',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginLeft: 8,
+    },
+    boostBadgeText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#d97706',
     },
 });
 

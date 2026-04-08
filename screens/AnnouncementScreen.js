@@ -20,6 +20,19 @@ import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { BannerAd, BannerAdSize, TestIds, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
+
+const AD_UNIT_ID = __DEV__ ? TestIds.AD_UNIT_ID : 'ca-app-pub-5391073663429424/6324843187';
+const REWARDED_AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-5391073663429424/3574956145';
+
+let rewarded = null;
+try {
+    rewarded = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID, {
+        requestNonPersonalizedAdsOnly: true,
+    });
+} catch (e) {
+    console.warn("RewardedAd module not available.");
+}
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
 const FORMAT_OPTIONS = ['5v5', '7v7', '11v11'];
@@ -111,7 +124,31 @@ export default function AnnouncementScreen({ navigation }) {
             fetchAnnouncements('');
             fetchPastAnnouncements('');
         }
-    }, [profile]);
+
+        if (!rewarded) return;
+
+        const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+            // Ad loaded
+        });
+
+        const unsubscribeEarned = rewarded.addAdEventListener(
+            RewardedAdEventType.EARNED_REWARD,
+            reward => {
+                if (selectedAnnouncement) {
+                    handleBoostSuccess(selectedAnnouncement.id);
+                }
+            },
+        );
+
+        rewarded.load();
+
+        return () => {
+            if (rewarded) {
+                unsubscribeLoaded();
+                unsubscribeEarned();
+            }
+        };
+    }, [profile, selectedAnnouncement]);
 
     useEffect(() => {
         if (!profile) return;
@@ -207,6 +244,27 @@ export default function AnnouncementScreen({ navigation }) {
         }
     };
 
+    const handleBoost = (announcement) => {
+        setSelectedAnnouncement(announcement);
+        if (rewarded && rewarded.loaded) {
+            rewarded.show();
+        } else {
+            Alert.alert("AdMob Uyarısı", "Reklam şu an hazır değil veya bu versiyonda desteklenmiyor.");
+            if (rewarded) rewarded.load();
+        }
+    };
+
+    const handleBoostSuccess = async (announcementId) => {
+        try {
+            await api.post(`/announcements/${announcementId}/boost`);
+            Alert.alert("Başarılı", "İlanınız başarıyla öne çıkarıldı! Artık listede en üstte görünecek.");
+            fetchAnnouncements(searchRegion);
+        } catch (error) {
+            console.error('Error boosting announcement:', error);
+            Alert.alert("Hata", "Öne çıkarma işlemi sırasında bir sorun oluştu.");
+        }
+    };
+
     // ─── Sub-render: star row ─────────────────────────────────────────────────
     const StarRow = ({ label, emoji, value, onChange }) => (
         <View style={styles.starRowContainer}>
@@ -231,6 +289,7 @@ export default function AnnouncementScreen({ navigation }) {
             isOwner={profile?.id === item.user_id}
             onContact={handleContact}
             onEvaluate={handleEvaluate}
+            onBoost={handleBoost}
         />
     );
 
@@ -367,6 +426,21 @@ export default function AnnouncementScreen({ navigation }) {
                         />
                     </ImageBackground>
                 )}
+
+                {/* Banner Ad (Safe check) */}
+                <View style={styles.adContainer}>
+                    {BannerAd ? (
+                        <BannerAd
+                            unitId={AD_UNIT_ID}
+                            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                            requestOptions={{
+                                requestNonPersonalizedAdsOnly: true,
+                            }}
+                        />
+                    ) : (
+                        <Text style={{ fontSize: 10, color: '#ccc' }}>Ads not available in Expo Go</Text>
+                    )}
+                </View>
 
                 <CreateAnnouncement
                     visible={showCreateModal}
@@ -555,4 +629,12 @@ const styles = StyleSheet.create({
     },
     submitButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
     buttonDisabled: { backgroundColor: '#a0aec0' },
+    adContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 4,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#e5e7eb',
+    },
 });

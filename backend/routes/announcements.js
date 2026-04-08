@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
     }
 
     const order = past === 'true' ? 'DESC' : 'ASC';
-    query += ` ORDER BY a.match_time ${order}`;
+    query += ` ORDER BY a.is_boosted DESC, a.match_time ${order}`;
 
     const result = await db.query(query, params);
     res.json(result.rows);
@@ -95,6 +95,28 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.json({ message: 'Announcement deleted' });
   } catch (error) {
     console.error('Error deleting announcement:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Boost announcement (Rewarded Ad Success Callback)
+router.post('/:id/boost', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id;
+
+    const result = await db.query(
+      'UPDATE announcements SET is_boosted = true WHERE id = $1 AND user_id = $2 RETURNING *',
+      [id, user_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Announcement not found or not authorized' });
+    }
+
+    res.json({ message: 'Announcement boosted successfully', announcement: result.rows[0] });
+  } catch (error) {
+    console.error('Error boosting announcement:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

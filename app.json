@@ -8,7 +8,7 @@
     "orientation": "portrait",
     "icon": "./assets/sport.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/logos.png",
       "resizeMode": "contain",
@@ -20,7 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/sport.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -35,6 +35,13 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.606635332776-6u3e1ok8u2raq9motmai2oglchc9m666"
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5391073663429424~6516414875",
+          "iosAppId": "ca-app-pub-5391073663429424~6516414875"
         }
       ]
     ],

@@ -19,6 +19,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUnreadMessages } from '../contexts/UnreadmesagContext';
 import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
+
+const INTERSTITIAL_UNIT_ID = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-5391073663429424/8499979766';
+
+let interstitial = null;
+try {
+    interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_UNIT_ID, {
+        requestNonPersonalizedAdsOnly: true,
+    });
+} catch (e) {
+    console.warn("Interstitial ad module not found.");
+}
 
 
 const getAvatarUrl = (style, seed) => {
@@ -73,6 +85,17 @@ export default function ChatScreen({ route, navigation }) {
     };
 
     useEffect(() => {
+        let unsubscribe = () => {};
+        if (interstitial) {
+            unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+                // Optionnel : on peut le montrer ici ou via un state
+                interstitial.show();
+            });
+
+            // Load the ad
+            interstitial.load();
+        }
+
         fetchMessages();
         fetchChatInfo();
         const markMessagesAsRead = async () => {
@@ -89,6 +112,10 @@ export default function ChatScreen({ route, navigation }) {
         };
 
         markMessagesAsRead();
+
+        return () => {
+            unsubscribe();
+        };
     }, [chatId, profile?.id]);
 
 

@@ -5,7 +5,7 @@ import { Users, Clock, MapPin, MessageCircle } from 'lucide-react-native';
 const FORMAT_EMOJI = { '5v5': '5️⃣', '7v7': '7️⃣', '11v11': '🏟️' };
 const SKILL_COLOR = { 'Başlangıç': '#10b981', 'Orta': '#f59e0b', 'Rekabetçi': '#ef4444' };
 
-const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate }) => {
+const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoost }) => {
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('tr-TR', {

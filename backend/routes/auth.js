@@ -16,37 +16,49 @@ router.post('/register', async (req, res) => {
     const { email, password, username, city, region, phoneNumber } = req.body;
 
     // Check if user exists
+    console.log('Registering user:', email);
     const userCheck = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
+      console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already registered' });
     }
 
     // Hash password
+    console.log('Hashing password...');
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Default avatar
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=random`;
-
-    // Default avatar configuration for DiceBear
     const avatarStyle = 'initials';
     const avatarSeed = username || email;
 
     // Insert user
+    console.log('Inserting user into DB...');
     const newUser = await db.query(
       'INSERT INTO users (email, password_hash, username, city, region, phone_number, avatar_url, avatar_style, avatar_seed) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, email, username, city, region, phone_number, avatar_url, avatar_style, avatar_seed',
       [email, passwordHash, username, city, region, phoneNumber, avatarUrl, avatarStyle, avatarSeed]
     );
+    console.log('User inserted successfully, ID:', newUser.rows[0].id);
 
     // Create token
+    console.log('Creating JWT token...');
+    if (!JWT_SECRET) {
+        console.error('CRITICAL: JWT_SECRET is missing!');
+        throw new Error('JWT_SECRET is not defined');
+    }
     const token = jwt.sign({ id: newUser.rows[0].id }, JWT_SECRET, { expiresIn: '7d' });
+    console.log('Token created successfully');
 
     res.status(201).json({
       token,
       user: newUser.rows[0]
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('--- REGISTRATION ERROR DETAIL ---');
+    console.error('Message:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('---------------------------------');
     res.status(500).json({ message: 'Server error during registration' });
   }
 });

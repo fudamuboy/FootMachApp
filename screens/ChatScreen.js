@@ -21,15 +21,17 @@ import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
-const INTERSTITIAL_UNIT_ID = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-5391073663429424/8499979766';
+const INTERSTITIAL_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL;
 
 let interstitial = null;
 try {
-    interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_UNIT_ID, {
-        requestNonPersonalizedAdsOnly: true,
-    });
+    if (InterstitialAd) {
+        interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_UNIT_ID, {
+            requestNonPersonalizedAdsOnly: true,
+        });
+    }
 } catch (e) {
-    console.warn("Interstitial ad module not found.");
+    console.warn("Interstitial ad creation failed:", e.message);
 }
 
 

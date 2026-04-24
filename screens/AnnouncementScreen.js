@@ -20,18 +20,20 @@ import AnnouncementCard from '../components/AnnouncementCard';
 import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { BannerAd, BannerAdSize, TestIds, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
-const AD_UNIT_ID = __DEV__ ? TestIds.AD_UNIT_ID : 'ca-app-pub-5391073663429424/6324843187';
-const REWARDED_AD_UNIT_ID = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-5391073663429424/3574956145';
+const AD_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_BANNER || TestIds.BANNER;
+const REWARDED_AD_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_REWARDED || TestIds.REWARDED;
 
 let rewarded = null;
 try {
-    rewarded = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID, {
-        requestNonPersonalizedAdsOnly: true,
-    });
+    if (RewardedAd) {
+        rewarded = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID, {
+            requestNonPersonalizedAdsOnly: true,
+        });
+    }
 } catch (e) {
-    console.warn("RewardedAd module not available.");
+    console.warn("RewardedAd creation failed:", e.message);
 }
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
@@ -428,19 +430,19 @@ export default function AnnouncementScreen({ navigation }) {
                 )}
 
                 {/* Banner Ad (Safe check) */}
-                <View style={styles.adContainer}>
-                    {BannerAd ? (
+                {/* Banner Ad with safety check */}
+                {BannerAd && AD_UNIT_ID ? (
+                    <View style={styles.adContainer}>
                         <BannerAd
                             unitId={AD_UNIT_ID}
                             size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                             requestOptions={{
                                 requestNonPersonalizedAdsOnly: true,
                             }}
+                            onAdFailedToLoad={(error) => console.log('Banner Ad failed to load:', error)}
                         />
-                    ) : (
-                        <Text style={{ fontSize: 10, color: '#ccc' }}>Ads not available in Expo Go</Text>
-                    )}
-                </View>
+                    </View>
+                ) : null}
 
                 <CreateAnnouncement
                     visible={showCreateModal}

@@ -6,7 +6,7 @@
     "slug": "E-Sport",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/sport.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
@@ -20,8 +20,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/sport.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#A8C29A"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.silmo.ESport",
@@ -45,7 +45,9 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-5391073663429424~6516414875",
-          "iosAppId": "ca-app-pub-5391073663429424~6516414875"
+          "android_app_id": "ca-app-pub-5391073663429424~6516414875",
+          "iosAppId": "ca-app-pub-5391073663429424~6516414875",
+          "ios_app_id": "ca-app-pub-5391073663429424~6516414875"
         }
       ]
     ],

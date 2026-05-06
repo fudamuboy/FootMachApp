@@ -4,6 +4,13 @@
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+    <key>SKAdNetworkItems</key>
+    <array>
+      <dict>
+        <key>SKAdNetworkIdentifier</key>
+        <string>cstr6suwn9.skadnetwork</string>
+      </dict>
+    </array>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
@@ -45,11 +52,13 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-5391073663429424~6516414875</string>
+    <string>ca-app-pub-5391073663429424~9502677421</string>
     <key>GADDelayAppMeasurementInit</key>
     <false/>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>This app uses tracking to show relevant ads and keep the app free.</string>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>

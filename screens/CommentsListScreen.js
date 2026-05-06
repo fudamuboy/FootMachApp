@@ -9,11 +9,16 @@ import {
     Platform,
     StatusBar
 } from 'react-native';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const FOOT_ICON = { 'Sağ': '🦶R', 'Sol': '🦶L', 'Her İkisi': '🦶B' };
+
+const AD_UNIT_ID = Platform.OS === 'ios'
+    ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_BANNER || TestIds.BANNER)
+    : (process.env.EXPO_PUBLIC_AD_UNIT_ID_BANNER || TestIds.BANNER);
 
 const SubRatingBadge = ({ label, emoji, value }) => {
     if (!value) return null;
@@ -99,6 +104,19 @@ export default function CommentsListScreen() {
                     />
                 </ImageBackground>
             </View>
+
+            {BannerAd && AD_UNIT_ID ? (
+                <View style={styles.adContainer}>
+                    <BannerAd
+                        unitId={AD_UNIT_ID}
+                        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                        requestOptions={{
+                            requestNonPersonalizedAdsOnly: true,
+                        }}
+                        onAdFailedToLoad={(error) => console.log('Banner Ad failed to load:', error)}
+                    />
+                </View>
+            ) : null}
         </SafeAreaView>
     );
 }
@@ -118,6 +136,14 @@ const styles = StyleSheet.create({
     },
     countText: { fontSize: 13, color: '#6b7280', marginBottom: 8 },
     imageBackground: { flex: 1 },
+    adContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 4,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#e5e7eb',
+    },
     commentCard: {
         backgroundColor: 'white', padding: 14, borderRadius: 12,
         marginBottom: 10, borderColor: '#e5e7eb', borderWidth: 1,

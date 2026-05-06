@@ -20,8 +20,11 @@ import { useUnreadMessages } from '../contexts/UnreadmesagContext';
 import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const INTERSTITIAL_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL;
+const INTERSTITIAL_UNIT_ID = Platform.OS === 'ios'
+    ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL)
+    : (process.env.EXPO_PUBLIC_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL);
 
 let interstitial = null;
 try {
@@ -88,15 +91,32 @@ export default function ChatScreen({ route, navigation }) {
 
     useEffect(() => {
         let unsubscribe = () => {};
-        if (interstitial) {
-            unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-                // Optionnel : on peut le montrer ici ou via un state
-                interstitial.show();
-            });
+        
+        const showAdWithFrequencyCap = async () => {
+            if (interstitial) {
+                try {
+                    const lastAdTime = await AsyncStorage.getItem('last_chat_interstitial_time');
+                    const now = Date.now();
+                    // 15 minutes = 15 * 60 * 1000 = 900000 ms
+                    const cooldown = 15 * 60 * 1000;
 
-            // Load the ad
-            interstitial.load();
-        }
+                    if (!lastAdTime || now - parseInt(lastAdTime) > cooldown) {
+                        unsubscribe = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+                            if (interstitial.loaded) {
+                                interstitial.show().catch(e => console.log('Error showing interstitial:', e));
+                                AsyncStorage.setItem('last_chat_interstitial_time', now.toString());
+                            }
+                        });
+
+                        interstitial.load();
+                    }
+                } catch (error) {
+                    console.log('Error checking ad frequency cap:', error);
+                }
+            }
+        };
+
+        showAdWithFrequencyCap();
 
         fetchMessages();
         fetchChatInfo();

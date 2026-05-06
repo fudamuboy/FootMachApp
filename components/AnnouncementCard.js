@@ -103,7 +103,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
                     style={styles.boostButton}
                     onPress={() => onBoost && onBoost(announcement)}
                 >
-                    <Text style={styles.boostButtonText}>⚡ İlanı Öne Çıkar (Reklam İzle)</Text>
+                    <Text style={styles.boostButtonText}>⭐ İlanını 3 kat daha fazla göster (Ücretsiz)</Text>
                 </TouchableOpacity>
             )}
         </View>

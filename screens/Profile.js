@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Modal, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -127,6 +127,15 @@ export default function ProfileScreen() {
                 >
                     <Feather name="target" size={24} color="black" />
                     <Text style={styles.itemText}>{t('profile.footballInfo')}</Text>
+                    <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.item}
+                    onPress={() => Linking.openURL('https://rakibim.app/privacy')}
+                >
+                    <Feather name="shield" size={24} color="black" />
+                    <Text style={styles.itemText}>{t('profile.privacyPolicy')}</Text>
                     <MaterialIcons name="navigate-next" size={24} color="black" style={{ marginLeft: 'auto' }} />
                 </TouchableOpacity>
                 {/* Avatar Selection Modal */}

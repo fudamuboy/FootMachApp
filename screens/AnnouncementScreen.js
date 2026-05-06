@@ -21,9 +21,15 @@ import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
+import { Platform } from 'react-native';
 
-const AD_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_BANNER || TestIds.BANNER;
-const REWARDED_AD_UNIT_ID = process.env.EXPO_PUBLIC_AD_UNIT_ID_REWARDED || TestIds.REWARDED;
+const AD_UNIT_ID = Platform.OS === 'ios' 
+    ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_BANNER || TestIds.BANNER) 
+    : (process.env.EXPO_PUBLIC_AD_UNIT_ID_BANNER || TestIds.BANNER);
+
+const REWARDED_AD_UNIT_ID = Platform.OS === 'ios'
+    ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_REWARDED || TestIds.REWARDED)
+    : (process.env.EXPO_PUBLIC_AD_UNIT_ID_REWARDED || TestIds.REWARDED);
 
 let rewarded = null;
 try {
@@ -142,7 +148,9 @@ export default function AnnouncementScreen({ navigation }) {
             },
         );
 
-        rewarded.load();
+        if (!rewarded.loaded) {
+            rewarded.load();
+        }
 
         return () => {
             if (rewarded) {
@@ -251,8 +259,10 @@ export default function AnnouncementScreen({ navigation }) {
         if (rewarded && rewarded.loaded) {
             rewarded.show();
         } else {
-            Alert.alert("AdMob Uyarısı", "Reklam şu an hazır değil veya bu versiyonda desteklenmiyor.");
-            if (rewarded) rewarded.load();
+            Alert.alert("Bilgi", "Reklam şu anda hazır değil, lütfen tekrar deneyin.");
+            if (rewarded && !rewarded.loaded) {
+                rewarded.load();
+            }
         }
     };
 

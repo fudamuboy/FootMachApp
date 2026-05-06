@@ -4,6 +4,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppNavigator } from './navigation/AppNavigator';
 import { UnreadMessagesProvider } from './contexts/UnreadmesagContext';
 import './lib/i18n';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+
 // Initialize the Mobile Ads SDK safely
 try {
   const mobileAds = require('react-native-google-mobile-ads').default;
@@ -19,6 +21,19 @@ try {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await requestTrackingPermissionsAsync();
+        if (status === 'granted') {
+          console.log('Tracking permission granted');
+        }
+      } catch (e) {
+        console.log('Tracking permission error:', e);
+      }
+    })();
+  }, []);
+
   return (
     <AuthProvider>
       <UnreadMessagesProvider>

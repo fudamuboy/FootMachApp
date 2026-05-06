@@ -17,7 +17,10 @@
         "image": "macos-sequoia-15.6-xcode-26.2"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://footapp-backend.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://footapp-backend.onrender.com/api",
+        "EXPO_PUBLIC_IOS_AD_UNIT_ID_BANNER": "ca-app-pub-5391073663429424/5497423196",
+        "EXPO_PUBLIC_IOS_AD_UNIT_ID_INTERSTITIAL": "ca-app-pub-5391073663429424/9199425093",
+        "EXPO_PUBLIC_IOS_AD_UNIT_ID_REWARDED": "ca-app-pub-5391073663429424/1320935074"
       }
     }
   },

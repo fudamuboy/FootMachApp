@@ -27,8 +27,14 @@ export default function App() {
     (async () => {
       // 1. Backend Ping (to wake up Render server)
       try {
-        if (__DEV__) console.log('Ping backend to wake up...');
-        api.get('/health').catch(() => {}); // Fire and forget, we don't need to wait
+        const pingUrl = process.env.EXPO_PUBLIC_API_URL 
+          ? process.env.EXPO_PUBLIC_API_URL.replace('/api', '/health')
+          : null;
+        
+        if (pingUrl) {
+          if (__DEV__) console.log('Ping backend to wake up:', pingUrl);
+          fetch(pingUrl).catch(() => {}); // Pure silent ping
+        }
       } catch (e) {
         // ignore errors here, it's just a wake-up call
       }

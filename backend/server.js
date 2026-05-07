@@ -20,7 +20,12 @@ app.get('/', (req, res) => {
   res.send('Rakibim API is running!');
 });
 
-// Health check for Render wake-up
+// Health check for Render wake-up (Root level)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
+// Health check for Render wake-up (API level)
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });

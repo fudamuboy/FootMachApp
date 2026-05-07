@@ -1,0 +1,54 @@
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === 'true', // Use explicit variable
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+});
+
+const sendResetEmail = async (email, code) => {
+    const mailOptions = {
+        from: `"Dokuz On Support" <${process.env.SMTP_FROM}>`,
+        to: email,
+        subject: 'Votre code de réinitialisation - Dokuz On',
+        html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+                <h2 style="color: #4CAF50; text-align: center;">Réinitialisation de mot de passe</h2>
+                <p>Bonjour,</p>
+                <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Dokuz On.</p>
+                <p>Voici votre code de vérification à 6 chiffres :</p>
+                <div style="margin: 30px 0; text-align: center;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1A1A1A; background-color: #f5f5f5; padding: 12px 24px; border-radius: 8px; border: 1px dashed #4CAF50;">
+                        ${code}
+                    </span>
+                </div>
+                <p>Ce code est valable pendant 10 minutes. Ne le partagez avec personne.</p>
+                <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="font-size: 12px; color: #999; text-align: center;">L'équipe Dokuz On</p>
+            </div>
+        `,
+    };
+
+    try {
+        console.log(`[MAILER] Attempting to send OTP to: ${email}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ [MAILER] Email sent successfully:', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('❌ [MAILER] Error sending reset email:', {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            response: error.response,
+            stack: error.stack
+        });
+        throw error;
+    }
+};
+
+module.exports = { sendResetEmail };

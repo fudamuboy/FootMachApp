@@ -32,8 +32,6 @@ export default function AuthScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [showResetModal, setShowResetModal] = useState(false);
-    const [resetEmail, setResetEmail] = useState('')
     const [showCityPicker, setShowCityPicker] = useState(false);
     const [showRegionPicker, setShowRegionPicker] = useState(false);
 
@@ -41,10 +39,7 @@ export default function AuthScreen() {
     const navigation = useNavigation();
     const { t, i18n } = useTranslation();
 
-    // Obtenir toutes les villes
     const cities = getAllCities();
-
-    // Obtenir les régions de la ville sélectionnée
     const regions = selectedCity ? getRegionsByCity(selectedCity) : [];
 
     const handleSubmit = async () => {
@@ -78,36 +73,6 @@ export default function AuthScreen() {
             }
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handlePasswordReset = async () => {
-        if (!resetEmail || !resetEmail.trim()) {
-            Alert.alert('Hata', 'Lütfen e-postanızı girin.');
-            return;
-        }
-
-        try {
-            const { data } = await api.post('/auth/forgot-password', {
-                email: resetEmail.trim(),
-            });
-            
-            Alert.alert(
-                'Başarılı',
-                'Eğer e-posta sistemde kayıtlıysa, şifre sıfırlama bağlantısı gönderildi.',
-                [{ text: 'Tamam', onPress: () => setShowResetModal(false) }]
-            );
-
-            // For local development only: log the token to the console so we can use it to test ResetPasswordScreen
-            if (data.testToken) {
-                console.log(`[DEV TEST TOKEN] Navigate to ResetPasswordScreen with token: ${data.testToken}`);
-                // In a real app we wouldn't show the test token in the alert or directly navigate, but since there's no email service:
-                navigation.navigate('ResetPassword', { token: data.testToken });
-                setShowResetModal(false);
-            }
-        } catch (error) {
-            console.error('Password reset error:', error);
-            Alert.alert('Hata', error.response?.data?.message || 'Bir hata oluştu.');
         }
     };
 
@@ -181,7 +146,7 @@ export default function AuthScreen() {
                             </TouchableOpacity>
                         </View>
                         {isLogin && (
-                            <TouchableOpacity onPress={() => setShowResetModal(true)}>
+                            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                                 <Text style={{ color: '#3b82f6', textAlign: 'right', marginBottom: 10 }}>
                                     {t('auth.forgotPassword')}
                                 </Text>
@@ -323,49 +288,6 @@ export default function AuthScreen() {
                         </View>
                     </View>
                         
-                    <Modal visible={showResetModal} animationType="slide" transparent={true}>
-                        <View style={{
-                            flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)'
-                        }}>
-                            <View style={{
-                                backgroundColor: 'white', padding: 20, borderRadius: 10, width: '85%'
-                            }}>
-                                <Text style={{ fontSize: 18, marginBottom: 10, fontWeight: 'bold' }}>
-                                    Şifre sıfırlama
-                                </Text>
-
-                                <TextInput
-                                    placeholder="E-mail adresinizi girin"
-                                    style={{
-                                        borderWidth: 1, borderColor: '#ccc', borderRadius: 8,
-                                        padding: 10, marginBottom: 15
-                                    }}
-                                    value={resetEmail}
-                                    onChangeText={setResetEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                />
-
-                                <TouchableOpacity
-                                    onPress={handlePasswordReset}
-                                    style={{
-                                        backgroundColor: '#3b82f6', padding: 12,
-                                        borderRadius: 8, alignItems: 'center', marginBottom: 10
-                                    }}
-                                >
-                                    <Text style={{ color: 'white', fontWeight: '600' }}>Sıfırlama bağlantısı gönder</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    onPress={() => setShowResetModal(false)}
-                                    style={{ alignItems: 'center' }}
-                                >
-                                    <Text style={{ color: '#3b82f6' }}>İptal</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </Modal>
-
                     {Platform.OS === 'ios' && (
                         <Modal visible={showCityPicker} animationType="slide" transparent>
                             <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }}>

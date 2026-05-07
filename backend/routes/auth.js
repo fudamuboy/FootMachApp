@@ -102,7 +102,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', require('../middleware/authMiddleware'), async (req, res) => {
   try {
     const userResult = await db.query(
-      'SELECT id, email, username, city, region, phone_number, address, avatar_url, avatar_style, avatar_seed, position, preferred_foot, created_at FROM users WHERE id = $1',
+      'SELECT id, email, username, city, region, phone_number, address, avatar_url, avatar_style, avatar_seed, position, preferred_foot, secondary_position, skill_level, playing_style, favorite_team, bio, created_at, role, is_premium, premium_expires_at, premium_source, premium_plan, trust_score, activity_score, spam_score FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -110,7 +110,17 @@ router.get('/me', require('../middleware/authMiddleware'), async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(userResult.rows[0]);
+    const user = userResult.rows[0];
+    
+    // Override premium status for developers/admins
+    if (user.role === 'developer' || user.role === 'admin') {
+        user.is_premium = true;
+        user.premium_source = 'developer';
+        user.premium_plan = 'developer';
+        user.premium_expires_at = null;
+    }
+
+    res.json(user);
   } catch (error) {
     console.error('Auth me error:', error);
     res.status(500).json({ message: 'Server error fetching user' });
@@ -138,7 +148,13 @@ router.get('/user/:id', async (req, res) => {
 // Update current user profile
 router.put('/profile', require('../middleware/authMiddleware'), async (req, res) => {
   try {
-     const { username, phone, email, address, position, preferred_foot, avatar_style, avatar_seed } = req.body;
+     const { 
+         username, phone, email, address, position, preferred_foot, 
+         avatar_style, avatar_seed, bio, favorite_team, 
+         secondary_position, skill_level, playing_style 
+     } = req.body;
+     
+     console.log(`👤 Updating profile for user ${req.user.id}:`, req.body);
      
      let updateQuery = 'UPDATE users SET ';
      const queryValues = [];
@@ -191,13 +207,48 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
          queryValues.push(avatar_seed);
          paramIdx++;
      }
+
+     if (bio !== undefined) {
+         updateQuery += `bio = $${paramIdx}, `;
+         queryValues.push(bio);
+         paramIdx++;
+     }
+
+     if (favorite_team !== undefined) {
+         updateQuery += `favorite_team = $${paramIdx}, `;
+         queryValues.push(favorite_team);
+         paramIdx++;
+     }
+
+     if (secondary_position !== undefined) {
+         updateQuery += `secondary_position = $${paramIdx}, `;
+         queryValues.push(secondary_position);
+         paramIdx++;
+     }
+
+     if (skill_level !== undefined) {
+         updateQuery += `skill_level = $${paramIdx}, `;
+         queryValues.push(skill_level);
+         paramIdx++;
+     }
+
+     if (playing_style !== undefined) {
+         updateQuery += `playing_style = $${paramIdx}, `;
+         queryValues.push(playing_style);
+         paramIdx++;
+     }
+     
+     if (queryValues.length === 0) {
+         return res.status(400).json({ message: 'No fields provided for update' });
+     }
      
      // Remove trailing comma and space
      updateQuery = updateQuery.slice(0, -2);
      
-     updateQuery += ` WHERE id = $${paramIdx} RETURNING id, email, username, city, region, phone_number, address, avatar_url, avatar_style, avatar_seed, position, preferred_foot`;
+     updateQuery += ` WHERE id = $${paramIdx} RETURNING id, email, username, city, region, phone_number, address, avatar_url, avatar_style, avatar_seed, position, preferred_foot, bio, favorite_team, secondary_position, skill_level, playing_style, role, is_premium, premium_expires_at, premium_source, premium_plan, trust_score, activity_score, spam_score`;
      queryValues.push(req.user.id);
      
+     console.log('📝 Executing Update:', updateQuery);
      const result = await db.query(updateQuery, queryValues);
      
      res.json(result.rows[0]);
@@ -208,54 +259,118 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
   }
 });
 
-// Forgot password
+// Delete account
+router.delete('/profile', require('../middleware/authMiddleware'), async (req, res) => {
+  try {
+    await db.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete profile error:', error);
+    res.status(500).json({ message: 'Server error deleting profile' });
+  }
+});
+
+const { sendResetEmail } = require('../utils/mailer');
+
+// Request OTP Code for Password Reset
+router.post('/request-password-reset-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Aucun compte n'existe avec cet e-mail." });
+    }
+    
+    // Generate 6-digit numeric code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 600000); // 10 minutes
+    
+    if (otpCode) console.log(`[AUTH] Password reset code generated for ${email}`);
+    
+    // Hash the OTP code for security
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otpCode, salt);
+    
+    await db.query(`UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3`, [hashedOtp, expires, email]);
+    
+    try {
+        console.log(`[AUTH] Sending email to: ${email}...`);
+        await sendResetEmail(email, otpCode);
+        console.log(`✅ OTP sent successfully to ${email}`);
+    } catch (mailError) {
+        console.error('❌ Error sending OTP email:', mailError.message);
+        // If email fails, we should not tell the user it was sent
+        return res.status(500).json({ message: "Impossible d'envoyer le code pour le moment." });
+    }
+
+    res.status(200).json({ message: 'A reset code has been sent to your email.' });
+    
+  } catch (error) {
+    console.error('Request OTP error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Alias for backward compatibility
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
     
-    // Check if user exists
     const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userResult.rows.length === 0) {
-      // Returns 200 to prevent email enumeration attacks
-      return res.status(200).json({ message: 'If this email exists, a reset link has been sent.' });
+      return res.status(404).json({ message: "Aucun compte n'existe avec cet e-mail." });
     }
     
-    // Generate a random 6-digit code for simplicity, or utilize a crypto random hex. 
-    // We will use a random hex string for security.
-    const crypto = require('crypto');
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 600000); // 10 minutes
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otpCode, salt);
     
-    await db.query(`UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3`, [resetToken, resetTokenExpires, email]);
+    await db.query(`UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3`, [hashedOtp, expires, email]);
     
-    // In a real app, send an email here.
-    // We will simulate it by returning the token so the front-end can test it.
-    console.log(`Password reset token for ${email}: ${resetToken}`);
-    res.status(200).json({ 
-      message: 'If this email exists, a reset link has been sent.',
-      testToken: resetToken // Only keeping this for development purposes
-    });
-    
+    try {
+        console.log(`[AUTH] Sending forgot-password OTP email to: ${email}...`);
+        await sendResetEmail(email, otpCode);
+        console.log(`✅ Forgot-password OTP sent successfully to ${email}`);
+    } catch (mailError) {
+        console.error('❌ Error sending forgot-password OTP email:', mailError.message);
+        return res.status(500).json({ message: "Impossible d'envoyer le code pour le moment." });
+    }
+
+    res.status(200).json({ message: 'A reset code has been sent to your email.' });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Reset password
-router.post('/reset-password', async (req, res) => {
+// Reset Password with OTP Code
+router.post('/reset-password-with-code', async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
+    const { email, code, newPassword } = req.body;
     
-    if (!token || !newPassword) {
-       return res.status(400).json({ message: 'Token and new password required' });
+    if (!email || !code || !newPassword) {
+       return res.status(400).json({ message: 'Email, code and new password are required' });
+    }
+
+    // Find user
+    const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ message: 'Invalid email or code' });
     }
     
-    // Find user with this token and check if it has expired
-    const userResult = await db.query('SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > CURRENT_TIMESTAMP', [token]);
-    
-    if (userResult.rows.length === 0) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+    const user = userResult.rows[0];
+
+    // Check if code has expired
+    if (!user.reset_token_expires || new Date() > user.reset_token_expires) {
+      return res.status(400).json({ message: 'Code has expired' });
+    }
+
+    // Verify hashed OTP code
+    const isMatch = await bcrypt.compare(code, user.reset_token);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid verification code' });
     }
     
     // Hash new password
@@ -263,13 +378,28 @@ router.post('/reset-password', async (req, res) => {
     const passwordHash = await bcrypt.hash(newPassword, salt);
     
     // Update user's password and clear the reset token
-    await db.query(`UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2`, [passwordHash, userResult.rows[0].id]);
+    await db.query(`UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2`, [passwordHash, user.id]);
     
-    res.status(200).json({ message: 'Password has been successfully reset' });
+    res.status(200).json({ message: 'Password has been successfully updated' });
     
   } catch(error) {
-     console.error('Reset password error:', error);
+     console.error('Reset password OTP error:', error);
      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Alias for backward compatibility
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    // For the old endpoint, we might not have email. We need to find the user by token only.
+    // However, since we hash tokens now, we can't search by token alone in a single query easily without email.
+    // But since tokens are only 6 digits, collisions are possible.
+    // For security, the new flow requires email.
+    // We'll return 400 and ask to use the new flow if called without email.
+    return res.status(400).json({ message: 'Please use the updated reset password flow.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -319,4 +449,3 @@ router.post('/google-verify', async (req, res) => {
 });
 
 module.exports = router;
-

@@ -93,7 +93,12 @@ const CreateAnnouncement = ({ visible, onClose, onSuccess }) => {
             onSuccess();
             onClose();
         } catch (error) {
-            setError(error.message || 'Bir hata oluştu');
+            const errorCode = error.response?.data?.errorCode;
+            if (errorCode) {
+                setError(t(`errors.${errorCode}`));
+            } else {
+                setError(error.response?.data?.message || error.message || t('auth.genericError'));
+            }
         } finally {
             setLoading(false);
         }

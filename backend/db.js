@@ -30,5 +30,19 @@ pool.on('error', (err) => {
 });
 
 module.exports = {
-  query: (text, params) => pool.query(text, params),
+  query: async (text, params) => {
+    const start = Date.now();
+    try {
+        const res = await pool.query(text, params);
+        const duration = Date.now() - start;
+        console.log(`📡 [DB] Query executed in ${duration}ms | ${text.split('\n')[0].trim().substring(0, 50)}...`);
+        return res;
+    } catch (error) {
+        const duration = Date.now() - start;
+        console.error(`❌ [DB] Query error in ${duration}ms:`, error.message);
+        console.error(`❌ [DB] Failed Query:`, text);
+        throw error;
+    }
+  },
+  pool: pool // Export pool if needed for other operations
 };

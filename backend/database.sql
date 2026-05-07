@@ -1,17 +1,52 @@
+-- Dokuz On Database Schema
+-- Updated: May 2026
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   username VARCHAR(255),
+  display_name VARCHAR(255),
   city VARCHAR(255),
   region VARCHAR(255),
   phone_number VARCHAR(20),
   avatar_url TEXT,
+  avatar_style VARCHAR(50) DEFAULT 'initials',
+  avatar_seed VARCHAR(255),
+  bio TEXT,
+  favorite_team VARCHAR(255),
+  
+  -- Football Profile
+  position VARCHAR(50),
+  secondary_position VARCHAR(50),
+  preferred_foot VARCHAR(50),
+  skill_level VARCHAR(50),
+  playing_style VARCHAR(50),
+  address TEXT,
+  
+  -- Auth & Reset
+  reset_token VARCHAR(255),
+  reset_token_expires TIMESTAMP WITH TIME ZONE,
+  
+  -- Role & Premium
+  role VARCHAR(50) DEFAULT 'user', -- 'user', 'admin', 'developer'
+  is_premium BOOLEAN DEFAULT FALSE,
+  premium_expires_at TIMESTAMP WITH TIME ZONE,
+  premium_source VARCHAR(50), -- 'paid', 'earned', 'admin', 'developer'
+  premium_plan VARCHAR(50), -- 'monthly', 'yearly', 'trial', 'developer'
+  
+  -- Scores & Anti-Abuse
+  trust_score INTEGER DEFAULT 100,
+  activity_score INTEGER DEFAULT 0,
+  spam_score INTEGER DEFAULT 0,
+  
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ANNOUNCEMENTS TABLE
 CREATE TABLE IF NOT EXISTS announcements (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -19,9 +54,17 @@ CREATE TABLE IF NOT EXISTS announcements (
   match_time TIMESTAMP WITH TIME ZONE NOT NULL,
   location VARCHAR(255) NOT NULL,
   city VARCHAR(255) NOT NULL,
+  region VARCHAR(255),
+  description TEXT,
+  players_needed INTEGER DEFAULT 1,
+  match_format VARCHAR(50),
+  match_level VARCHAR(50),
+  match_fee VARCHAR(50),
+  status VARCHAR(50) DEFAULT 'active', -- 'active', 'cancelled', 'completed'
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CHATS TABLE
 CREATE TABLE IF NOT EXISTS chats (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   participant_1 UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -31,6 +74,7 @@ CREATE TABLE IF NOT EXISTS chats (
   city VARCHAR(255)
 );
 
+-- MESSAGES TABLE
 CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
@@ -40,6 +84,7 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- COMMENTS TABLE
 CREATE TABLE IF NOT EXISTS comments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   announcement_id UUID REFERENCES announcements(id) ON DELETE CASCADE,

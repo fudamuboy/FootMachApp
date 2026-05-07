@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Users, Clock, MapPin, MessageCircle } from 'lucide-react-native';
+import { THEME } from '../constants/theme';
 
 const FORMAT_EMOJI = { '5v5': '5️⃣', '7v7': '7️⃣', '11v11': '🏟️' };
 const SKILL_COLOR = { 'Başlangıç': '#10b981', 'Orta': '#f59e0b', 'Rekabetçi': '#ef4444' };
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     evaluateButton: {
-        color: '#9DB88D',
+        color: THEME.primary,
         fontWeight: 'bold',
         fontSize: 13,
         marginLeft: 8,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     contactButton: {
-        backgroundColor: '#9DB88D',
+        backgroundColor: THEME.primary,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',

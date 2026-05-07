@@ -13,6 +13,7 @@ import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads'
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { THEME } from '../constants/theme';
 
 const FOOT_ICON = { 'Sağ': '🦶R', 'Sol': '🦶L', 'Her İkisi': '🦶B' };
 
@@ -123,50 +124,47 @@ export default function CommentsListScreen() {
 
 const styles = StyleSheet.create({
     safeArea: {
-        flex: 1, backgroundColor: '#9DB88D',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        flex: 1, backgroundColor: THEME.primary,
     },
     header: {
-        backgroundColor: '#9DB88D', paddingVertical: 16, paddingHorizontal: 20, alignItems: 'center',
+        backgroundColor: THEME.primary, paddingVertical: 16, paddingHorizontal: 20, alignItems: 'center',
     },
-    title: { fontSize: 22, fontWeight: 'bold', color: 'black' },
-    subtitle: { fontSize: 14, color: '#374151', marginTop: 2 },
+    title: { fontSize: 22, fontWeight: 'bold', color: '#FFFFFF' },
+    subtitle: { fontSize: 14, color: THEME.light, marginTop: 2 },
     contentContainer: {
-        flex: 1, paddingHorizontal: 16, paddingTop: 10, backgroundColor: '#f1f5f9',
+        flex: 1, paddingHorizontal: 16, paddingTop: 16, backgroundColor: THEME.background,
     },
     countText: { fontSize: 13, color: '#6b7280', marginBottom: 8 },
     imageBackground: { flex: 1 },
     adContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 4,
+        paddingVertical: 8,
         backgroundColor: 'white',
         borderTopWidth: 1,
-        borderTopColor: '#e5e7eb',
+        borderTopColor: THEME.border,
     },
     commentCard: {
-        backgroundColor: 'white', padding: 14, borderRadius: 12,
-        marginBottom: 10, borderColor: '#e5e7eb', borderWidth: 1,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+        backgroundColor: 'white', padding: 16, borderRadius: 20,
+        marginBottom: 12, borderColor: THEME.border, borderWidth: 1,
+        ...THEME.shadow,
     },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    teamName: { fontSize: 16, fontWeight: 'bold', color: '#1f2937', flex: 1 },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+    teamName: { fontSize: 16, fontWeight: 'bold', color: THEME.text, flex: 1 },
     overallBadge: {
-        backgroundColor: '#fef9c3', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3,
-        borderWidth: 1, borderColor: '#fbbf24',
+        backgroundColor: '#FFF9C4', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
     },
-    overallText: { fontSize: 13, fontWeight: 'bold', color: '#92400e' },
-    subRatingsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+    overallText: { fontSize: 13, fontWeight: 'bold', color: '#B8860B' },
+    subRatingsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
     subBadge: {
         flexDirection: 'row', alignItems: 'center',
-        backgroundColor: '#f0fdf4', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
-        borderWidth: 1, borderColor: '#bbf7d0',
+        backgroundColor: THEME.light, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5,
+        borderWidth: 1, borderColor: THEME.border,
     },
-    subBadgeEmoji: { fontSize: 12, marginRight: 3 },
-    subBadgeText: { fontSize: 12, color: '#15803d', fontWeight: '600' },
-    commentUser: { fontSize: 13, color: '#6b7280', marginBottom: 4 },
-    commentText: { fontSize: 14, color: '#374151', lineHeight: 20 },
+    subBadgeEmoji: { fontSize: 12, marginRight: 4 },
+    subBadgeText: { fontSize: 12, color: THEME.dark, fontWeight: '600' },
+    commentUser: { fontSize: 13, color: THEME.subtext, marginBottom: 6, fontWeight: '600' },
+    commentText: { fontSize: 14, color: THEME.text, lineHeight: 22 },
     emptyContainer: { alignItems: 'center', paddingTop: 60 },
     emptyText: { fontSize: 16, color: '#6b7280' },
 });

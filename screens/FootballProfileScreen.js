@@ -1,30 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
-    SafeAreaView, Platform, StatusBar, Alert, ScrollView
+    SafeAreaView, Platform, StatusBar, Alert, ScrollView, ActivityIndicator
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
+import FootballPill from '../components/profile/FootballPill';
+import { LinearGradient } from 'expo-linear-gradient';
+import { THEME } from '../constants/theme';
 
-const POSITIONS = ['GK', 'DF', 'CM', 'LW', 'RW', 'ST'];
-const FEET = ['Sağ', 'Sol', 'Her İkisi'];
+const POSITIONS = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LW', 'RW', 'ST'];
+const FEET = ['Right', 'Left', 'Both'];
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced', 'Pro'];
+const STYLES = ['Attacker', 'Defender', 'Playmaker', 'Box-to-Box', 'Speedster'];
+
+const PillSection = ({ title, options, selected, onSelect, icon }) => (
+    <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+            <Feather name={icon} size={18} color="#4CAF50" style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>{title}</Text>
+        </View>
+        <View style={styles.pillContainer}>
+            {options.map(opt => {
+                const label = typeof opt === 'object' ? opt.label : opt;
+                const value = typeof opt === 'object' ? opt.value : opt;
+                return (
+                    <FootballPill 
+                        key={value} 
+                        label={label} 
+                        selected={selected === value} 
+                        onSelect={() => onSelect(selected === value ? null : value)} 
+                    />
+                );
+            })}
+        </View>
+    </View>
+);
 
 export default function FootballProfileScreen() {
     const navigation = useNavigation();
     const { profile, fetchProfile } = useAuth();
     const { t } = useTranslation();
 
-    const [position, setPosition]       = useState(null);
-    const [preferredFoot, setPreferredFoot] = useState(null);
-    const [loading, setLoading]         = useState(false);
+    const [position, setPosition]               = useState(null);
+    const [secondaryPosition, setSecondaryPosition] = useState(null);
+    const [preferredFoot, setPreferredFoot]     = useState(null);
+    const [skillLevel, setSkillLevel]           = useState(null);
+    const [playingStyle, setPlayingStyle]       = useState(null);
+    const [loading, setLoading]                 = useState(false);
 
     useEffect(() => {
         if (profile) {
             setPosition(profile.position || null);
             setPreferredFoot(profile.preferred_foot || null);
+            setSecondaryPosition(profile.secondary_position || null);
+            setSkillLevel(profile.skill_level || null);
+            setPlayingStyle(profile.playing_style || null);
         }
     }, [profile]);
 
@@ -34,9 +68,13 @@ export default function FootballProfileScreen() {
             await api.put('/auth/profile', {
                 position: position || null,
                 preferred_foot: preferredFoot || null,
+                secondary_position: secondaryPosition || null,
+                skill_level: skillLevel || null,
+                playing_style: playingStyle || null
             });
             Alert.alert(t('footballInfo.successTitle'), t('footballInfo.successMsg'));
             await fetchProfile();
+            navigation.goBack();
         } catch (error) {
             Alert.alert(t('footballInfo.errorTitle'), t('footballInfo.errorMsg'));
             console.error(error);
@@ -44,55 +82,89 @@ export default function FootballProfileScreen() {
         setLoading(false);
     };
 
-    const ChipRow = ({ options, selected, onSelect }) => (
-        <View style={styles.chipRow}>
-            {options.map(opt => (
-                <TouchableOpacity
-                    key={opt}
-                    style={[styles.chip, selected === opt && styles.chipSelected]}
-                    onPress={() => onSelect(selected === opt ? null : opt)}
-                >
-                    <Text style={[styles.chipText, selected === opt && styles.chipTextSelected]}>
-                        {opt === 'Sağ' ? t('footballInfo.footRight') : opt === 'Sol' ? t('footballInfo.footLeft') : opt === 'Her İkisi' ? t('footballInfo.footBoth') : opt}
-                    </Text>
-                </TouchableOpacity>
-            ))}
-        </View>
-    );
-
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="dark-content" />
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Feather name="arrow-left" size={24} color="black" />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Feather name="arrow-left" size={24} color="#1A1A1A" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('footballInfo.title')}</Text>
+                <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-                <View style={styles.section}>
-                    <Text style={styles.subText}>
-                        {t('footballInfo.desc')}
-                    </Text>
-
-                    <Text style={styles.label}>{t('footballInfo.position')}</Text>
-                    <ChipRow options={POSITIONS} selected={position} onSelect={setPosition} />
-
-                    <Text style={[styles.label, { marginTop: 20 }]}>{t('footballInfo.strongFoot')}</Text>
-                    <ChipRow options={FEET} selected={preferredFoot} onSelect={setPreferredFoot} />
+            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                <View style={styles.introCard}>
+                    <Text style={styles.introText}>{t('footballInfo.desc')}</Text>
                 </View>
 
-                <View style={styles.section}>
-                    <TouchableOpacity
-                        style={[styles.saveButton, loading && { opacity: 0.6 }]}
-                        onPress={handleSave}
-                        disabled={loading}
+                <PillSection 
+                    title={t('footballInfo.position')} 
+                    options={POSITIONS} 
+                    selected={position} 
+                    onSelect={setPosition}
+                    icon="crosshair"
+                />
+
+                <PillSection 
+                    title={t('footballInfo.secondaryPosition')} 
+                    options={POSITIONS} 
+                    selected={secondaryPosition} 
+                    onSelect={setSecondaryPosition}
+                    icon="layers"
+                />
+
+                <PillSection 
+                    title={t('footballInfo.strongFoot')} 
+                    options={FEET.map(f => ({
+                        value: f,
+                        label: t(`footballInfo.foot${f}`)
+                    }))} 
+                    selected={preferredFoot} 
+                    onSelect={(val) => setPreferredFoot(val)}
+                    icon="zap"
+                />
+
+                <PillSection 
+                    title={t('footballInfo.skillLevel')} 
+                    options={LEVELS.map(l => ({
+                        value: l,
+                        label: t(`footballInfo.level${l}`)
+                    }))} 
+                    selected={skillLevel} 
+                    onSelect={setSkillLevel}
+                    icon="trending-up"
+                />
+
+                <PillSection 
+                    title={t('footballInfo.playingStyle')} 
+                    options={STYLES.map(s => ({
+                        value: s,
+                        label: t(`footballInfo.style${s.replace(/-/g, '')}`)
+                    }))} 
+                    selected={playingStyle} 
+                    onSelect={setPlayingStyle}
+                    icon="map"
+                />
+
+                <TouchableOpacity 
+                    style={styles.saveButton} 
+                    onPress={handleSave} 
+                    disabled={loading}
+                >
+                    <LinearGradient
+                        colors={[THEME.primary, THEME.dark]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.gradient}
                     >
-                        <Text style={styles.saveText}>
-                            {loading ? t('footballInfo.saving') : t('footballInfo.save')}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                        {loading ? (
+                            <ActivityIndicator color="#FFF" />
+                        ) : (
+                            <Text style={styles.saveText}>{t('footballInfo.save')}</Text>
+                        )}
+                    </LinearGradient>
+                </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     );
@@ -100,34 +172,94 @@ export default function FootballProfileScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1, backgroundColor: '#f9fafb',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        flex: 1,
+        backgroundColor: '#F8F9FA',
     },
     header: {
-        flexDirection: 'row', alignItems: 'center',
-        paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10,
-        backgroundColor: 'white', borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#FFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
     },
-    headerTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
-    scroll: { flex: 1 },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1A1A1A',
+    },
+    backButton: {
+        padding: 8,
+    },
+    scroll: {
+        flex: 1,
+    },
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 40,
+    },
+    introCard: {
+        backgroundColor: '#E8F5E9',
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: '#C8E6C9',
+    },
+    introText: {
+        fontSize: 14,
+        color: '#2E7D32',
+        textAlign: 'center',
+        fontWeight: '500',
+    },
     section: {
-        backgroundColor: 'white', marginHorizontal: 16, marginTop: 16,
-        borderRadius: 12, padding: 16,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+        backgroundColor: '#FFF',
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 15,
+        elevation: 2,
     },
-    subText: { fontSize: 14, color: '#6b7280', marginBottom: 20 },
-    label: { fontSize: 15, fontWeight: '600', marginBottom: 10, color: '#374151' },
-    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    chip: {
-        paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20,
-        borderWidth: 1.5, borderColor: '#d1d5db', backgroundColor: '#f9fafb',
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
     },
-    chipSelected: { backgroundColor: '#9DB88D', borderColor: '#9DB88D' },
-    chipText: { fontSize: 14, color: '#6b7280', fontWeight: '500' },
-    chipTextSelected: { color: 'white', fontWeight: '700' },
+    sectionIcon: {
+        marginRight: 10,
+    },
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1A1A1A',
+    },
+    pillContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
     saveButton: {
-        backgroundColor: '#9DB88D', padding: 14, borderRadius: 10, alignItems: 'center',
+        marginTop: 10,
+        borderRadius: 14,
+        overflow: 'hidden',
+        shadowColor: '#4CAF50',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
     },
-    saveText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+    gradient: {
+        height: 56,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    saveText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });

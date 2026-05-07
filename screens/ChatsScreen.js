@@ -10,6 +10,7 @@ import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
+import { THEME } from '../constants/theme';
 
 const getAvatarUrl = (style, seed) => {
     return `https://api.dicebear.com/9.x/${style || 'initials'}/svg?seed=${encodeURIComponent(seed || 'User')}`;
@@ -185,21 +186,20 @@ export default function ChatsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#f9fafb' },
+    container: { flex: 1, backgroundColor: THEME.background },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     header: {
         paddingHorizontal: 20,
         paddingVertical: 16,
         paddingTop: 60,
-        backgroundColor: 'white',
+        backgroundColor: THEME.primary,
         borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
-        backgroundColor: '#9DB88D'
+        borderBottomColor: THEME.border,
     },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#1f2937' },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF' },
     subtitle: {
         fontSize: 14,
-        color: '#6b7280',
+        color: THEME.light,
         marginTop: 4,
     },
     chatItem: {
@@ -209,16 +209,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f3f4f6',
+        borderBottomColor: THEME.border,
     },
     chatContent: { flex: 1 },
     chatName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#1f2937',
+        color: THEME.text,
         marginBottom: 4,
     },
-    chatMessage: { fontSize: 14, color: '#6b7280' },
+    chatMessage: { fontSize: 14, color: THEME.subtext },
     chatTime: { fontSize: 12, color: '#9ca3af', marginLeft: 12 },
     emptyContainer: {
         alignItems: 'center',
@@ -226,35 +226,32 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     emptyIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#f3f4f6',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
+        width: 80, height: 80, borderRadius: 40, backgroundColor: THEME.light,
+        justifyContent: 'center', alignItems: 'center', marginBottom: 20,
     },
     emptyTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#1f2937',
+        color: THEME.text,
         marginBottom: 8,
     },
     emptySubtitle: {
         fontSize: 16,
-        color: '#6b7280',
+        color: THEME.subtext,
         textAlign: 'center',
         lineHeight: 24,
     },
     chatAvatarWrapper: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         overflow: 'hidden',
-        backgroundColor: '#e5e7eb',
+        backgroundColor: '#F5F5F5',
         marginRight: 12,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#EEEEEE',
     },
     chatRightSide: {
         alignItems: 'flex-end',
@@ -262,19 +259,19 @@ const styles = StyleSheet.create({
         marginLeft: 12,
     },
     unreadBadge: {
-        backgroundColor: '#ef4444',
+        backgroundColor: THEME.primary,
         borderRadius: 12,
-        paddingHorizontal: 6,
+        paddingHorizontal: 8,
         paddingVertical: 2,
-        marginTop: 4,
-        minWidth: 24,
+        marginTop: 6,
+        minWidth: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
     unreadBadgeText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 12,
+        fontSize: 10,
         textAlign: 'center',
     },
 });

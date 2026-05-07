@@ -41,7 +41,10 @@
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-url-polyfill": "^2.0.0",
-    "expo-tracking-transparency": "~5.2.4"
+    "expo-tracking-transparency": "~5.2.4",
+    "react-native-reanimated": "~3.17.4",
+    "expo-linear-gradient": "~14.1.5",
+    "expo-blur": "~14.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

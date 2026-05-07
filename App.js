@@ -53,9 +53,15 @@ export default function App() {
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;
         const i18n = require('./lib/i18n').default;
         const savedLanguage = await AsyncStorage.getItem('userLanguage');
-        if (savedLanguage && i18n.language !== savedLanguage) {
-          await i18n.changeLanguage(savedLanguage);
-          console.log('Language loaded from storage:', savedLanguage);
+        
+        if (savedLanguage) {
+          if (i18n.language !== savedLanguage) {
+            await i18n.changeLanguage(savedLanguage);
+          }
+        } else {
+          // Default to Turkish if no choice has been made
+          await i18n.changeLanguage('tr');
+          await AsyncStorage.setItem('userLanguage', 'tr');
         }
       } catch (e) {
         console.log('Error loading language:', e);

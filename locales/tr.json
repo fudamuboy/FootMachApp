@@ -110,18 +110,18 @@
   "onboarding": {
     "skip": "Geç",
     "continue": "Devam Et",
-    "getStarted": "Hadi Başlayalım",
+    "getStarted": "Başla",
     "slide1": {
-      "title": "⚽ Çevrenizdeki Oyuncuları Bulun",
-      "desc": "Şehrinizde kolayca maç oluşturun veya maçlara katılın."
+      "title": "⚽ Yakınındaki oyuncuları bul",
+      "desc": "Şehrinde kolayca maç oluştur veya maçlara katıl."
     },
     "slide2": {
-      "title": "🏆 İtibarınızı İnşa Edin",
-      "desc": "Rozetler, XP kazanın ve tanınan bir organizatör olun."
+      "title": "🏆 Futbol itibarını oluştur",
+      "desc": "Rozetler kazan, XP topla ve güvenilir bir organizatör ol."
     },
     "slide3": {
-      "title": "💬 Sohbet Edin ve Birlikte Oynayın",
-      "desc": "Bölgenizdeki futbol topluluğuyla bağlantı kurun."
+      "title": "💬 Konuş, buluş ve oyna",
+      "desc": "Bölgenizdeki futbol topluluğuyla bağlantı kur."
     }
   },
   "settings": {

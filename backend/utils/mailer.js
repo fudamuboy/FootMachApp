@@ -1,30 +1,24 @@
 const nodemailer = require('nodemailer');
-const dns = require('dns');
 
-// SMTP Config (Gmail STARTTLS - Port 587 is often more stable on cloud)
+// Brevo SMTP Configuration (Stable on Render)
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: String(process.env.SMTP_SECURE) === 'true', // false for 587
-    family: 4, // Force IPv4
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: String(process.env.SMTP_SECURE) === "true", // usually false for 587
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 20000,
 });
 
 // Startup Check
-console.log('📡 [MAILER] SMTP initialized:', {
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: String(process.env.SMTP_SECURE) === 'true'
-});
-
-dns.lookup(process.env.SMTP_HOST || 'smtp.gmail.com', { family: 4 }, (err, address) => {
-    if (!err) console.log(`[MAILER] DNS resolved to ${address}`);
+console.log('📡 [MAILER] SMTP Initialized (Brevo/Relay Mode):', {
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: Number(process.env.SMTP_PORT || 587),
+    user: process.env.SMTP_USER ? 'Configured' : 'MISSING'
 });
 
 const sendResetEmail = async (email, code) => {
@@ -55,7 +49,7 @@ const sendResetEmail = async (email, code) => {
     `;
 
     const mailOptions = {
-        from: `"Dokuz On" <${process.env.SMTP_USER}>`,
+        from: process.env.SMTP_FROM || `"Dokuz On" <${process.env.SMTP_USER}>`,
         to: email,
         subject: subject,
         html: html,

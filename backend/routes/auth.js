@@ -234,21 +234,18 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
      res.json(result.rows[0]);
 
   } catch(error) {
-     console.error('--- PROFILE UPDATE ERROR ---');
-     console.error('User ID:', req.user.id);
-     console.error('Message:', error.message);
-     if (error.code) console.error('SQL Error Code:', error.code);
-     if (error.detail) console.error('SQL Detail:', error.detail);
-     if (error.hint) console.error('SQL Hint:', error.hint);
-     if (error.where) console.error('SQL Where:', error.where);
-     console.error('Stack:', error.stack);
-     console.error('-----------------------------');
-     
-     res.status(500).json({ 
-         message: 'Server error updating profile',
-         error: error.message,
-         code: error.code
-     });
+    console.error('❌ --- PROFILE UPDATE ERROR ---');
+    console.error('User ID:', req.user?.id || 'N/A');
+    console.error('Message:', error.message);
+    if (error.code) console.error('SQL Code:', error.code);
+    if (error.detail) console.error('SQL Detail:', error.detail);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({ 
+        message: 'Server error updating profile',
+        detail: error.message,
+        errorCode: error.code
+    });
   }
 });
 

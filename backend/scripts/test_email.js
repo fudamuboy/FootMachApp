@@ -2,18 +2,17 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-async function testSMTP() {
+async function testBrevo() {
     console.log('-------------------------------------------');
-    console.log('📡 SMTP TEST SCRIPT (Port 587)');
+    console.log('📡 BREVO SMTP TEST SCRIPT');
     console.log('-------------------------------------------');
     
-    const emailTo = process.env.SMTP_USER || 'kartalboy123@gmail.com';
+    const emailTo = process.env.SMTP_USER || 'votre-email@test.com';
 
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: String(process.env.SMTP_SECURE) === 'true',
-        family: 4,
+        host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: String(process.env.SMTP_SECURE) === "true",
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
@@ -24,22 +23,21 @@ async function testSMTP() {
     });
 
     try {
-        console.log('🔍 Verifying SMTP connection...');
+        console.log(`🔍 Testing connection to ${process.env.SMTP_HOST || 'smtp-relay.brevo.com'}...`);
         await transporter.verify();
-        console.log('✅ SMTP Connection verified!');
+        console.log('✅ Connection successful!');
         
         console.log(`📧 Sending test email to ${emailTo}...`);
         const info = await transporter.sendMail({
-            from: `"Dokuz On Test" <${process.env.SMTP_USER}>`,
+            from: process.env.SMTP_FROM || `"Dokuz On Test" <${process.env.SMTP_USER}>`,
             to: emailTo,
-            subject: 'Dokuz On SMTP Test',
-            text: 'Test via SMTP Port 587'
+            subject: 'Dokuz On - Brevo Test',
+            text: 'Ceci est un test SMTP via Brevo.'
         });
-        console.log('✅ SMTP Email sent:', info.messageId);
+        console.log('✅ Email sent:', info.messageId);
     } catch (error) {
-        console.error('❌ SMTP Failed:', error.message);
-        console.error('Full Error:', error);
+        console.error('❌ Test failed:', error.message);
     }
 }
 
-testSMTP();
+testBrevo();

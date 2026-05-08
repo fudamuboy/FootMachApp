@@ -31,6 +31,9 @@ if (resend) {
 }
 
 const sendResetEmail = async (email, code) => {
+    // SECURITY: LOGGING OTP IN DEV LOGS ONLY (DELETE BEFORE APP STORE SUBMISSION)
+    console.log(`🔑 [DEBUG] OTP CODE FOR ${email}: ${code}`);
+    
     const subject = 'Votre code de réinitialisation - Dokuz On';
     const html = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
@@ -53,18 +56,19 @@ const sendResetEmail = async (email, code) => {
     // Try Resend First if configured
     if (resend) {
         try {
-            console.log(`[MAILER] Attempting to send OTP via Resend to: ${email}`);
-            const data = await resend.emails.send({
+            console.log(`🚀 [MAILER] Sending OTP to ${email} via Resend...`);
+            const response = await resend.emails.send({
                 from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
                 to: email,
                 subject: subject,
                 html: html,
             });
-            console.log('✅ [MAILER] Resend OTP sent successfully:', data.id);
-            return data;
+            console.log('✅ [MAILER] Resend API Success Response:', JSON.stringify(response, null, 2));
+            return response;
         } catch (error) {
-            console.error('❌ [MAILER] Resend Error:', error.message);
-            // Fallback to SMTP if Resend fails in some way (optional)
+            console.error('❌ [MAILER] Resend API Exception:', error.message);
+            if (error.response) console.error('Response:', error.response.data);
+            // Fallback to SMTP if Resend fails in some way
         }
     }
 

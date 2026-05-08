@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Modal, ScrollView, ActivityIndicator, Share, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -56,6 +57,7 @@ export default function ProfileScreen() {
 
     const fetchStats = async () => {
         try {
+            console.log('[ProfileScreen] 📊 Fetching user stats...');
             const response = await api.get('users/me/stats');
             setStats(response.data);
             if (response.data && response.data.hasSeenOnboarding === false) {
@@ -77,9 +79,26 @@ export default function ProfileScreen() {
         }
     };
 
+    // Refresh data when screen is focused (navigation back)
+    useFocusEffect(
+        React.useCallback(() => {
+            console.log('[ProfileScreen] 🔄 Screen focused, refreshing data...');
+            if (fetchProfile) fetchProfile();
+            fetchStats();
+        }, [])
+    );
+
+    // Debug logging for profile changes
     React.useEffect(() => {
-        fetchStats();
-    }, []);
+        if (profile) {
+            console.log("[ProfileScreen] 👤 Profile updated in Context:", {
+                position: profile.position,
+                preferred_foot: profile.preferred_foot,
+                skill_level: profile.skill_level,
+                playing_style: profile.playing_style
+            });
+        }
+    }, [profile]);
 
     React.useEffect(() => {
         if (profile) {

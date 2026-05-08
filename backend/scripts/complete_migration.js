@@ -20,6 +20,18 @@ async function completeMigration() {
         { name: 'avatar_style', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT \'initials\'' },
         { name: 'avatar_seed', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(255)' },
         { name: 'updated_at', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP' },
+        
+        // Premium & Role Columns
+        { name: 'role', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT \'user\'' },
+        { name: 'is_premium', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT FALSE' },
+        { name: 'premium_expires_at', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMP WITH TIME ZONE' },
+        { name: 'premium_source', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_source VARCHAR(50)' },
+        { name: 'premium_plan', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_plan VARCHAR(50)' },
+        
+        // Score Columns
+        { name: 'trust_score', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score INTEGER DEFAULT 100' },
+        { name: 'activity_score', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS activity_score INTEGER DEFAULT 0' },
+        { name: 'spam_score', query: 'ALTER TABLE users ADD COLUMN IF NOT EXISTS spam_score INTEGER DEFAULT 0' },
 
         // 2. Announcements Table Columns
         { name: 'announcements.status', query: 'ALTER TABLE announcements ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'active\'' },

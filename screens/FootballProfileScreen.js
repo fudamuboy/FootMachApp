@@ -65,15 +65,15 @@ export default function FootballProfileScreen() {
     const handleSave = async () => {
         setLoading(true);
         const payload = {
-            position: position || null,
-            preferredPosition: position || null, 
-            preferred_foot: preferredFoot || null,
-            strongFoot: preferredFoot || null, 
-            secondary_position: secondaryPosition || null,
-            skill_level: skillLevel || null,
-            skillLevel: skillLevel || null, 
-            playing_style: playingStyle || null,
-            playingStyle: playingStyle || null 
+            position: position?.toLowerCase() || null,
+            preferredPosition: position?.toLowerCase() || null, 
+            preferred_foot: preferredFoot?.toLowerCase() || null,
+            strongFoot: preferredFoot?.toLowerCase() || null, 
+            secondary_position: secondaryPosition?.toLowerCase() || null,
+            skill_level: skillLevel?.toLowerCase() || null,
+            skillLevel: skillLevel?.toLowerCase() || null, 
+            playing_style: playingStyle?.toLowerCase() || null,
+            playingStyle: playingStyle?.toLowerCase() || null 
         };
 
         console.log('[FootballProfileScreen] 📤 Sending update to /auth/profile');

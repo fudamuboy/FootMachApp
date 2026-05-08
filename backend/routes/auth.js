@@ -195,12 +195,17 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
      addField('address', address);
      
      // Football profile
-     // Handle both old and new names
-     addField('position', position || preferredPosition);
-     addField('preferred_foot', preferred_foot || strongFoot);
-     addField('secondary_position', secondary_position);
-     addField('skill_level', skill_level || skillLevel);
-     addField('playing_style', playing_style || playingStyle);
+     // Handle both old and new names, and normalize to lowercase for DB consistency
+     const finalPosition = (position || preferredPosition)?.toLowerCase();
+     const finalFoot = (preferred_foot || strongFoot)?.toLowerCase();
+     const finalSkill = (skill_level || skillLevel)?.toLowerCase();
+     const finalStyle = (playing_style || playingStyle)?.toLowerCase();
+
+     addField('position', finalPosition);
+     addField('preferred_foot', finalFoot);
+     addField('secondary_position', secondary_position?.toLowerCase());
+     addField('skill_level', finalSkill);
+     addField('playing_style', finalStyle);
      
      // Other fields
      addField('bio', bio);
@@ -235,16 +240,13 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
      res.json(result.rows[0]);
 
   } catch(error) {
-    console.error('❌ --- PROFILE UPDATE ERROR ---');
-    console.error('User ID:', req.user?.id || 'N/A');
-    console.error('Message:', error.message);
-    if (error.code) console.error('SQL Code:', error.code);
+    console.error('[PROFILE_UPDATE_VALIDATION_ERROR] ❌ Error:', error.message);
     if (error.detail) console.error('SQL Detail:', error.detail);
-    console.error('Stack:', error.stack);
+    if (error.code) console.error('SQL Code:', error.code);
     
     res.status(500).json({ 
         message: 'Server error updating profile',
-        detail: error.message,
+        detail: error.detail || error.message,
         errorCode: error.code
     });
   }

@@ -74,7 +74,8 @@ const UserInfoScreen = () => {
             favorite_team: favTeam // Compatibility
         };
 
-        console.log('[UserInfoScreen] 📤 Sending update:', JSON.stringify(payload, null, 2));
+        console.log('[UserInfoScreen] 📤 Sending update to /auth/profile');
+        console.log('[UserInfoScreen] 📦 Payload:', JSON.stringify(payload, null, 2));
 
         try {
             const response = await api.put('/auth/profile', payload);
@@ -85,11 +86,22 @@ const UserInfoScreen = () => {
         } catch (error) {
             console.error('[UserInfoScreen] ❌ Error:', error.message);
             
+            // Log full backend response for debugging
+            if (error.response?.data) {
+                console.log('[UserInfoScreen] 📥 Error Data:', JSON.stringify(error.response.data, null, 2));
+            }
+
             let errorMsg = t('userInfo.errorMsg');
-            if (error.message.includes('Session expirée')) {
+
+            // If the error object has a specific message from api.js interceptor
+            if (error.message && error.message !== 'Error') {
                 errorMsg = error.message;
-            } else if (error.message.includes('indisponible')) {
-                errorMsg = "Le serveur est momentanément indisponible.";
+            }
+            
+            // Append backend detail for developers if available
+            const backendDetail = error.response?.data?.detail || error.response?.data?.message;
+            if (backendDetail && __DEV__) {
+                errorMsg += `\n\n(${backendDetail})`;
             }
 
             Alert.alert(t('userInfo.errorTitle'), errorMsg);

@@ -66,17 +66,18 @@ export default function FootballProfileScreen() {
         setLoading(true);
         const payload = {
             position: position || null,
-            preferredPosition: position || null, // Support camelCase
+            preferredPosition: position || null, 
             preferred_foot: preferredFoot || null,
-            strongFoot: preferredFoot || null, // Support camelCase
+            strongFoot: preferredFoot || null, 
             secondary_position: secondaryPosition || null,
             skill_level: skillLevel || null,
-            skillLevel: skillLevel || null, // Support camelCase
+            skillLevel: skillLevel || null, 
             playing_style: playingStyle || null,
-            playingStyle: playingStyle || null // Support camelCase
+            playingStyle: playingStyle || null 
         };
 
-        console.log('[FootballProfileScreen] 📤 Sending update:', JSON.stringify(payload, null, 2));
+        console.log('[FootballProfileScreen] 📤 Sending update to /auth/profile');
+        console.log('[FootballProfileScreen] 📦 Payload:', JSON.stringify(payload, null, 2));
 
         try {
             const response = await api.put('/auth/profile', payload);
@@ -87,11 +88,22 @@ export default function FootballProfileScreen() {
         } catch (error) {
             console.error('[FootballProfileScreen] ❌ Error:', error.message);
             
+            // If backend returned specific error details, log them
+            if (error.response?.data) {
+                console.log('[FootballProfileScreen] 📥 Error Data:', JSON.stringify(error.response.data, null, 2));
+            }
+
             let errorMsg = t('footballInfo.errorMsg');
-            if (error.message.includes('Session expirée')) {
+            
+            // If the error object has a specific message from api.js interceptor
+            if (error.message && error.message !== 'Error') {
                 errorMsg = error.message;
-            } else if (error.message.includes('indisponible')) {
-                errorMsg = "Le serveur est momentanément indisponible.";
+            }
+            
+            // Fallback to more details if available in response
+            const backendDetail = error.response?.data?.detail || error.response?.data?.message;
+            if (backendDetail && __DEV__) {
+                errorMsg += `\n\n(${backendDetail})`;
             }
 
             Alert.alert(t('footballInfo.errorTitle'), errorMsg);

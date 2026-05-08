@@ -313,7 +313,7 @@ router.post('/request-password-reset-code', async (req, res) => {
         });
         
         // Distinguish between configuration errors, timeouts and sending errors
-        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED' || mailError.code === 'EMAIL_SERVICE_NOT_CONFIGURED') {
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED') {
             return res.status(500).json({ 
                 message: "Le service d'e-mail n'est pas configuré correctement sur le serveur.",
                 errorCode: 'SMTP_CONFIG_ERROR'
@@ -383,7 +383,7 @@ router.post('/forgot-password', async (req, res) => {
             message: mailError.message
         });
         
-        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED' || mailError.code === 'EMAIL_SERVICE_NOT_CONFIGURED') {
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED') {
             return res.status(500).json({ 
                 message: "Le service d'e-mail n'est pas configuré correctement sur le serveur.",
                 errorCode: 'SMTP_CONFIG_ERROR'

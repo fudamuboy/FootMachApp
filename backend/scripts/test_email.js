@@ -1,41 +1,17 @@
-const { Resend } = require('resend');
 const nodemailer = require('nodemailer');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-async function testEmailService() {
+async function testSMTP() {
     console.log('-------------------------------------------');
-    console.log('📧 EMAIL SERVICE TEST SCRIPT');
+    console.log('📡 SMTP TEST SCRIPT (Port 587)');
     console.log('-------------------------------------------');
     
     const emailTo = process.env.SMTP_USER || 'kartalboy123@gmail.com';
 
-    // 1. Test Resend
-    if (process.env.RESEND_API_KEY) {
-        console.log('🚀 Testing Resend...');
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        try {
-            const data = await resend.emails.send({
-                from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
-                to: emailTo,
-                subject: 'Dokuz On Resend Test',
-                html: '<b>This is a test email via Resend.</b>'
-            });
-            console.log('✅ Resend Success:', data.id);
-        } catch (error) {
-            console.error('❌ Resend Failed:', error.message);
-        }
-    } else {
-        console.log('ℹ️ Resend API Key missing, skipping Resend test.');
-    }
-
-    console.log('\n-------------------------------------------');
-
-    // 2. Test SMTP
-    console.log('📡 Testing SMTP...');
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '465'),
+        port: parseInt(process.env.SMTP_PORT || '587'),
         secure: String(process.env.SMTP_SECURE) === 'true',
         family: 4,
         auth: {
@@ -48,19 +24,22 @@ async function testEmailService() {
     });
 
     try {
+        console.log('🔍 Verifying SMTP connection...');
         await transporter.verify();
         console.log('✅ SMTP Connection verified!');
         
+        console.log(`📧 Sending test email to ${emailTo}...`);
         const info = await transporter.sendMail({
-            from: `"SMTP Test" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+            from: `"Dokuz On Test" <${process.env.SMTP_USER}>`,
             to: emailTo,
             subject: 'Dokuz On SMTP Test',
-            text: 'Test via SMTP'
+            text: 'Test via SMTP Port 587'
         });
         console.log('✅ SMTP Email sent:', info.messageId);
     } catch (error) {
         console.error('❌ SMTP Failed:', error.message);
+        console.error('Full Error:', error);
     }
 }
 
-testEmailService();
+testSMTP();

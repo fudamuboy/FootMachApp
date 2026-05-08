@@ -1,16 +1,12 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns');
-const { Resend } = require('resend');
 
-// 1. Resend Config (Primary for Production/Render)
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-// 2. SMTP Config (Fallback for Local Dev)
+// SMTP Config (Gmail STARTTLS - Port 587 is often more stable on cloud)
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: String(process.env.SMTP_SECURE) === 'true', 
-    family: 4, 
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: String(process.env.SMTP_SECURE) === 'true', // false for 587
+    family: 4, // Force IPv4
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -20,20 +16,25 @@ const transporter = nodemailer.createTransport({
     socketTimeout: 20000,
 });
 
-// Diagnostics
-if (resend) {
-    console.log('🚀 [MAILER] Resend initialized as primary email service.');
-} else {
-    console.log('📡 [MAILER] Resend API key missing. Falling back to SMTP.');
-    dns.lookup(process.env.SMTP_HOST || 'smtp.gmail.com', { family: 4 }, (err, address) => {
-        console.log(`[SMTP DNS IPv4] Resolved ${process.env.SMTP_HOST || 'smtp.gmail.com'} to:`, err ? `Error: ${err.message}` : address);
-    });
-}
+// Startup Check
+console.log('📡 [MAILER] SMTP initialized:', {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: String(process.env.SMTP_SECURE) === 'true'
+});
+
+dns.lookup(process.env.SMTP_HOST || 'smtp.gmail.com', { family: 4 }, (err, address) => {
+    if (!err) console.log(`[MAILER] DNS resolved to ${address}`);
+});
 
 const sendResetEmail = async (email, code) => {
-    // SECURITY: LOGGING OTP IN DEV LOGS ONLY (DELETE BEFORE APP STORE SUBMISSION)
-    console.log(`🔑 [DEBUG] OTP CODE FOR ${email}: ${code}`);
-    
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.error('❌ [MAILER] SMTP_USER or SMTP_PASS missing');
+        const error = new Error('SMTP_NOT_CONFIGURED');
+        error.code = 'SMTP_NOT_CONFIGURED';
+        throw error;
+    }
+
     const subject = 'Votre code de réinitialisation - Dokuz On';
     const html = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
@@ -53,47 +54,20 @@ const sendResetEmail = async (email, code) => {
         </div>
     `;
 
-    // Try Resend First if configured
-    if (resend) {
-        try {
-            console.log(`🚀 [MAILER] Sending OTP to ${email} via Resend...`);
-            const response = await resend.emails.send({
-                from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
-                to: email,
-                subject: subject,
-                html: html,
-            });
-            console.log('✅ [MAILER] Resend API Success Response:', JSON.stringify(response, null, 2));
-            return response;
-        } catch (error) {
-            console.error('❌ [MAILER] Resend API Exception:', error.message);
-            if (error.response) console.error('Response:', error.response.data);
-            // Fallback to SMTP if Resend fails in some way
-        }
-    }
-
-    // Fallback to SMTP (or primary for Local Dev)
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.error('❌ [MAILER] No email service configured (Resend or SMTP)');
-        const error = new Error('EMAIL_SERVICE_NOT_CONFIGURED');
-        error.code = 'EMAIL_SERVICE_NOT_CONFIGURED';
-        throw error;
-    }
-
     const mailOptions = {
-        from: `"Dokuz On Support" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+        from: `"Dokuz On" <${process.env.SMTP_USER}>`,
         to: email,
         subject: subject,
         html: html,
     };
 
     try {
-        console.log(`[MAILER] Attempting to send OTP via SMTP to: ${email}`);
+        console.log(`[MAILER] Sending OTP to ${email}...`);
         const info = await transporter.sendMail(mailOptions);
-        console.log('✅ [MAILER] SMTP Email sent successfully:', info.messageId);
+        console.log('✅ [MAILER] OTP sent successfully:', info.messageId);
         return info;
     } catch (error) {
-        console.error('❌ [MAILER] SMTP Error:', error.message);
+        console.error('❌ [MAILER ERROR]:', error.message);
         throw error;
     }
 };

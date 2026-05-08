@@ -62,7 +62,7 @@ export default function ProfileScreen() {
                 setOnboardingVisible(true);
             }
         } catch (error) {
-            console.error('Error fetching stats:', error);
+            console.log('❌ Error fetching stats:', error.response?.data?.detail || error.message);
         } finally {
             setLoadingStats(false);
         }
@@ -73,7 +73,7 @@ export default function ProfileScreen() {
         try {
             await api.post('users/mark-onboarding-seen');
         } catch (error) {
-            console.error('Error marking onboarding seen:', error);
+            console.log('❌ Error marking onboarding seen:', error.message);
         }
     };
 
@@ -98,7 +98,7 @@ export default function ProfileScreen() {
             if (fetchProfile) await fetchProfile();
             setModalVisible(false);
         } catch (error) {
-            console.error('Error saving avatar:', error);
+            console.log('❌ Error saving avatar:', error.message);
             alert(t('profile.errorUpdate'));
         } finally {
             setSaving(false);

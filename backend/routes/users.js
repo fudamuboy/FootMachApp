@@ -32,7 +32,7 @@ router.get('/me/stats', authMiddleware, async (req, res) => {
     // 3. User Info (XP, Premium, etc.)
     const userResult = await db.query(
       `SELECT username, email, phone_number, city, region, position, preferred_foot, bio, favorite_team, 
-       is_premium, premium_expires_at, xp_points, avatar_url, has_seen_onboarding,
+       is_premium, premium_expires_at, premium_source, premium_plan, xp_points, avatar_url, has_seen_onboarding,
        role, trust_score, activity_score, spam_score
        FROM users WHERE id = $1`,
       [userId]
@@ -180,8 +180,9 @@ router.get('/me/stats', authMiddleware, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching user stats:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ [BACKEND ERROR] Error fetching user stats:', error.message);
+    if (error.stack) console.error(error.stack);
+    res.status(500).json({ message: 'Server error', detail: error.message });
   }
 });
 

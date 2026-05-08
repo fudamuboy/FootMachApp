@@ -207,6 +207,7 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
      addField('favorite_team', favorite_team || favoriteTeam);
      addField('avatar_style', avatar_style);
      addField('avatar_seed', avatar_seed);
+     addField('updated_at', new Date());
      
      if (queryValues.length === 0) {
          console.warn(`[PROFILE_UPDATE] ⚠️ No fields provided for update for user ${userId}`);

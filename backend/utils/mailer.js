@@ -8,6 +8,10 @@ const transporter = nodemailer.createTransport({
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
+    // Adding timeouts to prevent hanging on Render
+    connectionTimeout: 10000, // 10s
+    greetingTimeout: 10000,   // 10s
+    socketTimeout: 20000,     // 20s
 });
 
 // Log SMTP configuration on initialization (safe)

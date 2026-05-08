@@ -312,13 +312,21 @@ router.post('/request-password-reset-code', async (req, res) => {
             message: mailError.message
         });
         
-        // Distinguish between configuration errors and sending errors
+        // Distinguish between configuration errors, timeouts and sending errors
         if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED') {
             return res.status(500).json({ 
                 message: "Le service d'e-mail n'est pas configuré correctement sur le serveur.",
                 errorCode: 'SMTP_CONFIG_ERROR'
             });
         }
+        
+        if (mailError.code === 'ETIMEDOUT' || mailError.message.includes('timeout')) {
+            return res.status(500).json({ 
+                message: "L'envoi de l'e-mail a expiré. Veuillez réessayer.",
+                errorCode: 'EMAIL_SEND_TIMEOUT'
+            });
+        }
+
         return res.status(500).json({ 
             message: "Impossible d'envoyer le code pour le moment. Réessayez plus tard.",
             errorCode: 'EMAIL_SEND_FAILED'
@@ -381,6 +389,14 @@ router.post('/forgot-password', async (req, res) => {
                 errorCode: 'SMTP_CONFIG_ERROR'
             });
         }
+
+        if (mailError.code === 'ETIMEDOUT' || mailError.message.includes('timeout')) {
+            return res.status(500).json({ 
+                message: "L'envoi de l'e-mail a expiré. Veuillez réessayer.",
+                errorCode: 'EMAIL_SEND_TIMEOUT'
+            });
+        }
+
         return res.status(500).json({ 
             message: "Impossible d'envoyer le code pour le moment. Réessayez plus tard.",
             errorCode: 'EMAIL_SEND_FAILED'

@@ -64,20 +64,35 @@ const UserInfoScreen = () => {
 
     const handleUpdate = async () => {
         setLoading(true);
+        const payload = { 
+            username, 
+            displayName: username, // Support both
+            phone, 
+            email,
+            bio,
+            favoriteTeam: favTeam, // User requested camelCase
+            favorite_team: favTeam // Compatibility
+        };
+
+        console.log('[UserInfoScreen] 📤 Sending update:', JSON.stringify(payload, null, 2));
+
         try {
-            await api.put('/auth/profile', { 
-                username, 
-                phone, 
-                email,
-                bio,
-                favorite_team: favTeam
-            });
+            const response = await api.put('/auth/profile', payload);
+            console.log('[UserInfoScreen] ✅ Success:', response.status);
             Alert.alert(t('userInfo.successTitle'), t('userInfo.successMsg'));
             await fetchProfile();
             navigation.goBack();
         } catch (error) {
-            Alert.alert(t('userInfo.errorTitle'), t('userInfo.errorMsg'));
-            console.error(error);
+            console.error('[UserInfoScreen] ❌ Error:', error.message);
+            
+            let errorMsg = t('userInfo.errorMsg');
+            if (error.message.includes('Session expirée')) {
+                errorMsg = error.message;
+            } else if (error.message.includes('indisponible')) {
+                errorMsg = "Le serveur est momentanément indisponible.";
+            }
+
+            Alert.alert(t('userInfo.errorTitle'), errorMsg);
         }
         setLoading(false);
     };

@@ -64,20 +64,37 @@ export default function FootballProfileScreen() {
 
     const handleSave = async () => {
         setLoading(true);
+        const payload = {
+            position: position || null,
+            preferredPosition: position || null, // Support camelCase
+            preferred_foot: preferredFoot || null,
+            strongFoot: preferredFoot || null, // Support camelCase
+            secondary_position: secondaryPosition || null,
+            skill_level: skillLevel || null,
+            skillLevel: skillLevel || null, // Support camelCase
+            playing_style: playingStyle || null,
+            playingStyle: playingStyle || null // Support camelCase
+        };
+
+        console.log('[FootballProfileScreen] 📤 Sending update:', JSON.stringify(payload, null, 2));
+
         try {
-            await api.put('/auth/profile', {
-                position: position || null,
-                preferred_foot: preferredFoot || null,
-                secondary_position: secondaryPosition || null,
-                skill_level: skillLevel || null,
-                playing_style: playingStyle || null
-            });
+            const response = await api.put('/auth/profile', payload);
+            console.log('[FootballProfileScreen] ✅ Success:', response.status);
             Alert.alert(t('footballInfo.successTitle'), t('footballInfo.successMsg'));
             await fetchProfile();
             navigation.goBack();
         } catch (error) {
-            Alert.alert(t('footballInfo.errorTitle'), t('footballInfo.errorMsg'));
-            console.error(error);
+            console.error('[FootballProfileScreen] ❌ Error:', error.message);
+            
+            let errorMsg = t('footballInfo.errorMsg');
+            if (error.message.includes('Session expirée')) {
+                errorMsg = error.message;
+            } else if (error.message.includes('indisponible')) {
+                errorMsg = "Le serveur est momentanément indisponible.";
+            }
+
+            Alert.alert(t('footballInfo.errorTitle'), errorMsg);
         }
         setLoading(false);
     };

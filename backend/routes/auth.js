@@ -149,113 +149,106 @@ router.get('/user/:id', async (req, res) => {
 router.put('/profile', require('../middleware/authMiddleware'), async (req, res) => {
   try {
      const { 
+         // Original names
          username, phone, email, address, position, preferred_foot, 
          avatar_style, avatar_seed, bio, favorite_team, 
-         secondary_position, skill_level, playing_style 
+         secondary_position, skill_level, playing_style,
+         // CamelCase variants requested by user
+         displayName, favoriteTeam, preferredPosition, strongFoot, skillLevel, playingStyle
      } = req.body;
      
-     console.log(`👤 Updating profile for user ${req.user.id}:`, req.body);
+     const userId = req.user?.id;
+     if (!userId) {
+         console.error('[PROFILE_UPDATE] ❌ No user ID in request');
+         return res.status(401).json({ message: 'Unauthorized' });
+     }
+
+     console.log(`[PROFILE_UPDATE] 👤 Updating profile for user ${userId}`);
+     
+     // Log payload safely (masking sensitive info)
+     const safeBody = { ...req.body };
+     if (safeBody.email) safeBody.email = '***@***.***';
+     if (safeBody.phone) safeBody.phone = '*******' + (safeBody.phone.toString().slice(-3) || '');
+     
+     console.log(`[PROFILE_UPDATE] 📦 Payload:`, JSON.stringify(safeBody, null, 2));
      
      let updateQuery = 'UPDATE users SET ';
      const queryValues = [];
      let paramIdx = 1;
      
-     if (username !== undefined) {
-         updateQuery += `username = $${paramIdx}, `;
-         queryValues.push(username);
-         paramIdx++;
-     }
+     // Helper to add to query if value is defined
+     const addField = (colName, val) => {
+         if (val !== undefined) {
+             updateQuery += `${colName} = $${paramIdx}, `;
+             queryValues.push(val);
+             paramIdx++;
+             return true;
+         }
+         return false;
+     };
+
+     // Mapping logic: prioritized names
+     addField('username', username);
+     addField('display_name', displayName);
+     addField('phone_number', phone);
+     addField('email', email);
+     addField('address', address);
      
-     if (phone !== undefined) {
-         updateQuery += `phone_number = $${paramIdx}, `;
-         queryValues.push(phone);
-         paramIdx++;
-     }
+     // Football profile
+     // Handle both old and new names
+     addField('position', position || preferredPosition);
+     addField('preferred_foot', preferred_foot || strongFoot);
+     addField('secondary_position', secondary_position);
+     addField('skill_level', skill_level || skillLevel);
+     addField('playing_style', playing_style || playingStyle);
      
-     if (email !== undefined) {
-         updateQuery += `email = $${paramIdx}, `;
-         queryValues.push(email);
-         paramIdx++;
-     }
-
-     if (address !== undefined) {
-         updateQuery += `address = $${paramIdx}, `;
-         queryValues.push(address);
-         paramIdx++;
-     }
-
-     if (position !== undefined) {
-         updateQuery += `position = $${paramIdx}, `;
-         queryValues.push(position);
-         paramIdx++;
-     }
-
-     if (preferred_foot !== undefined) {
-         updateQuery += `preferred_foot = $${paramIdx}, `;
-         queryValues.push(preferred_foot);
-         paramIdx++;
-     }
-
-     if (avatar_style !== undefined) {
-         updateQuery += `avatar_style = $${paramIdx}, `;
-         queryValues.push(avatar_style);
-         paramIdx++;
-     }
-
-     if (avatar_seed !== undefined) {
-         updateQuery += `avatar_seed = $${paramIdx}, `;
-         queryValues.push(avatar_seed);
-         paramIdx++;
-     }
-
-     if (bio !== undefined) {
-         updateQuery += `bio = $${paramIdx}, `;
-         queryValues.push(bio);
-         paramIdx++;
-     }
-
-     if (favorite_team !== undefined) {
-         updateQuery += `favorite_team = $${paramIdx}, `;
-         queryValues.push(favorite_team);
-         paramIdx++;
-     }
-
-     if (secondary_position !== undefined) {
-         updateQuery += `secondary_position = $${paramIdx}, `;
-         queryValues.push(secondary_position);
-         paramIdx++;
-     }
-
-     if (skill_level !== undefined) {
-         updateQuery += `skill_level = $${paramIdx}, `;
-         queryValues.push(skill_level);
-         paramIdx++;
-     }
-
-     if (playing_style !== undefined) {
-         updateQuery += `playing_style = $${paramIdx}, `;
-         queryValues.push(playing_style);
-         paramIdx++;
-     }
+     // Other fields
+     addField('bio', bio);
+     addField('favorite_team', favorite_team || favoriteTeam);
+     addField('avatar_style', avatar_style);
+     addField('avatar_seed', avatar_seed);
      
      if (queryValues.length === 0) {
+         console.warn(`[PROFILE_UPDATE] ⚠️ No fields provided for update for user ${userId}`);
          return res.status(400).json({ message: 'No fields provided for update' });
      }
      
      // Remove trailing comma and space
      updateQuery = updateQuery.slice(0, -2);
      
-     updateQuery += ` WHERE id = $${paramIdx} RETURNING id, email, username, city, region, phone_number, address, avatar_url, avatar_style, avatar_seed, position, preferred_foot, bio, favorite_team, secondary_position, skill_level, playing_style, role, is_premium, premium_expires_at, premium_source, premium_plan, trust_score, activity_score, spam_score`;
-     queryValues.push(req.user.id);
+     updateQuery += ` WHERE id = $${paramIdx} RETURNING *`;
+     queryValues.push(userId);
      
-     console.log('📝 Executing Update:', updateQuery);
+     console.log(`[PROFILE_UPDATE] 📝 Executing Query for ${userId}`);
+     // Do not log the full query with values if it contains sensitive info, but for debugging we log the template
+     // console.log(`[PROFILE_UPDATE] SQL Template: ${updateQuery}`);
+     
      const result = await db.query(updateQuery, queryValues);
      
+     if (result.rows.length === 0) {
+         console.error(`[PROFILE_UPDATE] ❌ User ${userId} not found during update`);
+         return res.status(404).json({ message: 'User not found' });
+     }
+
+     console.log(`[PROFILE_UPDATE] ✅ Profile updated successfully for ${userId}`);
      res.json(result.rows[0]);
 
   } catch(error) {
-     console.error('Update profile error:', error);
-     res.status(500).json({ message: 'Server error updating profile' });
+     console.error('--- PROFILE UPDATE ERROR ---');
+     console.error('User ID:', req.user.id);
+     console.error('Message:', error.message);
+     if (error.code) console.error('SQL Error Code:', error.code);
+     if (error.detail) console.error('SQL Detail:', error.detail);
+     if (error.hint) console.error('SQL Hint:', error.hint);
+     if (error.where) console.error('SQL Where:', error.where);
+     console.error('Stack:', error.stack);
+     console.error('-----------------------------');
+     
+     res.status(500).json({ 
+         message: 'Server error updating profile',
+         error: error.message,
+         code: error.code
+     });
   }
 });
 

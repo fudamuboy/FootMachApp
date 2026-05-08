@@ -1,9 +1,11 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '465'),
     secure: String(process.env.SMTP_SECURE) === 'true', 
+    family: 4, // Force IPv4 to avoid ENETUNREACH on Render
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -12,6 +14,11 @@ const transporter = nodemailer.createTransport({
     connectionTimeout: 10000, // 10s
     greetingTimeout: 10000,   // 10s
     socketTimeout: 20000,     // 20s
+});
+
+// Verify IPv4 resolution for debugging on Render
+dns.lookup(process.env.SMTP_HOST || 'smtp.gmail.com', { family: 4 }, (err, address) => {
+    console.log(`[SMTP DNS IPv4] Resolved ${process.env.SMTP_HOST || 'smtp.gmail.com'} to:`, err ? `Error: ${err.message}` : address);
 });
 
 // Log SMTP configuration on initialization (safe)

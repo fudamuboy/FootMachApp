@@ -269,6 +269,17 @@ const { sendResetEmail } = require('../utils/mailer');
 router.post('/request-password-reset-code', async (req, res) => {
   try {
     const { email } = req.body;
+    console.log(`[AUTH] 📧 Received reset request for: ${email}`);
+
+    // Check SMTP config (safe logs)
+    console.log("SMTP CONFIG CHECK:", {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_SECURE,
+        userExists: !!process.env.SMTP_USER,
+        passExists: !!process.env.SMTP_PASS,
+        from: process.env.SMTP_FROM
+    });
     
     const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userResult.rows.length === 0) {
@@ -292,11 +303,19 @@ router.post('/request-password-reset-code', async (req, res) => {
         await sendResetEmail(email, otpCode);
         console.log(`✅ OTP sent successfully to ${email}`);
     } catch (mailError) {
-        console.error('❌ [AUTH] Error sending OTP email:', mailError.message);
+        console.error("❌ OTP EMAIL ERROR:", {
+            name: mailError.name,
+            code: mailError.code,
+            command: mailError.command,
+            response: mailError.response,
+            responseCode: mailError.responseCode,
+            message: mailError.message
+        });
+        
         // Distinguish between configuration errors and sending errors
-        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED') {
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED') {
             return res.status(500).json({ 
-                message: "Le service d'e-mail n'est pas configuré correctement.",
+                message: "Le service d'e-mail n'est pas configuré correctement sur le serveur.",
                 errorCode: 'SMTP_CONFIG_ERROR'
             });
         }
@@ -318,7 +337,18 @@ router.post('/request-password-reset-code', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-    
+    console.log(`[AUTH] 📧 Received forgot-password request for: ${email}`);
+
+    // Check SMTP config (safe logs)
+    console.log("SMTP CONFIG CHECK:", {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_SECURE,
+        userExists: !!process.env.SMTP_USER,
+        passExists: !!process.env.SMTP_PASS,
+        from: process.env.SMTP_FROM
+    });
+
     const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ message: "Aucun compte n'existe avec cet e-mail." });
@@ -336,10 +366,18 @@ router.post('/forgot-password', async (req, res) => {
         await sendResetEmail(email, otpCode);
         console.log(`✅ Forgot-password OTP sent successfully to ${email}`);
     } catch (mailError) {
-        console.error('❌ [AUTH] Error sending forgot-password OTP email:', mailError.message);
-        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED') {
+        console.error("❌ OTP EMAIL ERROR:", {
+            name: mailError.name,
+            code: mailError.code,
+            command: mailError.command,
+            response: mailError.response,
+            responseCode: mailError.responseCode,
+            message: mailError.message
+        });
+        
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED' || mailError.code === 'SMTP_NOT_CONFIGURED') {
             return res.status(500).json({ 
-                message: "Le service d'e-mail n'est pas configuré correctement.",
+                message: "Le service d'e-mail n'est pas configuré correctement sur le serveur.",
                 errorCode: 'SMTP_CONFIG_ERROR'
             });
         }

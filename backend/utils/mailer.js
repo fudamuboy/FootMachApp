@@ -1,18 +1,35 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: process.env.SMTP_SECURE === 'true', // Use explicit variable
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: String(process.env.SMTP_SECURE) === 'true', 
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
 });
 
+// Log SMTP configuration on initialization (safe)
+console.log('[SMTP] Transporter initialized:', {
+    host: process.env.SMTP_HOST || 'smtp.gmail.com (fallback)',
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: String(process.env.SMTP_SECURE) === 'true',
+    userExists: !!process.env.SMTP_USER,
+    passExists: !!process.env.SMTP_PASS,
+    from: process.env.SMTP_FROM
+});
+
 const sendResetEmail = async (email, code) => {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.error('❌ [MAILER] SMTP_USER or SMTP_PASS is not configured');
+        const error = new Error('SMTP_NOT_CONFIGURED');
+        error.code = 'SMTP_NOT_CONFIGURED';
+        throw error;
+    }
+
     const mailOptions = {
-        from: `"Dokuz On Support" <${process.env.SMTP_FROM}>`,
+        from: `"Dokuz On Support" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: email,
         subject: 'Votre code de réinitialisation - Dokuz On',
         html: `

@@ -23,6 +23,11 @@ try {
 }
 
 export default function App() {
+  console.log('-------------------------------------------');
+  console.log('📱 APP STARTING...');
+  console.log('📡 EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL || 'NOT SET (using fallback)');
+  console.log('-------------------------------------------');
+
   React.useEffect(() => {
     (async () => {
       // 1. Backend Ping (to wake up Render server)

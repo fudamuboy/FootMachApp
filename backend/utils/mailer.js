@@ -1,34 +1,32 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Brevo SMTP Configuration (Stable on Render)
+// Resend Initialization (Primary for Production)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// SMTP Fallback (For Local Dev)
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: Number(process.env.SMTP_PORT || 587),
-    secure: String(process.env.SMTP_SECURE) === "true", // usually false for 587
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 20000,
+    secure: String(process.env.SMTP_SECURE) === "true",
+    family: 4, // Force IPv4 for local stability
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
 });
 
-// Startup Check
-console.log('📡 [MAILER] SMTP Initialized (Brevo/Relay Mode):', {
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port: Number(process.env.SMTP_PORT || 587),
-    user: process.env.SMTP_USER ? 'Configured' : 'MISSING'
-});
+// Startup Log
+if (resend) {
+    console.log('🚀 [MAILER] Resend initialized as primary service.');
+} else {
+    console.log('📡 [MAILER] SMTP fallback initialized (Resend API Key missing).');
+}
 
 const sendResetEmail = async (email, code) => {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.error('❌ [MAILER] SMTP_USER or SMTP_PASS missing');
-        const error = new Error('SMTP_NOT_CONFIGURED');
-        error.code = 'SMTP_NOT_CONFIGURED';
-        throw error;
-    }
-
     const subject = 'Votre code de réinitialisation - Dokuz On';
     const html = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
@@ -48,6 +46,31 @@ const sendResetEmail = async (email, code) => {
         </div>
     `;
 
+    // 1. Try Resend (Production)
+    if (resend) {
+        try {
+            console.log(`🚀 [MAILER] Sending OTP to ${email} via Resend...`);
+            const response = await resend.emails.send({
+                from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
+                to: email,
+                subject: subject,
+                html: html,
+            });
+            console.log('✅ [MAILER] Resend OTP sent successfully:', response.id || 'Success');
+            return response;
+        } catch (error) {
+            console.error('❌ [MAILER ERROR] Resend failed:', error.message);
+            // Fallback to SMTP if Resend fails
+        }
+    }
+
+    // 2. Fallback to SMTP (Local/Dev)
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        const error = new Error('EMAIL_SERVICE_NOT_CONFIGURED');
+        error.code = 'EMAIL_SERVICE_NOT_CONFIGURED';
+        throw error;
+    }
+
     const mailOptions = {
         from: process.env.SMTP_FROM || `"Dokuz On" <${process.env.SMTP_USER}>`,
         to: email,
@@ -56,12 +79,12 @@ const sendResetEmail = async (email, code) => {
     };
 
     try {
-        console.log(`[MAILER] Sending OTP to ${email}...`);
+        console.log(`📡 [MAILER] Sending OTP to ${email} via SMTP fallback...`);
         const info = await transporter.sendMail(mailOptions);
-        console.log('✅ [MAILER] OTP sent successfully:', info.messageId);
+        console.log('✅ [MAILER] SMTP OTP sent successfully:', info.messageId);
         return info;
     } catch (error) {
-        console.error('❌ [MAILER ERROR]:', error.message);
+        console.error('❌ [MAILER ERROR] SMTP failed:', error.message);
         throw error;
     }
 };

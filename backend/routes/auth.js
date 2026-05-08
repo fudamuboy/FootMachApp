@@ -292,16 +292,25 @@ router.post('/request-password-reset-code', async (req, res) => {
         await sendResetEmail(email, otpCode);
         console.log(`✅ OTP sent successfully to ${email}`);
     } catch (mailError) {
-        console.error('❌ Error sending OTP email:', mailError.message);
-        // If email fails, we should not tell the user it was sent
-        return res.status(500).json({ message: "Impossible d'envoyer le code pour le moment." });
+        console.error('❌ [AUTH] Error sending OTP email:', mailError.message);
+        // Distinguish between configuration errors and sending errors
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED') {
+            return res.status(500).json({ 
+                message: "Le service d'e-mail n'est pas configuré correctement.",
+                errorCode: 'SMTP_CONFIG_ERROR'
+            });
+        }
+        return res.status(500).json({ 
+            message: "Impossible d'envoyer le code pour le moment. Réessayez plus tard.",
+            errorCode: 'EMAIL_SEND_FAILED'
+        });
     }
 
     res.status(200).json({ message: 'A reset code has been sent to your email.' });
     
   } catch (error) {
     console.error('Request OTP error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', errorCode: 'SERVER_ERROR' });
   }
 });
 
@@ -327,14 +336,23 @@ router.post('/forgot-password', async (req, res) => {
         await sendResetEmail(email, otpCode);
         console.log(`✅ Forgot-password OTP sent successfully to ${email}`);
     } catch (mailError) {
-        console.error('❌ Error sending forgot-password OTP email:', mailError.message);
-        return res.status(500).json({ message: "Impossible d'envoyer le code pour le moment." });
+        console.error('❌ [AUTH] Error sending forgot-password OTP email:', mailError.message);
+        if (mailError.code === 'EAUTH' || mailError.code === 'ECONNREFUSED') {
+            return res.status(500).json({ 
+                message: "Le service d'e-mail n'est pas configuré correctement.",
+                errorCode: 'SMTP_CONFIG_ERROR'
+            });
+        }
+        return res.status(500).json({ 
+            message: "Impossible d'envoyer le code pour le moment. Réessayez plus tard.",
+            errorCode: 'EMAIL_SEND_FAILED'
+        });
     }
 
     res.status(200).json({ message: 'A reset code has been sent to your email.' });
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', errorCode: 'SERVER_ERROR' });
   }
 });
 

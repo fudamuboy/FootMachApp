@@ -19,11 +19,14 @@ const transporter = nodemailer.createTransport({
     socketTimeout: 20000,
 });
 
+// Default Sender configuration (Centralized for future domain migration)
+const DEFAULT_SENDER = process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>';
+
 // Startup Log
 if (resend) {
-    console.log('🚀 [MAILER] Resend initialized as primary service.');
+    console.log(`🚀 [MAILER] Resend initialized. Using sender: ${DEFAULT_SENDER}`);
 } else {
-    console.log('📡 [MAILER] SMTP fallback initialized (Resend API Key missing).');
+    console.log(`📡 [MAILER] SMTP fallback initialized. Using sender: ${DEFAULT_SENDER}`);
 }
 
 const sendResetEmail = async (email, code) => {
@@ -51,7 +54,7 @@ const sendResetEmail = async (email, code) => {
         try {
             console.log(`🚀 [MAILER] Sending OTP to ${email} via Resend...`);
             const response = await resend.emails.send({
-                from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
+                from: DEFAULT_SENDER,
                 to: email,
                 subject: subject,
                 html: html,
@@ -72,7 +75,7 @@ const sendResetEmail = async (email, code) => {
     }
 
     const mailOptions = {
-        from: process.env.SMTP_FROM || `"Dokuz On" <${process.env.SMTP_USER}>`,
+        from: DEFAULT_SENDER,
         to: email,
         subject: subject,
         html: html,

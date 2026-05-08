@@ -10,13 +10,15 @@ async function testEmail() {
     
     const emailTo = process.env.SMTP_USER || 'votre-email@test.com';
 
+    const defaultSender = process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>';
+
     // 1. Test Resend
     if (process.env.RESEND_API_KEY) {
-        console.log('🚀 Testing Resend...');
+        console.log(`🚀 Testing Resend (Sender: ${defaultSender})...`);
         const resend = new Resend(process.env.RESEND_API_KEY);
         try {
             const data = await resend.emails.send({
-                from: process.env.EMAIL_FROM || 'Dokuz On <onboarding@resend.dev>',
+                from: defaultSender,
                 to: emailTo,
                 subject: 'Dokuz On - Resend Test',
                 html: '<b>Ceci est un test via Resend API.</b>'
@@ -45,10 +47,9 @@ async function testEmail() {
     });
 
     try {
-        await transporter.verify();
         console.log('✅ SMTP Connection verified!');
         const info = await transporter.sendMail({
-            from: process.env.SMTP_FROM || `"Dokuz On Test" <${process.env.SMTP_USER}>`,
+            from: defaultSender,
             to: emailTo,
             subject: 'Dokuz On - SMTP Test',
             text: 'Test via SMTP'

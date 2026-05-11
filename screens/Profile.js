@@ -159,22 +159,22 @@ export default function ProfileScreen() {
                     <View style={styles.summaryGrid}>
                         <SummaryItem 
                             label={t('profile.footballSummary.position')} 
-                            value={profile.position || t('profile.noPosition')} 
+                            value={profile.position ? profile.position.toUpperCase() : t('profile.noPosition')} 
                             icon="target"
                         />
                         <SummaryItem 
                             label={t('profile.footballSummary.strongFoot')} 
-                            value={profile.preferred_foot ? t(`footballInfo.foot${profile.preferred_foot}`) : t('profile.noPosition')} 
+                            value={profile.preferred_foot ? t(`footballInfo.footOptions.${profile.preferred_foot.toLowerCase()}`) : t('profile.noPosition')} 
                             icon="zap"
                         />
                         <SummaryItem 
                             label={t('profile.footballSummary.skillLevel')} 
-                            value={profile.skill_level ? t(`footballInfo.level${profile.skill_level}`) : t('profile.noPosition')} 
+                            value={profile.skill_level ? t(`footballInfo.levelOptions.${profile.skill_level.toLowerCase()}`) : t('profile.noPosition')} 
                             icon="award"
                         />
                         <SummaryItem 
                             label={t('profile.footballSummary.playingStyle')} 
-                            value={profile.playing_style ? t(`footballInfo.style${profile.playing_style.replace(/-/g, '')}`) : t('profile.noPosition')} 
+                            value={profile.playing_style ? t(`footballInfo.styleOptions.${profile.playing_style.toLowerCase().trim()}`) : t('profile.noPosition')} 
                             icon="activity"
                         />
                     </View>

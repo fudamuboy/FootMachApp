@@ -207,6 +207,11 @@
     "footRight": "Sağ",
     "footLeft": "Sol",
     "footBoth": "Her İkisi",
+    "footOptions": {
+      "right": "Sağ",
+      "left": "Sol",
+      "both": "Her İkisi"
+    },
     "skillLevel": "Teknik Seviye",
     "experienceYears": "Deneyim Yılı",
     "playingStyle": "Oyun Tarzı",
@@ -219,11 +224,24 @@
     "levelIntermediate": "Orta",
     "levelAdvanced": "İleri",
     "levelPro": "Pro",
+    "levelOptions": {
+      "beginner": "Başlangıç",
+      "intermediate": "Orta",
+      "advanced": "İleri",
+      "pro": "Pro"
+    },
     "styleAttacker": "Hücumcu",
     "styleDefender": "Savunmacı",
     "stylePlaymaker": "Oyun Kurucu",
     "styleBoxtoBox": "Box-to-Box",
     "styleSpeedster": "Süratli",
+    "styleOptions": {
+      "attacker": "Hücumcu",
+      "defender": "Savunmacı",
+      "playmaker": "Oyun Kurucu",
+      "box-to-box": "Box-to-Box",
+      "speedster": "Süratli"
+    },
     "successTitle": "Başarılı",
     "successMsg": "Futbol profili güncellendi!",
     "errorTitle": "Hata",

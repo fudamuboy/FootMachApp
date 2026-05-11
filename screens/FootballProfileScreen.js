@@ -42,7 +42,7 @@ const PillSection = ({ title, options, selected, onSelect, icon }) => (
 
 export default function FootballProfileScreen() {
     const navigation = useNavigation();
-    const { profile, fetchProfile } = useAuth();
+    const { profile, fetchProfile, updateProfile } = useAuth();
     const { t } = useTranslation();
 
     const [position, setPosition]               = useState(null);
@@ -64,16 +64,20 @@ export default function FootballProfileScreen() {
 
     const handleSave = async () => {
         setLoading(true);
+        
+        // Standardized payload: lowercase values and snake_case keys as primary truth
         const payload = {
-            position: position?.toLowerCase() || null,
-            preferredPosition: position?.toLowerCase() || null, 
-            preferred_foot: preferredFoot?.toLowerCase() || null,
-            strongFoot: preferredFoot?.toLowerCase() || null, 
-            secondary_position: secondaryPosition?.toLowerCase() || null,
-            skill_level: skillLevel?.toLowerCase() || null,
-            skillLevel: skillLevel?.toLowerCase() || null, 
-            playing_style: playingStyle?.toLowerCase() || null,
-            playingStyle: playingStyle?.toLowerCase() || null 
+            position: position?.toLowerCase().trim() || null,
+            secondary_position: secondaryPosition?.toLowerCase().trim() || null,
+            preferred_foot: preferredFoot?.toLowerCase().trim() || null,
+            skill_level: skillLevel?.toLowerCase().trim() || null,
+            playing_style: playingStyle?.toLowerCase().trim() || null,
+            
+            // Keep camelCase for backward compatibility or if backend strictly expects them (though we updated backend)
+            preferredPosition: position?.toLowerCase().trim() || null,
+            strongFoot: preferredFoot?.toLowerCase().trim() || null,
+            skillLevel: skillLevel?.toLowerCase().trim() || null,
+            playingStyle: playingStyle?.toLowerCase().trim() || null
         };
 
         console.log('[FootballProfileScreen] 📤 Sending update to /auth/profile');
@@ -82,13 +86,18 @@ export default function FootballProfileScreen() {
         try {
             const response = await api.put('/auth/profile', payload);
             console.log('[FootballProfileScreen] ✅ Success:', response.status);
+            
+            // Update local context immediately for instant UI feedback
+            if (response.data) {
+                updateProfile(response.data);
+            }
+            
             Alert.alert(t('footballInfo.successTitle'), t('footballInfo.successMsg'));
-            await fetchProfile();
             navigation.goBack();
         } catch (error) {
-            console.error('[FootballProfileScreen] ❌ Error:', error.message);
+            // Enhanced logging as requested
+            console.error('[PROFILE UPDATE VALIDATION ERROR]', error.message, error.response?.data?.detail || '');
             
-            // If backend returned specific error details, log them
             if (error.response?.data) {
                 console.log('[FootballProfileScreen] 📥 Error Data:', JSON.stringify(error.response.data, null, 2));
             }
@@ -147,7 +156,7 @@ export default function FootballProfileScreen() {
                     title={t('footballInfo.strongFoot')} 
                     options={FEET.map(f => ({
                         value: f,
-                        label: t(`footballInfo.foot${f}`)
+                        label: t(`footballInfo.footOptions.${f.toLowerCase()}`)
                     }))} 
                     selected={preferredFoot} 
                     onSelect={(val) => setPreferredFoot(val)}
@@ -158,7 +167,7 @@ export default function FootballProfileScreen() {
                     title={t('footballInfo.skillLevel')} 
                     options={LEVELS.map(l => ({
                         value: l,
-                        label: t(`footballInfo.level${l}`)
+                        label: t(`footballInfo.levelOptions.${l.toLowerCase()}`)
                     }))} 
                     selected={skillLevel} 
                     onSelect={setSkillLevel}
@@ -169,7 +178,7 @@ export default function FootballProfileScreen() {
                     title={t('footballInfo.playingStyle')} 
                     options={STYLES.map(s => ({
                         value: s,
-                        label: t(`footballInfo.style${s.replace(/-/g, '')}`)
+                        label: t(`footballInfo.styleOptions.${s.toLowerCase().trim()}`)
                     }))} 
                     selected={playingStyle} 
                     onSelect={setPlayingStyle}

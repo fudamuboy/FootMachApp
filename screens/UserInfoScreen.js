@@ -41,7 +41,7 @@ const InputField = ({
 
 const UserInfoScreen = () => {
     const navigation = useNavigation();
-    const { profile, fetchProfile } = useAuth();
+    const { profile, fetchProfile, updateProfile } = useAuth();
     const { t } = useTranslation();
 
     const [username, setUsername] = useState('');
@@ -81,7 +81,9 @@ const UserInfoScreen = () => {
             const response = await api.put('/auth/profile', payload);
             console.log('[UserInfoScreen] ✅ Success:', response.status);
             Alert.alert(t('userInfo.successTitle'), t('userInfo.successMsg'));
-            await fetchProfile();
+            if (response.data) {
+                updateProfile(response.data);
+            }
             navigation.goBack();
         } catch (error) {
             console.error('[UserInfoScreen] ❌ Error:', error.message);

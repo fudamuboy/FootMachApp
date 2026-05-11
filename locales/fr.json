@@ -207,6 +207,11 @@
     "footRight": "Droit",
     "footLeft": "Gauche",
     "footBoth": "Les deux",
+    "footOptions": {
+      "right": "Droit",
+      "left": "Gauche",
+      "both": "Les deux"
+    },
     "skillLevel": "Niveau Technique",
     "experienceYears": "Années d'expérience",
     "playingStyle": "Style de Jeu",
@@ -219,11 +224,24 @@
     "levelIntermediate": "Intermédiaire",
     "levelAdvanced": "Avancé",
     "levelPro": "Pro",
+    "levelOptions": {
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "advanced": "Avancé",
+      "pro": "Pro"
+    },
     "styleAttacker": "Attaquant",
     "styleDefender": "Défenseur",
     "stylePlaymaker": "Meneur de jeu",
     "styleBoxtoBox": "Box-to-Box",
     "styleSpeedster": "Vitesse",
+    "styleOptions": {
+      "attacker": "Attaquant",
+      "defender": "Défenseur",
+      "playmaker": "Meneur de jeu",
+      "box-to-box": "Box-to-Box",
+      "speedster": "Vitesse"
+    },
     "successTitle": "Succès",
     "successMsg": "Profil football mis à jour !",
     "errorTitle": "Erreur",

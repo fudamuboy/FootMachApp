@@ -148,15 +148,6 @@ router.get('/user/:id', async (req, res) => {
 // Update current user profile
 router.put('/profile', require('../middleware/authMiddleware'), async (req, res) => {
   try {
-     const { 
-         // Original names
-         username, phone, email, address, position, preferred_foot, 
-         avatar_style, avatar_seed, bio, favorite_team, 
-         secondary_position, skill_level, playing_style,
-         // CamelCase variants requested by user
-         displayName, favoriteTeam, preferredPosition, strongFoot, skillLevel, playingStyle
-     } = req.body;
-     
      const userId = req.user?.id;
      if (!userId) {
          console.error('[PROFILE_UPDATE] ❌ No user ID in request');
@@ -169,16 +160,32 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
      const safeBody = { ...req.body };
      if (safeBody.email) safeBody.email = '***@***.***';
      if (safeBody.phone) safeBody.phone = '*******' + (safeBody.phone.toString().slice(-3) || '');
-     
      console.log(`[PROFILE_UPDATE] 📦 Payload:`, JSON.stringify(safeBody, null, 2));
      
+     const { 
+         // Basic Info
+         username, displayName,
+         phone, phoneNumber,
+         email, address, bio, 
+         favorite_team, favoriteTeam,
+         avatar_style, avatar_seed,
+         city, region,
+         
+         // Football Profile Variants
+         position, preferredPosition, preferred_position,
+         secondary_position, secondaryPosition,
+         preferred_foot, strongFoot, strong_foot, foot,
+         skill_level, skillLevel,
+         playing_style, playingStyle
+     } = req.body;
+
      let updateQuery = 'UPDATE users SET ';
      const queryValues = [];
      let paramIdx = 1;
      
      // Helper to add to query if value is defined
      const addField = (colName, val) => {
-         if (val !== undefined) {
+         if (val !== undefined && val !== null) {
              updateQuery += `${colName} = $${paramIdx}, `;
              queryValues.push(val);
              paramIdx++;
@@ -187,68 +194,82 @@ router.put('/profile', require('../middleware/authMiddleware'), async (req, res)
          return false;
      };
 
-     // Mapping logic: prioritized names
+     // 0. Validation
+     if (email && !email.includes('@')) {
+         return res.status(400).json({ message: 'Invalid email format' });
+     }
+
+     // 1. Basic Info Mapping
      addField('username', username);
-     addField('display_name', displayName);
-     addField('phone_number', phone);
+     addField('display_name', displayName || username);
+     addField('phone_number', phone || phoneNumber);
      addField('email', email);
      addField('address', address);
-     
-     // Football profile
-     // Handle both old and new names, and normalize to lowercase for DB consistency
-     const finalPosition = (position || preferredPosition)?.toLowerCase();
-     const finalFoot = (preferred_foot || strongFoot)?.toLowerCase();
-     const finalSkill = (skill_level || skillLevel)?.toLowerCase();
-     const finalStyle = (playing_style || playingStyle)?.toLowerCase();
-
-     addField('position', finalPosition);
-     addField('preferred_foot', finalFoot);
-     addField('secondary_position', secondary_position?.toLowerCase());
-     addField('skill_level', finalSkill);
-     addField('playing_style', finalStyle);
-     
-     // Other fields
      addField('bio', bio);
      addField('favorite_team', favorite_team || favoriteTeam);
      addField('avatar_style', avatar_style);
      addField('avatar_seed', avatar_seed);
+     addField('city', city);
+     addField('region', region);
+     
+     // 2. Football Profile Normalization & Sync
+     // Position
+     const finalPos = (position || preferredPosition || preferred_position)?.toString().trim().toLowerCase();
+     if (finalPos) {
+         addField('position', finalPos);
+         addField('preferred_position', finalPos);
+     }
+
+     // Foot
+     const finalFoot = (preferred_foot || strongFoot || strong_foot || foot)?.toString().trim().toLowerCase();
+     if (finalFoot) {
+         addField('preferred_foot', finalFoot);
+         addField('strong_foot', finalFoot);
+     }
+
+     // Secondary Position
+     const finalSec = (secondary_position || secondaryPosition)?.toString().trim().toLowerCase();
+     if (finalSec) addField('secondary_position', finalSec);
+
+     // Skill Level
+     const finalSkill = (skill_level || skillLevel)?.toString().trim().toLowerCase();
+     if (finalSkill) addField('skill_level', finalSkill);
+
+     // Playing Style
+     const finalStyle = (playing_style || playingStyle)?.toString().trim().toLowerCase();
+     if (finalStyle) addField('playing_style', finalStyle);
+
      addField('updated_at', new Date());
      
      if (queryValues.length === 0) {
-         console.warn(`[PROFILE_UPDATE] ⚠️ No fields provided for update for user ${userId}`);
          return res.status(400).json({ message: 'No fields provided for update' });
      }
      
-     // Remove trailing comma and space
+     // Remove trailing comma and space, add WHERE
      updateQuery = updateQuery.slice(0, -2);
-     
      updateQuery += ` WHERE id = $${paramIdx} RETURNING *`;
      queryValues.push(userId);
-     
-     console.log(`[PROFILE_UPDATE] 📝 Executing Query for ${userId}`);
-     // Do not log the full query with values if it contains sensitive info, but for debugging we log the template
-     // console.log(`[PROFILE_UPDATE] SQL Template: ${updateQuery}`);
      
      const result = await db.query(updateQuery, queryValues);
      
      if (result.rows.length === 0) {
-         console.error(`[PROFILE_UPDATE] ❌ User ${userId} not found during update`);
          return res.status(404).json({ message: 'User not found' });
      }
 
-     console.log(`[PROFILE_UPDATE] ✅ Profile updated successfully for ${userId}`);
+     console.log(`[PROFILE_UPDATE] ✅ Success for user ${userId}`);
      res.json(result.rows[0]);
 
-  } catch(error) {
-    console.error('[PROFILE_UPDATE_VALIDATION_ERROR] ❌ Error:', error.message);
-    if (error.detail) console.error('SQL Detail:', error.detail);
-    if (error.code) console.error('SQL Code:', error.code);
-    
-    res.status(500).json({ 
-        message: 'Server error updating profile',
-        detail: error.detail || error.message,
-        errorCode: error.code
-    });
+  } catch (error) {
+     console.error('[PROFILE_UPDATE] ❌ CRITICAL ERROR:', error.message);
+     if (error.detail) console.error('[PROFILE_UPDATE] 🔍 SQL Detail:', error.detail);
+     if (error.code) console.error('[PROFILE_UPDATE] 🔢 SQL Code:', error.code);
+     
+     res.status(500).json({ 
+         message: 'Server error updating profile',
+         detail: error.message,
+         sqlDetail: error.detail,
+         errorCode: error.code
+     });
   }
 });
 

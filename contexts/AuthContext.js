@@ -101,6 +101,13 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updateProfile = (newData) => {
+        if (newData) {
+            setUser(newData);
+            setProfile(newData);
+        }
+    };
+
     const value = {
         user,
         profile,
@@ -109,6 +116,7 @@ export const AuthProvider = ({ children }) => {
         signIn,
         signOut,
         fetchProfile,
+        updateProfile,
     };
 
     return (

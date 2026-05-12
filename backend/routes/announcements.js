@@ -59,10 +59,31 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const FREE_ACTIVE_ANNOUNCEMENT_LIMIT = 10;
-    
-    const userStats = await db.query('SELECT role, is_premium, spam_score FROM users WHERE id = $1', [user_id]);
-    const user = userStats.rows[0];
-    
+
+    // ── Defensive user stats query ──────────────────────────────────
+    // Uses COALESCE so it works even if premium/role/score columns
+    // haven't been migrated yet in Supabase.
+    let user;
+    try {
+      const userStats = await db.query(
+        `SELECT 
+           COALESCE(role, 'user')       AS role,
+           COALESCE(is_premium, false)  AS is_premium,
+           COALESCE(spam_score, 0)      AS spam_score
+         FROM users WHERE id = $1`,
+        [user_id]
+      );
+      user = userStats.rows[0];
+    } catch (colErr) {
+      // Columns don't exist yet — use safe defaults and continue
+      console.warn('[ANNOUNCEMENTS] role/is_premium/spam_score columns missing, using defaults:', colErr.message);
+      user = { role: 'user', is_premium: false, spam_score: 0 };
+    }
+
+    if (!user) {
+      return res.status(404).json({ errorCode: 'USER_NOT_FOUND', message: 'User not found.' });
+    }
+
     if (user.spam_score > 100) {
         return res.status(403).json({ errorCode: 'ACCOUNT_RESTRICTED', message: 'Account restricted due to high spam score.' });
     }
@@ -76,7 +97,7 @@ router.post('/', authMiddleware, async (req, res) => {
         );
         
         if (parseInt(exactTimeCheck.rows[0].count) > 0) {
-            await db.query('UPDATE users SET spam_score = spam_score + 5 WHERE id = $1', [user_id]);
+            try { await db.query('UPDATE users SET spam_score = spam_score + 5 WHERE id = $1', [user_id]); } catch(_){}
             return res.status(409).json({ errorCode: 'DUPLICATE_MATCH_TIME', message: 'Vous avez déjà une annonce active à cette date et cette heure.' });
         }
         
@@ -87,7 +108,7 @@ router.post('/', authMiddleware, async (req, res) => {
             [user_id, oneHourAgo]
         );
         if (parseInt(recentCreationsCheck.rows[0].count) >= 3) {
-             await db.query('UPDATE users SET spam_score = spam_score + 5 WHERE id = $1', [user_id]);
+             try { await db.query('UPDATE users SET spam_score = spam_score + 5 WHERE id = $1', [user_id]); } catch(_){}
              return res.status(429).json({ errorCode: 'TEMPORAL_LIMIT_REACHED', message: 'Vous avez créé trop d\'annonces récemment. Veuillez patienter un peu.' });
         }
     }
@@ -102,8 +123,8 @@ router.post('/', authMiddleware, async (req, res) => {
     );
     
     if (parseInt(duplicateCheck.rows[0].count) > 0) {
-        // Increment spam score
-        await db.query('UPDATE users SET spam_score = spam_score + 10 WHERE id = $1', [user_id]);
+        // Increment spam score (wrapped in case column not yet migrated)
+        try { await db.query('UPDATE users SET spam_score = spam_score + 10 WHERE id = $1', [user_id]); } catch(_){}
         return res.status(400).json({ errorCode: 'SPAM_DETECTED', message: 'Duplicate announcement detected.' });
     }
     

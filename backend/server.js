@@ -51,6 +51,90 @@ db.query('SELECT NOW()')
   .then(() => console.log('✅ Database connectivity verified'))
   .catch(err => console.error('❌ Database connectivity failed:', err.message));
 
+// ── AUTO-MIGRATION ON STARTUP ──────────────────────────────────────
+// Runs every startup — safe because all queries use IF NOT EXISTS
+async function runAutoMigration() {
+  console.log('🔄 [MIGRATION] Running auto-migration on startup...');
+  const migrations = [
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT false",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMP WITH TIME ZONE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_source TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_plan TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score INTEGER DEFAULT 100",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS activity_score INTEGER DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS spam_score INTEGER DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS position VARCHAR(50)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS secondary_position VARCHAR(50)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_foot VARCHAR(50)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS skill_level VARCHAR(50)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_style VARCHAR(50) DEFAULT 'initials'",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_seed VARCHAR(255)",
+    "ALTER TABLE announcements ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'",
+    "UPDATE users SET role = 'user' WHERE role IS NULL",
+    "UPDATE users SET is_premium = false WHERE is_premium IS NULL",
+    "UPDATE users SET trust_score = 100 WHERE trust_score IS NULL",
+    "UPDATE users SET spam_score = 0 WHERE spam_score IS NULL",
+    "UPDATE announcements SET status = 'active' WHERE status IS NULL",
+  ];
+  let ok = 0, fail = 0;
+  for (const sql of migrations) {
+    try {
+      await db.query(sql);
+      ok++;
+    } catch (err) {
+      if (err.code !== '42701') { // ignore "column already exists"
+        console.error('❌ [MIGRATION] Failed:', err.message);
+        fail++;
+      } else { ok++; }
+    }
+  }
+  console.log(`✅ [MIGRATION] Done — ${ok} OK, ${fail} failed`);
+}
+
+runAutoMigration().catch(err => console.error('💥 [MIGRATION] Critical error:', err.message));
+
+// ── HTTP ENDPOINT: trigger migration manually (no Shell needed) ────
+app.get('/api/migrate', async (req, res) => {
+  const secret = req.query.secret;
+  if (secret !== (process.env.MIGRATION_SECRET || 'footmach2026')) {
+    return res.status(403).json({ error: 'Forbidden — wrong secret' });
+  }
+  const results = [];
+  const migrations = [
+    { name: 'role',               sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'" },
+    { name: 'is_premium',         sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_premium BOOLEAN DEFAULT false" },
+    { name: 'premium_expires_at', sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_expires_at TIMESTAMP WITH TIME ZONE" },
+    { name: 'premium_source',     sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_source TEXT" },
+    { name: 'premium_plan',       sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS premium_plan TEXT" },
+    { name: 'trust_score',        sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS trust_score INTEGER DEFAULT 100" },
+    { name: 'activity_score',     sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS activity_score INTEGER DEFAULT 0" },
+    { name: 'spam_score',         sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS spam_score INTEGER DEFAULT 0" },
+    { name: 'display_name',       sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name VARCHAR(255)" },
+    { name: 'position',           sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS position VARCHAR(50)" },
+    { name: 'secondary_position', sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS secondary_position VARCHAR(50)" },
+    { name: 'preferred_foot',     sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_foot VARCHAR(50)" },
+    { name: 'skill_level',        sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS skill_level VARCHAR(50)" },
+    { name: 'bio',                sql: "ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT" },
+    { name: 'announcements.status', sql: "ALTER TABLE announcements ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active'" },
+    { name: 'init_role',          sql: "UPDATE users SET role = 'user' WHERE role IS NULL" },
+    { name: 'init_is_premium',    sql: "UPDATE users SET is_premium = false WHERE is_premium IS NULL" },
+    { name: 'init_trust_score',   sql: "UPDATE users SET trust_score = 100 WHERE trust_score IS NULL" },
+    { name: 'init_spam_score',    sql: "UPDATE users SET spam_score = 0 WHERE spam_score IS NULL" },
+  ];
+  for (const m of migrations) {
+    try {
+      await db.query(m.sql);
+      results.push({ name: m.name, status: 'ok' });
+    } catch (err) {
+      results.push({ name: m.name, status: err.code === '42701' ? 'already_exists' : 'error', error: err.message });
+    }
+  }
+  res.json({ success: true, timestamp: new Date(), results });
+});
+
 // Start server
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port: ${port}`);

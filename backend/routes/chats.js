@@ -24,7 +24,10 @@ router.get('/', authMiddleware, async (req, res) => {
       FROM chats c
       LEFT JOIN users u1 ON c.participant_1 = u1.id
       LEFT JOIN users u2 ON c.participant_2 = u2.id
-      WHERE c.participant_1 = $1 OR c.participant_2 = $1
+      LEFT JOIN blocks b1 ON b1.blocker_id = $1 AND (b1.blocked_id = c.participant_1 OR b1.blocked_id = c.participant_2)
+      LEFT JOIN blocks b2 ON b2.blocked_id = $1 AND (b2.blocker_id = c.participant_1 OR b2.blocker_id = c.participant_2)
+      WHERE (c.participant_1 = $1 OR c.participant_2 = $1)
+      AND b1.id IS NULL AND b2.id IS NULL
       ORDER BY c.last_updated DESC
     `;
     const result = await db.query(query, [user_id]);
@@ -151,9 +154,12 @@ router.get('/unread-count', authMiddleware, async (req, res) => {
       SELECT COUNT(m.id) as unread_count
       FROM messages m
       JOIN chats c ON m.chat_id = c.id
+      LEFT JOIN blocks b1 ON b1.blocker_id = $1 AND (b1.blocked_id = c.participant_1 OR b1.blocked_id = c.participant_2)
+      LEFT JOIN blocks b2 ON b2.blocked_id = $1 AND (b2.blocker_id = c.participant_1 OR b2.blocker_id = c.participant_2)
       WHERE (c.participant_1 = $1 OR c.participant_2 = $1)
         AND m.sender_id != $1
         AND m.is_read = FALSE
+        AND b1.id IS NULL AND b2.id IS NULL
     `;
     const result = await db.query(query, [user_id]);
     res.json({ count: parseInt(result.rows[0].unread_count) || 0 });

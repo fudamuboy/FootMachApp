@@ -6,9 +6,8 @@ import { AppNavigator } from './navigation/AppNavigator';
 import { UnreadMessagesProvider } from './contexts/UnreadmesagContext';
 import './lib/i18n';
 import api from './lib/api';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+// AdMob initialization
 
-// Initialize the Mobile Ads SDK safely
 try {
   const mobileAds = require('react-native-google-mobile-ads').default;
   if (mobileAds) {
@@ -44,15 +43,6 @@ export default function App() {
         // ignore errors here, it's just a wake-up call
       }
 
-      // 2. Tracking Permissions
-      try {
-        const { status } = await requestTrackingPermissionsAsync();
-        if (status === 'granted') {
-          console.log('Tracking permission granted');
-        }
-      } catch (e) {
-        console.log('Tracking permission error:', e);
-      }
       // 3. Load persisted language
       try {
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;

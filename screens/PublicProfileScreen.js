@@ -5,9 +5,10 @@ import {
     Platform, StatusBar, Image
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, MoreVertical } from 'lucide-react-native';
 import { SvgUri } from 'react-native-svg';
 import api from '../lib/api';
+import ReportBlockModal from '../components/ReportBlockModal';
 
 const POSITION_LABELS = { GK: '🥅 Kaleci', DF: '🛡️ Defans', CM: '🔄 Orta Saha', LW: '⬅️ Sol Kanat', RW: '➡️ Sağ Kanat', ST: '🎯 Forvet' };
 const FOOT_LABELS    = { Sağ: '🦶 Sağ Ayak', Sol: '🦶 Sol Ayak', 'Her İkisi': '🦶 Her İkisi' };
@@ -24,6 +25,7 @@ export default function PublicProfileScreen() {
     const [user, setUser]       = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError]     = useState(null);
+    const [showOptions, setShowOptions] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -74,6 +76,10 @@ export default function PublicProfileScreen() {
                     <ArrowLeft size={24} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Profil</Text>
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity onPress={() => setShowOptions(true)}>
+                    <MoreVertical size={24} color="black" />
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -144,6 +150,15 @@ export default function PublicProfileScreen() {
                     )}
                 </View>
             </ScrollView>
+
+            <ReportBlockModal 
+                visible={showOptions}
+                onClose={() => setShowOptions(false)}
+                targetId={userId}
+                targetType="user"
+                targetUserId={userId}
+                onBlockSuccess={() => navigation.goBack()}
+            />
         </SafeAreaView>
     );
 }

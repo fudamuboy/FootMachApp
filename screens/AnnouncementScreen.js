@@ -303,6 +303,7 @@ export default function AnnouncementScreen({ navigation }) {
             onContact={handleContact}
             onEvaluate={handleEvaluate}
             onBoost={handleBoost}
+            onRefresh={handleRefresh}
         />
     );
 

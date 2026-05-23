@@ -34,6 +34,7 @@ export default function AuthScreen() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [showCityPicker, setShowCityPicker] = useState(false);
     const [showRegionPicker, setShowRegionPicker] = useState(false);
+    const [agreeTerms, setAgreeTerms] = useState(false);
 
     const { signIn, signUp } = useAuth();
     const navigation = useNavigation();
@@ -50,6 +51,11 @@ export default function AuthScreen() {
 
         if (!isLogin && (!displayName || !selectedCity || !region)) {
             setError(t('auth.fillAllFields'));
+            return;
+        }
+
+        if (!isLogin && !agreeTerms) {
+            setError("Kayıt olmak için Kullanım Koşullarını kabul etmelisiniz.");
             return;
         }
 
@@ -169,9 +175,9 @@ export default function AuthScreen() {
                                     <Text style={styles.countryCode}>+90</Text>
                                     <TextInput
                                         style={styles.phoneInput}
-                                        placeholder="5XX XXX XX XX"
+                                        placeholder="5XX XXX XX XX (İsteğe Bağlı)"
                                         keyboardType="phone-pad"
-                                        maxLength={10} // pour ne saisir que 10 chiffres
+                                        maxLength={10}
                                         value={phoneNumber}
                                         onChangeText={setPhoneNumber}
                                         autoComplete="tel"
@@ -242,6 +248,24 @@ export default function AuthScreen() {
                                         <ChevronDown size={18} color="#9ca3af" style={styles.chevronIcon} pointerEvents="none" />
                                     </View>
                                 )}
+
+                                <View style={styles.termsContainer}>
+                                    <TouchableOpacity 
+                                        style={styles.checkbox} 
+                                        onPress={() => setAgreeTerms(!agreeTerms)}
+                                    >
+                                        {agreeTerms ? <View style={styles.checkboxInner} /> : null}
+                                    </TouchableOpacity>
+                                    <Text style={styles.termsText}>
+                                        Kabul ediyorum:{' '}
+                                        <Text 
+                                            style={styles.termsLink} 
+                                            onPress={() => navigation.navigate('Terms')}
+                                        >
+                                            Kullanım Koşulları
+                                        </Text>
+                                    </Text>
+                                </View>
                             </>
                         )}
 
@@ -526,6 +550,38 @@ const styles = StyleSheet.create({
     },
     langDivider: {
         color: '#d1d5db',
+    },
+    termsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 10,
+        paddingHorizontal: 8,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderWidth: 2,
+        borderColor: '#9DB88D',
+        borderRadius: 4,
+        marginRight: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxInner: {
+        width: 10,
+        height: 10,
+        backgroundColor: '#9DB88D',
+        borderRadius: 2,
+    },
+    termsText: {
+        fontSize: 14,
+        color: '#4b5563',
+    },
+    termsLink: {
+        color: '#3b82f6',
+        fontWeight: 'bold',
+        textDecorationLine: 'underline',
     },
 
 });

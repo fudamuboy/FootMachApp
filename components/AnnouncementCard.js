@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Users, Clock, MapPin, MessageCircle } from 'lucide-react-native';
+import { Users, Clock, MapPin, MessageCircle, MoreVertical } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
+import ReportBlockModal from './ReportBlockModal';
 
 const FORMAT_EMOJI = { '5v5': '5️⃣', '7v7': '7️⃣', '11v11': '🏟️' };
 const SKILL_COLOR = { 'Başlangıç': '#10b981', 'Orta': '#f59e0b', 'Rekabetçi': '#ef4444' };
 
-const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoost }) => {
+const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoost, onRefresh }) => {
+    const [showOptions, setShowOptions] = useState(false);
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('tr-TR', {
@@ -36,6 +39,11 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
                 {!isOwner && isPastMatch && (
                     <TouchableOpacity onPress={() => onEvaluate(announcement)}>
                         <Text style={styles.evaluateButton}>Değerlendir ⭐</Text>
+                    </TouchableOpacity>
+                )}
+                {!isOwner && (
+                    <TouchableOpacity onPress={() => setShowOptions(true)} style={{ marginLeft: 8 }}>
+                        <MoreVertical size={20} color="#6b7280" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -107,6 +115,15 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
                     <Text style={styles.boostButtonText}>⭐ İlanını 3 kat daha fazla göster (Ücretsiz)</Text>
                 </TouchableOpacity>
             )}
+
+            <ReportBlockModal 
+                visible={showOptions}
+                onClose={() => setShowOptions(false)}
+                targetId={announcement.id}
+                targetType="announcement"
+                targetUserId={announcement.user_id}
+                onBlockSuccess={onRefresh}
+            />
         </View>
     );
 };

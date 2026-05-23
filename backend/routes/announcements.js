@@ -4,9 +4,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Get announcements with optional filters (city, location, past)
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const { city, location, past } = req.query;
+    const user_id = req.user.id;
 
     const timeFilter = past === 'true'
       ? `a.match_time < CURRENT_TIMESTAMP`
@@ -16,10 +17,13 @@ router.get('/', async (req, res) => {
       SELECT a.*, u.username, u.avatar_url, u.phone_number 
       FROM announcements a
       JOIN users u ON a.user_id = u.id
+      LEFT JOIN blocks b1 ON b1.blocker_id = $1 AND b1.blocked_id = a.user_id
+      LEFT JOIN blocks b2 ON b2.blocker_id = a.user_id AND b2.blocked_id = $1
       WHERE ${timeFilter} AND a.status = 'active'
+      AND b1.id IS NULL AND b2.id IS NULL
     `;
-    const params = [];
-    let paramIndex = 1;
+    const params = [user_id];
+    let paramIndex = 2;
 
     if (city) {
       query += ` AND a.city = $${paramIndex}`;

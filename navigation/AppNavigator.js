@@ -71,7 +71,6 @@ export const AppNavigator = () => {
                         <Stack.Screen name="Settings" component={SettingsScreen} />
                         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
                         <Stack.Screen name="About" component={AboutScreen} />
-                        <Stack.Screen name="Terms" component={TermsScreen} />
                         <Stack.Screen name="Premium" component={PremiumScreen} />
                     </>
                 ) : (
@@ -83,6 +82,8 @@ export const AppNavigator = () => {
                         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
                     </>
                 )}
+                {/* Screens accessible in both states */}
+                <Stack.Screen name="Terms" component={TermsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

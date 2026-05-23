@@ -33,6 +33,13 @@ const TermsScreen = () => {
                 <Section title={t('terms.section2')} content={t('terms.content2')} />
                 <Section title={t('terms.section3')} content={t('terms.content3')} />
                 <Section title={t('terms.section4')} content={t('terms.content4')} />
+                
+                {/* Community & Anti-Abuse Rules for App Store Compliance */}
+                <Section title="Community & Anti-Abuse Rules" content="Dokuz On maintains a strict zero-tolerance policy against objectionable content and abusive behavior. By using this app, you agree to:
+- No harassment or bullying of any kind.
+- No posting of offensive, discriminatory, or sexually explicit content.
+- No spam or repetitive unauthorized messages.
+Abusive users will be banned immediately, and any offensive content will be removed. You can report and block users at any time using the in-app tools." />
 
                 <Text style={styles.footer}>{t('terms.footer')}</Text>
                 <Text style={styles.date}>Last updated: May 2026</Text>

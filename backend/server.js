@@ -42,6 +42,8 @@ app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/chats', require('./routes/chats'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/premium', require('./routes/premium'));
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/blocks', require('./routes/blocks'));
 
 // Import DB to trigger connection
 const db = require('./db');

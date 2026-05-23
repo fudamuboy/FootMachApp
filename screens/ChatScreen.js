@@ -14,13 +14,14 @@ import {
     StatusBar
 } from 'react-native';
 import { SvgUri } from 'react-native-svg';
-import { ArrowLeft, Send } from 'lucide-react-native';
+import { ArrowLeft, Send, MoreVertical } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useUnreadMessages } from '../contexts/UnreadmesagContext';
 import api from '../lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReportBlockModal from '../components/ReportBlockModal';
 
 const INTERSTITIAL_UNIT_ID = Platform.OS === 'ios'
     ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL)
@@ -60,6 +61,7 @@ export default function ChatScreen({ route, navigation }) {
     const [otherUserName, setOtherUserName] = useState(initialName || '');
     const [otherUserAvatarStyle, setOtherUserAvatarStyle] = useState(initialStyle || 'initials');
     const [otherUserAvatarSeed, setOtherUserAvatarSeed] = useState(initialSeed || initialName || 'User');
+    const [showOptions, setShowOptions] = useState(false);
     const flatListRef = useRef(null);
 
 
@@ -282,7 +284,9 @@ export default function ChatScreen({ route, navigation }) {
                         </View>
                     </TouchableOpacity>
                     
-                    <View style={styles.headerActions} />
+                    <TouchableOpacity style={styles.headerActions} onPress={() => setShowOptions(true)}>
+                        <MoreVertical size={24} color="#1f2937" />
+                    </TouchableOpacity>
                 </View>
 
                 {loading ? (
@@ -323,6 +327,15 @@ export default function ChatScreen({ route, navigation }) {
                         <Send size={20} color="white" />
                     </TouchableOpacity>
                 </View>
+
+                <ReportBlockModal 
+                    visible={showOptions}
+                    onClose={() => setShowOptions(false)}
+                    targetId={otherUserId}
+                    targetType="chat"
+                    targetUserId={otherUserId}
+                    onBlockSuccess={() => navigation.goBack()}
+                />
             </KeyboardAvoidingView>
         </SafeAreaView>
     );

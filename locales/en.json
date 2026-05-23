@@ -111,6 +111,8 @@
     "skip": "Skip",
     "continue": "Continue",
     "getStarted": "Get Started",
+    "next": "Next",
+    "start": "Start",
     "slide1": {
       "title": "⚽ Find players around you",
       "desc": "Create or join matches easily in your city."

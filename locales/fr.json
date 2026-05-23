@@ -111,6 +111,8 @@
     "skip": "Passer",
     "continue": "Continuer",
     "getStarted": "C'est parti !",
+    "next": "Suivant",
+    "start": "Commencer",
     "slide1": {
       "title": "⚽ Trouvez des joueurs autour de vous",
       "desc": "Créez ou rejoignez des matchs facilement dans votre ville."

@@ -104,7 +104,8 @@
       "benefitsTitle": "Your Exclusive Benefits",
       "buyNow": "Go Premium",
       "comingSoon": "Purchases will be available soon.",
-      "back": "Back"
+      "back": "Back",
+      "notAvailableYet": "Premium membership will be available soon."
     }
   },
   "onboarding": {

@@ -104,7 +104,8 @@
       "benefitsTitle": "Vos avantages exclusifs",
       "buyNow": "Devenir Premium",
       "comingSoon": "Les achats seront disponibles prochainement.",
-      "back": "Retour"
+      "back": "Retour",
+      "notAvailableYet": "L’abonnement Premium sera bientôt disponible."
     }
   },
   "onboarding": {

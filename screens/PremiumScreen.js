@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, SafeAreaView, StatusBar, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +115,11 @@ const PremiumScreen = ({ navigation, route }) => {
 
                 {!isPremium && (
                     <View style={styles.footerAction}>
-                        <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
+                        <TouchableOpacity 
+                            style={[styles.buyButton, { opacity: 0.9 }]} 
+                            activeOpacity={0.8}
+                            onPress={() => Alert.alert(t('settings.info', 'Info'), t('premium.screen.notAvailableYet'))}
+                        >
                             <Text style={styles.buyButtonText}>{t('premium.screen.buyNow')}</Text>
                             <Text style={styles.soonText}>{t('premium.screen.comingSoon')}</Text>
                         </TouchableOpacity>

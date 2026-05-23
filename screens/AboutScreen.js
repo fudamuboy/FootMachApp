@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform, StatusBar, Linking } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform, StatusBar, Linking, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
@@ -10,11 +10,28 @@ const AboutScreen = () => {
     const { t } = useTranslation();
     const { profile } = useAuth();
 
-    const handleContact = () => {
+    const handleContact = async () => {
         const email = 'appwebfusion@gmail.com';
-        const subject = 'Dokuz On Support';
-        const body = `App Name: Dokuz On\nApp Version: 1.0.0 (Build 42)\nPlatform: ${Platform.OS}\nUser Email: ${profile?.email || 'N/A'}`;
-        Linking.openURL(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+        const subject = 'Dokuz On Support Request';
+        const body = `App Name: Dokuz On\nApp Version: 1.0.0 (Build 42)\nPlatform: ${Platform.OS}\nUser Email: ${profile?.email || 'N/A'}\n\n---\nMessage: `;
+        const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        try {
+            const canOpen = await Linking.canOpenURL(url);
+            if (canOpen) {
+                await Linking.openURL(url);
+            } else {
+                Alert.alert(
+                    "Error", 
+                    "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+                );
+            }
+        } catch (error) {
+            Alert.alert(
+                "Error", 
+                "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+            );
+        }
     };
 
     return (

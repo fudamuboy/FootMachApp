@@ -96,11 +96,28 @@ const SettingsScreen = () => {
         });
     };
 
-    const handleContactSupport = () => {
+    const handleContactSupport = async () => {
         const email = 'appwebfusion@gmail.com';
-        const subject = 'Dokuz On Support';
+        const subject = 'Dokuz On Support Request';
         const body = `App Name: Dokuz On\nApp Version: 1.0.0 (Build 42)\nPlatform: ${Platform.OS}\nUser Email: ${profile?.email || 'N/A'}\n\n---\nMessage: `;
-        Linking.openURL(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+        const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        try {
+            const canOpen = await Linking.canOpenURL(url);
+            if (canOpen) {
+                await Linking.openURL(url);
+            } else {
+                Alert.alert(
+                    "Error", 
+                    "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+                );
+            }
+        } catch (error) {
+            Alert.alert(
+                "Error", 
+                "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+            );
+        }
     };
 
     const Section = ({ title, children }) => (

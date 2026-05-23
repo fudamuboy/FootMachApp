@@ -159,7 +159,9 @@
     "sendEmail": "Send Email",
     "notAvailable": "This feature will be available after publication.",
     "noMailApp": "No mail app available on this device. Please email us directly at: appwebfusion@gmail.com",
-    "ok": "OK"
+    "ok": "OK",
+    "info": "Info",
+    "notPublished": "App Store rating will be available after public release."
   },
   "about": {
     "title": "About",

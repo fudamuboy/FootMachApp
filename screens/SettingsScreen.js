@@ -79,7 +79,7 @@ const SettingsScreen = () => {
         }
     };
 
-    const handleRateApp = () => {
+    const handleRateApp = async () => {
         const appleId = '6738980983'; 
         const androidPackage = 'com.silmo.ESport';
         
@@ -87,13 +87,16 @@ const SettingsScreen = () => {
             ? `itms-apps://itunes.apple.com/app/id${appleId}?action=write-review`
             : `market://details?id=${androidPackage}`;
 
-        Linking.canOpenURL(url).then(supported => {
+        try {
+            const supported = await Linking.canOpenURL(url);
             if (supported) {
-                Linking.openURL(url);
+                await Linking.openURL(url);
             } else {
-                Alert.alert(t('settings.info'), t('settings.notPublished') || "La notation sera disponible après publication.");
+                Alert.alert(t('settings.info'), t('settings.notPublished'));
             }
-        });
+        } catch (error) {
+            Alert.alert(t('errors.title'), t('settings.notPublished'));
+        }
     };
 
     const handleContactSupport = async () => {

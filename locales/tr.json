@@ -159,7 +159,9 @@
     "sendEmail": "E-posta Gönder",
     "notAvailable": "Bu özellik yayınlandıktan sonra kullanılabilecek.",
     "noMailApp": "Bu cihazda kullanılabilir bir e-posta uygulaması bulunamadı. Lütfen bizimle doğrudan şu adresten iletişime geçin: appwebfusion@gmail.com",
-    "ok": "Tamam"
+    "ok": "Tamam",
+    "info": "Bilgi",
+    "notPublished": "App Store değerlendirmesi, uygulamanın genel yayınlanmasından sonra kullanıma açılacaktır."
   },
   "about": {
     "title": "Hakkında",

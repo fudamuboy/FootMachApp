@@ -159,7 +159,9 @@
     "sendEmail": "Envoyer l'e-mail",
     "notAvailable": "Cette fonctionnalité sera disponible après la publication.",
     "noMailApp": "Aucune application de messagerie disponible sur cet appareil. Veuillez nous envoyer un e-mail directement à : appwebfusion@gmail.com",
-    "ok": "OK"
+    "ok": "OK",
+    "info": "Information",
+    "notPublished": "L'évaluation sur l'App Store sera disponible après la publication publique."
   },
   "about": {
     "title": "À propos",

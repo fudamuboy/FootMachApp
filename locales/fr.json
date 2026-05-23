@@ -157,7 +157,9 @@
     "passwordResetTitle": "Changer le mot de passe",
     "passwordResetSent": "Un lien de réinitialisation sera envoyé à :",
     "sendEmail": "Envoyer l'e-mail",
-    "notAvailable": "Cette fonctionnalité sera disponible après la publication."
+    "notAvailable": "Cette fonctionnalité sera disponible après la publication.",
+    "noMailApp": "Aucune application de messagerie disponible sur cet appareil. Veuillez nous envoyer un e-mail directement à : appwebfusion@gmail.com",
+    "ok": "OK"
   },
   "about": {
     "title": "À propos",
@@ -335,6 +337,24 @@
     "FREE_LIMIT_REACHED": "Vous avez atteint la limite d'annonces actives gratuites.",
     "ACCOUNT_RESTRICTED": "Votre compte est restreint en raison de comportements suspects.",
     "MISSING_FIELDS": "Veuillez remplir tous les champs obligatoires.",
-    "SERVER_ERROR": "Une erreur est survenue. Veuillez réessayer."
+    "SERVER_ERROR": "Une erreur est survenue. Veuillez réessayer.",
+    "title": "Erreur"
+  },
+  "moderation": {
+    "options": "Options",
+    "report": "Signaler",
+    "blockUser": "Bloquer l'utilisateur",
+    "reportDesc": "Veuillez expliquer pourquoi vous signalez ce contenu ou cet utilisateur.",
+    "reportPlaceholder": "Raison du signalement...",
+    "cancel": "Annuler",
+    "submit": "Envoyer",
+    "block": "Bloquer",
+    "blockWarning": "Lorsque vous bloquez cet utilisateur :\n• Il ne pourra plus vous envoyer de messages.\n• Vous ne verrez plus ses annonces.\nVous pourrez annuler cette action plus tard.",
+    "provideReason": "Veuillez fournir une raison.",
+    "success": "Succès",
+    "reportSuccess": "Votre signalement a été reçu. Merci.",
+    "reportError": "Le signalement n'a pas pu être envoyé. Veuillez réessayer.",
+    "blockSuccess": "L'utilisateur a été bloqué. Vous ne verrez plus son contenu.",
+    "blockError": "Impossible de bloquer l'utilisateur. Veuillez réessayer."
   }
 }

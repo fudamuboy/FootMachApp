@@ -108,14 +108,14 @@ const SettingsScreen = () => {
                 await Linking.openURL(url);
             } else {
                 Alert.alert(
-                    "Error", 
-                    "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+                    t('errors.title'), 
+                    t('settings.noMailApp')
                 );
             }
         } catch (error) {
             Alert.alert(
-                "Error", 
-                "No mail app available on this device. Please email us directly at appwebfusion@gmail.com."
+                t('errors.title'), 
+                t('settings.noMailApp')
             );
         }
     };

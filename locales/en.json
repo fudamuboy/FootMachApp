@@ -157,7 +157,9 @@
     "passwordResetTitle": "Change Password",
     "passwordResetSent": "A reset link will be sent to:",
     "sendEmail": "Send Email",
-    "notAvailable": "This feature will be available after publication."
+    "notAvailable": "This feature will be available after publication.",
+    "noMailApp": "No mail app available on this device. Please email us directly at: appwebfusion@gmail.com",
+    "ok": "OK"
   },
   "about": {
     "title": "About",
@@ -335,6 +337,24 @@
     "FREE_LIMIT_REACHED": "You have reached the free active posts limit.",
     "ACCOUNT_RESTRICTED": "Your account is restricted due to suspicious behavior.",
     "MISSING_FIELDS": "Please fill in all required fields.",
-    "SERVER_ERROR": "An error occurred. Please try again."
+    "SERVER_ERROR": "An error occurred. Please try again.",
+    "title": "Error"
+  },
+  "moderation": {
+    "options": "Options",
+    "report": "Report",
+    "blockUser": "Block User",
+    "reportDesc": "Please explain why you are reporting this content or user.",
+    "reportPlaceholder": "Reason for report...",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "block": "Block",
+    "blockWarning": "When you block this user:\n• They cannot send you messages.\n• You will not see their announcements.\nYou can undo this later.",
+    "provideReason": "Please provide a reason.",
+    "success": "Success",
+    "reportSuccess": "Your report has been received. Thank you.",
+    "reportError": "Report could not be sent. Please try again.",
+    "blockSuccess": "User has been blocked. You will no longer see their content.",
+    "blockError": "Could not block user. Please try again."
   }
 }

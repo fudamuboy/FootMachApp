@@ -10,6 +10,7 @@ import {
     Alert
 } from 'react-native';
 import { X, Flag, UserX, AlertTriangle } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import { THEME } from '../constants/theme';
 
@@ -33,6 +34,7 @@ export default function ReportBlockModal({
     targetUserId,
     onBlockSuccess
 }) {
+    const { t } = useTranslation();
     const [mode, setMode] = useState('menu'); // 'menu', 'report', 'block'
     const [reason, setReason] = useState('');
     const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ export default function ReportBlockModal({
 
     const submitReport = async () => {
         if (!reason.trim()) {
-            Alert.alert("Hata", "Lütfen bir neden belirtin.");
+            Alert.alert(t('errors.title'), t('moderation.provideReason'));
             return;
         }
         
@@ -56,11 +58,11 @@ export default function ReportBlockModal({
                 item_type: targetType,
                 reason: reason.trim()
             });
-            Alert.alert("Başarılı", "Raporunuz alındı. Teşekkür ederiz.");
+            Alert.alert(t('moderation.success'), t('moderation.reportSuccess'));
             handleClose();
         } catch (error) {
             console.error("Report error:", error);
-            Alert.alert("Hata", "Rapor gönderilemedi. Lütfen tekrar deneyin.");
+            Alert.alert(t('errors.title'), t('moderation.reportError'));
         } finally {
             setLoading(false);
         }
@@ -75,12 +77,12 @@ export default function ReportBlockModal({
             await api.post('/blocks', {
                 blocked_id: idToBlock
             });
-            Alert.alert("Başarılı", "Kullanıcı engellendi. Artık bu kullanıcının içeriklerini görmeyeceksiniz.");
+            Alert.alert(t('moderation.success'), t('moderation.blockSuccess'));
             handleClose();
             if (onBlockSuccess) onBlockSuccess();
         } catch (error) {
             console.error("Block error:", error);
-            Alert.alert("Hata", "Kullanıcı engellenemedi. Lütfen tekrar deneyin.");
+            Alert.alert(t('errors.title'), t('moderation.blockError'));
         } finally {
             setLoading(false);
         }
@@ -88,29 +90,29 @@ export default function ReportBlockModal({
 
     const renderMenu = () => (
         <>
-            <Text style={styles.modalTitle}>Seçenekler</Text>
+            <Text style={styles.modalTitle}>{t('moderation.options')}</Text>
             
             <TouchableOpacity style={styles.actionButton} onPress={() => setMode('report')}>
                 <Flag size={20} color="#eab308" style={styles.actionIcon} />
-                <Text style={styles.actionText}>Şikayet Et</Text>
+                <Text style={styles.actionText}>{t('moderation.report')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={() => setMode('block')}>
                 <UserX size={20} color="#ef4444" style={styles.actionIcon} />
-                <Text style={[styles.actionText, { color: '#ef4444' }]}>Kullanıcıyı Engelle</Text>
+                <Text style={[styles.actionText, { color: '#ef4444' }]}>{t('moderation.blockUser')}</Text>
             </TouchableOpacity>
         </>
     );
 
     const renderReport = () => (
         <>
-            <Text style={styles.modalTitle}>Şikayet Et</Text>
+            <Text style={styles.modalTitle}>{t('moderation.report')}</Text>
             <Text style={styles.description}>
-                Lütfen bu içeriği veya kullanıcıyı neden şikayet ettiğinizi açıklayın.
+                {t('moderation.reportDesc')}
             </Text>
             <TextInput
                 style={styles.input}
-                placeholder="Şikayet nedeni..."
+                placeholder={t('moderation.reportPlaceholder')}
                 value={reason}
                 onChangeText={setReason}
                 multiline
@@ -119,7 +121,7 @@ export default function ReportBlockModal({
             />
             <View style={styles.buttonRow}>
                 <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setMode('menu')}>
-                    <Text style={styles.cancelButtonText}>İptal</Text>
+                    <Text style={styles.cancelButtonText}>{t('moderation.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     style={[styles.button, styles.submitButton]} 
@@ -129,7 +131,7 @@ export default function ReportBlockModal({
                     {loading ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text style={styles.submitButtonText}>Gönder</Text>
+                        <Text style={styles.submitButtonText}>{t('moderation.submit')}</Text>
                     )}
                 </TouchableOpacity>
             </View>
@@ -140,17 +142,14 @@ export default function ReportBlockModal({
         <>
             <View style={styles.warningHeader}>
                 <AlertTriangle size={24} color="#ef4444" />
-                <Text style={styles.modalTitle}>Kullanıcıyı Engelle</Text>
+                <Text style={styles.modalTitle}>{t('moderation.blockUser')}</Text>
             </View>
             <Text style={styles.description}>
-                Bu kullanıcıyı engellediğinizde:
-                {"\n"}• Size mesaj gönderemez.
-                {"\n"}• İlanlarını göremezsiniz.
-                {"\n"}Bu işlemi geri alabilirsiniz.
+                {t('moderation.blockWarning')}
             </Text>
             <View style={styles.buttonRow}>
                 <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setMode('menu')}>
-                    <Text style={styles.cancelButtonText}>İptal</Text>
+                    <Text style={styles.cancelButtonText}>{t('moderation.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                     style={[styles.button, styles.blockButton]} 
@@ -160,7 +159,7 @@ export default function ReportBlockModal({
                     {loading ? (
                         <ActivityIndicator color="white" />
                     ) : (
-                        <Text style={styles.submitButtonText}>Engelle</Text>
+                        <Text style={styles.submitButtonText}>{t('moderation.block')}</Text>
                     )}
                 </TouchableOpacity>
             </View>

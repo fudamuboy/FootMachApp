@@ -157,7 +157,9 @@
     "passwordResetTitle": "Şifreyi Değiştir",
     "passwordResetSent": "Sıfırlama bağlantısı şuraya gönderilecek:",
     "sendEmail": "E-posta Gönder",
-    "notAvailable": "Bu özellik yayınlandıktan sonra kullanılabilecek."
+    "notAvailable": "Bu özellik yayınlandıktan sonra kullanılabilecek.",
+    "noMailApp": "Bu cihazda kullanılabilir bir e-posta uygulaması bulunamadı. Lütfen bizimle doğrudan şu adresten iletişime geçin: appwebfusion@gmail.com",
+    "ok": "Tamam"
   },
   "about": {
     "title": "Hakkında",
@@ -335,6 +337,24 @@
     "FREE_LIMIT_REACHED": "Ücretsiz aktif ilan sınırına ulaştınız.",
     "ACCOUNT_RESTRICTED": "Şüpheli davranışlar nedeniyle hesabınız kısıtlandı.",
     "MISSING_FIELDS": "Lütfen tüm zorunlu alanları doldurun.",
-    "SERVER_ERROR": "Bir hata oluştu. Lütfen tekrar deneyin."
+    "SERVER_ERROR": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "title": "Hata"
+  },
+  "moderation": {
+    "options": "Seçenekler",
+    "report": "Şikayet Et",
+    "blockUser": "Kullanıcıyı Engelle",
+    "reportDesc": "Lütfen bu içeriği veya kullanıcıyı neden şikayet ettiğinizi açıklayın.",
+    "reportPlaceholder": "Şikayet nedeni...",
+    "cancel": "İptal",
+    "submit": "Gönder",
+    "block": "Engelle",
+    "blockWarning": "Bu kullanıcıyı engellediğinizde:\n• Size mesaj gönderemez.\n• İlanlarını göremezsiniz.\nBu işlemi geri alabilirsiniz.",
+    "provideReason": "Lütfen bir neden belirtin.",
+    "success": "Başarılı",
+    "reportSuccess": "Raporunuz alındı. Teşekkür ederiz.",
+    "reportError": "Rapor gönderilemedi. Lütfen tekrar deneyin.",
+    "blockSuccess": "Kullanıcı engellendi. Artık bu kullanıcının içeriklerini görmeyeceksiniz.",
+    "blockError": "Kullanıcı engellenemedi. Lütfen tekrar deneyin."
   }
 }

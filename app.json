@@ -50,7 +50,10 @@
           "iosAppId": "ca-app-pub-5391073663429424~9502677421",
           "ios_app_id": "ca-app-pub-5391073663429424~9502677421"
         }
-      ]
+      ],
+      "expo-localization",
+      "expo-asset",
+      "expo-font"
     ],
     "extra": {
       "eas": {

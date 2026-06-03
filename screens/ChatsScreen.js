@@ -24,6 +24,7 @@ export default function ChatsScreen({ navigation }) {
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const insets = useSafeAreaInsets();
 
     const fetchChats = async () => {
         if (!profile?.id) return;
@@ -153,10 +154,6 @@ export default function ChatsScreen({ navigation }) {
             </View>
         );
     }
-
-
-    const insets = useSafeAreaInsets();
-
     return (
         <View style={styles.container}>
             <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + rs(10) : rs(40) }]}>

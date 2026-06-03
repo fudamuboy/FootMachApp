@@ -11,7 +11,9 @@ const baseWidth = 390;
  * @returns {number} The scaled size
  */
 export const rs = (size) => {
-    const newSize = size * (SCREEN_WIDTH / baseWidth);
+    // Cap the scaling width to prevent oversized elements on tablets (max 1.15x scale)
+    const effectiveWidth = Math.min(SCREEN_WIDTH, 450);
+    const newSize = size * (effectiveWidth / baseWidth);
     if (Platform.OS === 'ios') {
         return Math.round(newSize);
     } else {

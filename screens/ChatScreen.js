@@ -65,6 +65,7 @@ export default function ChatScreen({ route, navigation }) {
     const [otherUserAvatarSeed, setOtherUserAvatarSeed] = useState(initialSeed || initialName || 'User');
     const [showOptions, setShowOptions] = useState(false);
     const flatListRef = useRef(null);
+    const insets = useSafeAreaInsets();
 
 
     const fetchMessages = async () => {

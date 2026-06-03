@@ -24,7 +24,7 @@ const SummaryItem = ({ icon, label, value }) => (
         </View>
         <View style={{ flex: 1 }}>
             <Text style={styles.summaryLabel}>{label}</Text>
-            <Text style={styles.summaryValue} numberOfLines={1}>{value}</Text>
+            <Text style={styles.summaryValue}>{value}</Text>
         </View>
     </View>
 );
@@ -129,6 +129,8 @@ export default function ProfileScreen() {
         return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed || 'User')}`;
     };
 
+    const insets = useSafeAreaInsets();
+
     if (!profile) {
         return (
             <View style={styles.container}>
@@ -137,8 +139,6 @@ export default function ProfileScreen() {
             </View>
         );
     }
-
-    const insets = useSafeAreaInsets();
 
     return (
         <View style={styles.container}>
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
         gap: rs(8),
     },
     summaryItem: {
-        width: isTablet ? '23%' : '48%',
+        width: '48%',
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: THEME.background,

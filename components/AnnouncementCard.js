@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Users, Clock, MapPin, MessageCircle, MoreVertical } from 'lucide-react-native';
 import { THEME } from '../constants/theme';
 import ReportBlockModal from './ReportBlockModal';
+import { rs, isTablet } from '../constants/responsive';
 
 const FORMAT_EMOJI = { '5v5': '5️⃣', '7v7': '7️⃣', '11v11': '🏟️' };
 const SKILL_COLOR = { 'Başlangıç': '#10b981', 'Orta': '#f59e0b', 'Rekabetçi': '#ef4444' };
@@ -42,8 +43,8 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
                     </TouchableOpacity>
                 )}
                 {!isOwner && (
-                    <TouchableOpacity onPress={() => setShowOptions(true)} style={{ marginLeft: 8 }}>
-                        <MoreVertical size={20} color="#6b7280" />
+                    <TouchableOpacity onPress={() => setShowOptions(true)} style={{ marginLeft: rs(8) }}>
+                        <MoreVertical size={rs(20)} color="#6b7280" />
                     </TouchableOpacity>
                 )}
             </View>
@@ -78,17 +79,17 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
             {/* Detail rows */}
             <View style={styles.details}>
                 <View style={styles.detailRow}>
-                    <Users size={16} color="#3b82f6" />
+                    <Users size={rs(16)} color="#3b82f6" />
                     <Text style={styles.detailText}>
                         {announcement.players_needed} oyuncu aranıyor
                     </Text>
                 </View>
                 <View style={styles.detailRow}>
-                    <Clock size={16} color="#10b981" />
+                    <Clock size={rs(16)} color="#10b981" />
                     <Text style={styles.detailText}>{formatDate(announcement.match_time)}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                    <MapPin size={16} color="#ef4444" />
+                    <MapPin size={rs(16)} color="#ef4444" />
                     <Text style={styles.detailText}>{announcement.location}</Text>
                 </View>
             </View>
@@ -102,7 +103,7 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
                     style={styles.contactButton}
                     onPress={() => onContact(announcement)}
                 >
-                    <MessageCircle size={18} color="white" />
+                    <MessageCircle size={rs(18)} color="white" />
                     <Text style={styles.contactButtonText}>Ekibiyle iletişime geç</Text>
                 </TouchableOpacity>
             )}
@@ -131,23 +132,26 @@ const AnnouncementCard = ({ announcement, onContact, isOwner, onEvaluate, onBoos
 const styles = StyleSheet.create({
     card: {
         backgroundColor: 'white',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 14,
+        borderRadius: rs(16),
+        padding: rs(16),
+        marginBottom: rs(14),
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 3,
+        width: isTablet ? '100%' : 'auto',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'stretch',
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: rs(10),
     },
     teamName: {
-        fontSize: 18,
+        fontSize: rs(18),
         fontWeight: 'bold',
         color: '#1f2937',
         flex: 1,
@@ -155,45 +159,45 @@ const styles = StyleSheet.create({
     evaluateButton: {
         color: THEME.primary,
         fontWeight: 'bold',
-        fontSize: 13,
-        marginLeft: 8,
+        fontSize: rs(13),
+        marginLeft: rs(8),
     },
     badgeRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 6,
-        marginBottom: 12,
+        gap: rs(6),
+        marginBottom: rs(12),
     },
     badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: rs(10),
+        paddingVertical: rs(4),
+        borderRadius: rs(12),
         borderWidth: 1,
         borderColor: '#d1d5db',
         backgroundColor: '#f3f4f6',
     },
     badgeText: {
-        fontSize: 12,
+        fontSize: rs(12),
         fontWeight: '600',
         color: '#374151',
     },
-    details: { marginBottom: 12 },
+    details: { marginBottom: rs(12) },
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 6,
+        marginBottom: rs(6),
     },
     detailText: {
-        marginLeft: 8,
+        marginLeft: rs(8),
         color: '#6b7280',
-        fontSize: 13,
+        fontSize: rs(13),
         flex: 1,
     },
     description: {
         color: '#374151',
-        fontSize: 13,
-        lineHeight: 19,
-        marginBottom: 12,
+        fontSize: rs(13),
+        lineHeight: rs(19),
+        marginBottom: rs(12),
         fontStyle: 'italic',
     },
     contactButton: {
@@ -201,38 +205,38 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 11,
-        borderRadius: 12,
+        paddingVertical: rs(11),
+        borderRadius: rs(12),
     },
     contactButtonText: {
         color: 'white',
-        fontSize: 15,
+        fontSize: rs(15),
         fontWeight: '600',
-        marginLeft: 8,
+        marginLeft: rs(8),
     },
     boostButton: {
         backgroundColor: '#fef3c7',
         borderWidth: 1,
         borderColor: '#f59e0b',
-        paddingVertical: 10,
-        borderRadius: 12,
+        paddingVertical: rs(10),
+        borderRadius: rs(12),
         alignItems: 'center',
-        marginTop: 4,
+        marginTop: rs(4),
     },
     boostButtonText: {
         color: '#92400e',
-        fontSize: 14,
+        fontSize: rs(14),
         fontWeight: 'bold',
     },
     boostBadge: {
         backgroundColor: '#fef3c7',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginLeft: 8,
+        paddingHorizontal: rs(6),
+        paddingVertical: rs(2),
+        borderRadius: rs(4),
+        marginLeft: rs(8),
     },
     boostBadgeText: {
-        fontSize: 10,
+        fontSize: rs(10),
         fontWeight: 'bold',
         color: '#d97706',
     },

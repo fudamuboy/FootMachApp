@@ -11,6 +11,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../contexts/AuthContext';
 import SettingItem from '../components/profile/SettingItem';
 import api from '../lib/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet } from '../constants/responsive';
 
 const SettingsScreen = () => {
     const navigation = useNavigation();
@@ -132,15 +134,17 @@ const SettingsScreen = () => {
         </View>
     );
 
+    const insets = useSafeAreaInsets();
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: Platform.OS === 'ios' ? insets.top : rs(10) }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color="#1A1A1A" />
+                    <Feather name="arrow-left" size={rs(24)} color="#1A1A1A" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('settings.title')}</Text>
-                <View style={{ width: 40 }} />
+                <View style={{ width: rs(40) }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -266,32 +270,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(12),
         backgroundColor: '#FFF',
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: rs(18),
         fontWeight: 'bold',
         color: '#1A1A1A',
     },
     backButton: {
-        padding: 8,
+        padding: rs(8),
     },
     scrollContent: {
-        paddingBottom: 40,
+        paddingBottom: rs(40),
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 600 : '100%',
+        alignSelf: 'center',
     },
     section: {
-        marginTop: 24,
+        marginTop: rs(24),
     },
     sectionTitle: {
-        fontSize: 12,
+        fontSize: rs(12),
         fontWeight: '700',
         color: '#757575',
-        marginLeft: 20,
-        marginBottom: 8,
+        marginLeft: rs(20),
+        marginBottom: rs(8),
         letterSpacing: 1,
     },
     sectionContent: {
@@ -299,17 +306,19 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderBottomWidth: 1,
         borderColor: '#F0F0F0',
+        borderRadius: isTablet ? rs(12) : 0,
+        overflow: 'hidden',
     },
     versionContainer: {
-        padding: 20,
+        padding: rs(20),
         alignItems: 'center',
     },
     versionText: {
-        fontSize: 12,
+        fontSize: rs(12),
         color: '#BDBDBD',
     },
     langValue: {
-        fontSize: 14,
+        fontSize: rs(14),
         color: '#757575',
         fontWeight: '600',
     },
@@ -321,26 +330,26 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         backgroundColor: '#FFF',
-        width: '80%',
-        borderRadius: 20,
-        padding: 24,
+        width: isTablet ? 400 : '80%',
+        borderRadius: rs(20),
+        padding: rs(24),
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: rs(18),
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: rs(20),
         textAlign: 'center',
     },
     langOption: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: rs(16),
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
     },
     langText: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: '#424242',
     },
     activeLang: {
@@ -348,13 +357,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     closeButton: {
-        marginTop: 20,
-        padding: 12,
+        marginTop: rs(20),
+        padding: rs(12),
         alignItems: 'center',
     },
     closeButtonText: {
         color: '#D32F2F',
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: '600',
     },
     loadingOverlay: {

@@ -22,6 +22,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReportBlockModal from '../components/ReportBlockModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet } from '../constants/responsive';
 
 const INTERSTITIAL_UNIT_ID = Platform.OS === 'ios'
     ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_INTERSTITIAL || TestIds.INTERSTITIAL)
@@ -261,7 +263,7 @@ export default function ChatScreen({ route, navigation }) {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
             <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-                <View style={styles.header}>
+                <View style={[styles.header, { paddingTop: Platform.OS === 'ios' ? insets.top : rs(10) }]}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                         <ArrowLeft size={24} color="#1f2937" />
                     </TouchableOpacity>
@@ -273,8 +275,8 @@ export default function ChatScreen({ route, navigation }) {
                     >
                         <View style={styles.headerAvatarWrapper}>
                             <SvgUri
-                                width="40"
-                                height="40"
+                                width={rs(40)}
+                                height={rs(40)}
                                 uri={getAvatarUrl(otherUserAvatarStyle, otherUserAvatarSeed)}
                             />
                         </View>
@@ -349,9 +351,8 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingBottom: 12,
-        paddingTop: Platform.OS === 'ios' ? 0 : 10,
+        paddingHorizontal: rs(16),
+        paddingBottom: rs(12),
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#f3f4f6',
@@ -362,8 +363,8 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
     },
     backButton: {
-        padding: 8,
-        marginRight: 4,
+        padding: rs(8),
+        marginRight: rs(4),
     },
     headerUserInfo: {
         flex: 1,
@@ -371,30 +372,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     headerAvatarWrapper: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: rs(40),
+        height: rs(40),
+        borderRadius: rs(20),
         overflow: 'hidden',
         backgroundColor: '#e5e7eb',
         justifyContent: 'center',
         alignItems: 'center'
     },
     headerTextContainer: {
-        marginLeft: 12,
+        marginLeft: rs(12),
         justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: '700',
         color: '#111827',
     },
     headerStatus: {
-        fontSize: 11,
+        fontSize: rs(11),
         color: '#10b981',
         fontWeight: '600',
     },
     headerActions: {
-        width: 40,
+        width: rs(40),
     },
     loadingContainer: {
         flex: 1,
@@ -402,11 +403,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     messagesList: {
-        padding: 16,
+        padding: rs(16),
         flexGrow: 1,
     },
     messageContainer: {
-        marginBottom: 12,
+        marginBottom: rs(12),
+        width: isTablet ? '100%' : 'auto',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     ownMessage: {
         alignItems: 'flex-end',
@@ -415,10 +419,10 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     messageBubble: {
-        maxWidth: '80%',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
+        maxWidth: isTablet ? '60%' : '80%',
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(10),
+        borderRadius: rs(20),
     },
     ownBubble: {
         backgroundColor: '#3b82f6',
@@ -429,8 +433,8 @@ const styles = StyleSheet.create({
         borderColor: '#e5e7eb',
     },
     messageText: {
-        fontSize: 16,
-        lineHeight: 20,
+        fontSize: rs(16),
+        lineHeight: rs(20),
     },
     ownText: {
         color: 'white',
@@ -439,8 +443,8 @@ const styles = StyleSheet.create({
         color: '#1f2937',
     },
     messageTime: {
-        fontSize: 12,
-        marginTop: 4,
+        fontSize: rs(12),
+        marginTop: rs(4),
     },
     ownTime: {
         color: 'rgba(255, 255, 255, 0.7)',
@@ -452,42 +456,45 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 40,
+        paddingVertical: rs(40),
     },
     emptyText: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: '#6b7280',
-        marginBottom: 4,
+        marginBottom: rs(4),
     },
     emptySubtext: {
-        fontSize: 14,
+        fontSize: rs(14),
         color: '#9ca3af',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'flex-end',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(12),
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: '#e5e7eb',
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     textInput: {
         flex: 1,
         borderWidth: 1,
         borderColor: '#d1d5db',
-        borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        marginRight: 12,
-        maxHeight: 100,
-        fontSize: 16,
+        borderRadius: rs(20),
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(10),
+        marginRight: rs(12),
+        maxHeight: rs(100),
+        fontSize: rs(16),
         backgroundColor: '#f9fafb',
     },
     sendButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: rs(40),
+        height: rs(40),
+        borderRadius: rs(20),
         backgroundColor: '#3b82f6',
         justifyContent: 'center',
         alignItems: 'center',
@@ -496,9 +503,9 @@ const styles = StyleSheet.create({
         opacity: 0.5,
     },
     senderName: {
-        fontSize: 12,
+        fontSize: rs(12),
         fontWeight: 'bold',
-        marginBottom: 2,
+        marginBottom: rs(2),
     },
     ownSender: {
         color: 'white',
@@ -509,19 +516,19 @@ const styles = StyleSheet.create({
         textAlign: 'left',
     },
     chatAvatarContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginRight: 12,
+        width: rs(40),
+        height: rs(40),
+        borderRadius: rs(20),
+        marginRight: rs(12),
     },
     chatAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: rs(40),
+        height: rs(40),
+        borderRadius: rs(20),
     },
     readReceipt: {
-        fontSize: 10,
-        marginTop: 4,
+        fontSize: rs(10),
+        marginTop: rs(4),
         textAlign: 'right',
         color: 'rgba(255,255,255,0.7)', // clair sur fond bleu
     },

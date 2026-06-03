@@ -16,7 +16,7 @@ import PublicProfileScreen from '../screens/PublicProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AboutScreen from '../screens/AboutScreen';
 import TermsScreen from '../screens/TermsScreen';
-import PremiumScreen from '../screens/PremiumScreen';
+
 import OnboardingScreen from '../screens/OnboardingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -71,7 +71,6 @@ export const AppNavigator = () => {
                         <Stack.Screen name="Settings" component={SettingsScreen} />
                         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
                         <Stack.Screen name="About" component={AboutScreen} />
-                        <Stack.Screen name="Premium" component={PremiumScreen} />
                     </>
                 ) : (
                     <>

@@ -21,8 +21,10 @@ import CreateAnnouncement from '../components/CreateAnnouncement';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
-import { Platform } from 'react-native';
+import { Platform, Dimensions } from 'react-native';
 import { THEME } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, rw, isTablet } from '../constants/responsive';
 
 const AD_UNIT_ID = Platform.OS === 'ios' 
     ? (process.env.EXPO_PUBLIC_IOS_AD_UNIT_ID_BANNER || TestIds.BANNER) 
@@ -326,10 +328,12 @@ export default function AnnouncementScreen({ navigation }) {
 
     // ─── Render: single filter row ────────────────────────────────────────────
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
+        <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1 }}>
             <View style={styles.container}>
-                <View style={styles.header}>
+                <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + rs(10) : rs(40) }]}>
                     <View>
                         <Text style={styles.title}>{t('announcements.title')}</Text>
                         <Text style={styles.subtitle}>
@@ -547,15 +551,65 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        paddingTop: 60,
+        paddingHorizontal: rs(20),
+        paddingVertical: rs(16),
         backgroundColor: THEME.primary,
         borderBottomWidth: 1,
         borderBottomColor: THEME.border,
     },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF' },
-    subtitle: { fontSize: 13, color: THEME.light, marginTop: 2 },
+    title: { fontSize: rs(24), fontWeight: 'bold', color: '#FFFFFF' },
+    subtitle: { fontSize: rs(13), color: THEME.light, marginTop: rs(2) },
+    newAnnouncementsText: { fontSize: rs(12), color: '#fff', marginTop: rs(4), fontWeight: 'bold' },
+    addButton: {
+        width: rs(44), height: rs(44), borderRadius: rs(22), backgroundColor: 'white',
+        justifyContent: 'center', alignItems: 'center',
+        shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1, shadowRadius: 4, elevation: 4,
+    },
+    searchContainer: { paddingHorizontal: rs(16), paddingVertical: rs(10), backgroundColor: 'white' },
+    searchInput: {
+        backgroundColor: '#f3f4f6', borderRadius: rs(12),
+        paddingHorizontal: rs(16), paddingVertical: rs(9),
+        fontSize: rs(15), color: THEME.text,
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        backgroundColor: '#F0F0F0',
+        borderRadius: rs(14),
+        marginHorizontal: rs(16),
+        marginTop: rs(12),
+        padding: rs(4),
+        maxWidth: isTablet ? 600 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
+        width: isTablet ? '100%' : 'auto',
+    },
+    tab: { flex: 1, paddingVertical: rs(10), alignItems: 'center', borderRadius: rs(12) },
+    activeTab: { backgroundColor: '#FFFFFF', ...THEME.shadow },
+    tabText: { fontSize: rs(13), fontWeight: '600', color: THEME.subtext },
+    activeTabText: { color: THEME.primary, fontWeight: 'bold' },
+    filtersWrapper: { paddingVertical: rs(10) },
+    singleFilterRow: { gap: rs(8), paddingHorizontal: rs(16), alignSelf: isTablet ? 'center' : 'flex-start' },
+    filterChip: {
+        paddingHorizontal: rs(14), paddingVertical: rs(6),
+        borderRadius: rs(20), borderWidth: 1, borderColor: '#EEEEEE',
+        backgroundColor: '#fff',
+    },
+    filterChipActive: { backgroundColor: THEME.primary, borderColor: THEME.primary },
+    filterChipText: { fontSize: rs(12), color: THEME.subtext, fontWeight: '500' },
+    filterChipTextActive: { color: 'white', fontWeight: '700' },
+    list: { 
+        padding: rs(16),
+        alignItems: isTablet ? 'center' : 'stretch',
+    },
+    emptyContainer: { alignItems: 'center', paddingVertical: rs(60) },
+    emptyIcon: {
+        width: rs(80), height: rs(80), borderRadius: rs(40), backgroundColor: THEME.light,
+        justifyContent: 'center', alignItems: 'center', marginBottom: rs(16),
+    },
+    emptyIconText: { fontSize: rs(32) },
+    emptyTitle: { fontSize: rs(18), fontWeight: 'bold', color: THEME.text, marginBottom: rs(6) },
+    emptySubtitle: { fontSize: rs(14), color: THEME.subtext, textAlign: 'center', paddingHorizontal: rs(20) },
     newAnnouncementsText: { fontSize: 12, color: '#fff', marginTop: 4, fontWeight: 'bold' },
     addButton: {
         width: 44, height: 44, borderRadius: 22, backgroundColor: 'white',
@@ -599,46 +653,46 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', marginBottom: 16,
     },
     emptyIconText: { fontSize: 32 },
-    emptyTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text, marginBottom: 6 },
-    emptySubtitle: { fontSize: 14, color: THEME.subtext, textAlign: 'center', paddingHorizontal: 20 },
+    emptyTitle: { fontSize: rs(18), fontWeight: 'bold', color: THEME.text, marginBottom: rs(6) },
+    emptySubtitle: { fontSize: rs(14), color: THEME.subtext, textAlign: 'center', paddingHorizontal: rs(20) },
     modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
     modalContent: {
-        backgroundColor: 'white', borderRadius: 24, width: '92%', maxHeight: '85%',
+        backgroundColor: 'white', borderRadius: rs(24), width: isTablet ? 500 : '92%', maxHeight: '85%',
         ...THEME.shadow,
     },
     modalHeader: {
         flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: THEME.border,
+        paddingHorizontal: rs(20), paddingVertical: rs(16), borderBottomWidth: 1, borderBottomColor: THEME.border,
     },
-    closeButton: { padding: 4 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', color: THEME.text, flex: 1, textAlign: 'center' },
-    placeholder: { width: 36 },
-    modalBody: { padding: 20 },
-    teamInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
-    teamName: { fontSize: 20, fontWeight: 'bold', color: THEME.text, marginLeft: 10 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: THEME.text, marginBottom: 10 },
-    starRowContainer: { marginBottom: 16 },
-    starRowLabel: { fontSize: 14, fontWeight: '600', color: '#424242', marginBottom: 6 },
-    starsContainer: { flexDirection: 'row', gap: 8 },
-    starButton: { padding: 2 },
+    closeButton: { padding: rs(4) },
+    modalTitle: { fontSize: rs(18), fontWeight: 'bold', color: THEME.text, flex: 1, textAlign: 'center' },
+    placeholder: { width: rs(36) },
+    modalBody: { padding: rs(20) },
+    teamInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: rs(18) },
+    teamName: { fontSize: rs(20), fontWeight: 'bold', color: THEME.text, marginLeft: rs(10) },
+    sectionTitle: { fontSize: rs(16), fontWeight: 'bold', color: THEME.text, marginBottom: rs(10) },
+    starRowContainer: { marginBottom: rs(16) },
+    starRowLabel: { fontSize: rs(14), fontWeight: '600', color: '#424242', marginBottom: rs(6) },
+    starsContainer: { flexDirection: 'row', gap: rs(8) },
+    starButton: { padding: rs(2) },
     overallRow: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: THEME.light, borderRadius: 12, padding: 12, marginBottom: 16,
+        backgroundColor: THEME.light, borderRadius: rs(12), padding: rs(12), marginBottom: rs(16),
     },
-    overallLabel: { fontSize: 15, fontWeight: '600', color: THEME.dark },
-    overallValue: { fontSize: 18, fontWeight: 'bold', color: THEME.dark },
-    commentSection: { marginBottom: 18 },
-    commentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+    overallLabel: { fontSize: rs(15), fontWeight: '600', color: THEME.dark },
+    overallValue: { fontSize: rs(18), fontWeight: 'bold', color: THEME.dark },
+    commentSection: { marginBottom: rs(18) },
+    commentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: rs(8) },
     commentInput: {
-        backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14,
-        paddingVertical: 12, fontSize: 15, color: THEME.text, minHeight: 100, textAlignVertical: 'top',
+        backgroundColor: '#F5F5F5', borderRadius: rs(12), paddingHorizontal: rs(14),
+        paddingVertical: rs(12), fontSize: rs(15), color: THEME.text, minHeight: rs(100), textAlignVertical: 'top',
     },
-    charCount: { fontSize: 12, color: '#9E9E9E', textAlign: 'right', marginTop: 4 },
+    charCount: { fontSize: rs(12), color: '#9E9E9E', textAlign: 'right', marginTop: rs(4) },
     submitButton: {
-        backgroundColor: THEME.primary, borderRadius: 16, paddingVertical: 16,
-        alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+        backgroundColor: THEME.primary, borderRadius: rs(16), paddingVertical: rs(16),
+        alignItems: 'center', justifyContent: 'center', marginBottom: rs(10),
     },
-    submitButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+    submitButtonText: { color: 'white', fontSize: rs(16), fontWeight: 'bold' },
     buttonDisabled: { backgroundColor: '#BDBDBD' },
     adContainer: {
         alignItems: 'center',

@@ -11,8 +11,9 @@ import api from '../lib/api';
 import { THEME } from '../constants/theme';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import SettingItem from '../components/profile/SettingItem';
-import PremiumCard from '../components/profile/PremiumCard';
 import ProgressionOnboarding from '../components/progression/ProgressionOnboarding';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet } from '../constants/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -132,10 +133,12 @@ export default function ProfileScreen() {
         return (
             <View style={styles.container}>
                 <StatusBar backgroundColor={THEME.background} barStyle="dark-content" />
-                <ActivityIndicator size="large" color={THEME.primary} style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color={THEME.primary} style={{ marginTop: rs(50) }} />
             </View>
         );
     }
+
+    const insets = useSafeAreaInsets();
 
     return (
         <View style={styles.container}>
@@ -206,14 +209,10 @@ export default function ProfileScreen() {
                     <CompletionCard percent={stats.profileCompletion || 0} t={t} />
                 )}
 
-                {/* 5. Premium Card (Bottom) */}
-                <PremiumCard 
-                    stats={stats} 
-                    onPress={() => navigation.navigate('Premium', { stats })}
-                />
+
                 
                 {/* Extra space for tab bar */}
-                <View style={{ height: 100 }} />
+                <View style={{ height: insets.bottom + rs(80) }} />
             </ScrollView>
 
             {/* Avatar Modal */}
@@ -292,73 +291,82 @@ const styles = StyleSheet.create({
     },
     summaryContainer: {
         backgroundColor: THEME.card,
-        marginTop: -10,
-        marginHorizontal: 16,
-        padding: 16,
-        borderRadius: 20,
+        marginTop: rs(-10),
+        marginHorizontal: rs(16),
+        padding: rs(16),
+        borderRadius: rs(20),
         ...THEME.shadow,
+        width: isTablet ? '100%' : 'auto',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     summaryTitle: {
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: 'bold',
         color: THEME.text,
-        marginBottom: 12,
+        marginBottom: rs(12),
     },
     summaryGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-        gap: 8,
+        gap: rs(8),
     },
     summaryItem: {
-        width: '48%',
+        width: isTablet ? '23%' : '48%',
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: THEME.background,
-        padding: 10,
-        borderRadius: 12,
-        gap: 8,
+        padding: rs(10),
+        borderRadius: rs(12),
+        gap: rs(8),
     },
     summaryIconWrapper: {
-        width: 28,
-        height: 28,
-        borderRadius: 8,
+        width: rs(28),
+        height: rs(28),
+        borderRadius: rs(8),
         backgroundColor: THEME.light,
         justifyContent: 'center',
         alignItems: 'center',
     },
     summaryLabel: {
-        fontSize: 9,
+        fontSize: rs(9),
         color: THEME.subtext,
         fontWeight: 'bold',
         textTransform: 'uppercase',
     },
     summaryValue: {
-        fontSize: 12,
+        fontSize: rs(12),
         color: THEME.text,
         fontWeight: 'bold',
-        marginTop: 1,
+        marginTop: rs(1),
     },
     menuContainer: {
         backgroundColor: THEME.card,
-        marginTop: 16,
-        marginHorizontal: 16,
-        borderRadius: 20,
+        marginTop: rs(16),
+        marginHorizontal: rs(16),
+        borderRadius: rs(20),
         overflow: 'hidden',
         ...THEME.shadow,
+        width: isTablet ? '100%' : 'auto',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     divider: {
         height: 1,
         backgroundColor: THEME.border,
-        marginHorizontal: 16,
+        marginHorizontal: rs(16),
     },
     completionCompact: {
         backgroundColor: THEME.card,
-        marginHorizontal: 16,
-        marginTop: 16,
-        padding: 16,
-        borderRadius: 20,
+        marginHorizontal: rs(16),
+        marginTop: rs(16),
+        padding: rs(16),
+        borderRadius: rs(20),
         ...THEME.shadow,
+        width: isTablet ? '100%' : 'auto',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     completionRow: {
         flexDirection: 'row',
@@ -367,28 +375,28 @@ const styles = StyleSheet.create({
     completionTextRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: rs(8),
     },
     completionLabel: {
-        fontSize: 13,
+        fontSize: rs(13),
         fontWeight: '600',
         color: THEME.text,
     },
     completionValueText: {
-        fontSize: 13,
+        fontSize: rs(13),
         fontWeight: 'bold',
         color: THEME.primary,
     },
     miniBarBg: {
-        height: 8,
+        height: rs(8),
         backgroundColor: THEME.border,
-        borderRadius: 4,
+        borderRadius: rs(4),
         overflow: 'hidden',
     },
     miniBarFill: {
         height: '100%',
         backgroundColor: THEME.primary,
-        borderRadius: 4,
+        borderRadius: rs(4),
     },
     modalOverlay: {
         flex: 1,
@@ -397,56 +405,59 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         backgroundColor: THEME.card,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
-        minHeight: 450,
+        borderTopLeftRadius: rs(24),
+        borderTopRightRadius: rs(24),
+        padding: rs(24),
+        minHeight: rs(450),
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 600 : '100%',
+        alignSelf: 'center',
     },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: rs(20),
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: rs(20),
         fontWeight: 'bold',
         color: THEME.text,
     },
     previewContainer: {
         alignItems: 'center',
-        marginVertical: 20,
+        marginVertical: rs(20),
     },
     randomButton: {
         flexDirection: 'row',
         backgroundColor: '#cbd5e1',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 20,
+        paddingVertical: rs(10),
+        paddingHorizontal: rs(16),
+        borderRadius: rs(20),
         alignSelf: 'center',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: rs(24),
     },
     randomButtonText: {
         color: '#475569',
         fontWeight: 'bold',
-        marginLeft: 8,
+        marginLeft: rs(8),
     },
     sectionTitle: {
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: '600',
-        marginBottom: 12,
+        marginBottom: rs(12),
         color: THEME.text,
     },
     styleList: {
         flexGrow: 0,
-        marginBottom: 24,
+        marginBottom: rs(24),
     },
     styleOption: {
         alignItems: 'center',
-        marginRight: 16,
-        padding: 8,
-        borderRadius: 12,
+        marginRight: rs(16),
+        padding: rs(8),
+        borderRadius: rs(12),
         borderWidth: 2,
         borderColor: 'transparent',
     },
@@ -455,8 +466,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0fdf4',
     },
     styleOptionText: {
-        marginTop: 8,
-        fontSize: 12,
+        marginTop: rs(8),
+        fontSize: rs(12),
         color: THEME.subtext,
     },
     styleOptionTextSelected: {
@@ -465,13 +476,13 @@ const styles = StyleSheet.create({
     },
     saveButton: {
         backgroundColor: THEME.primary,
-        paddingVertical: 16,
-        borderRadius: 16,
+        paddingVertical: rs(16),
+        borderRadius: rs(16),
         alignItems: 'center',
     },
     saveButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: 'bold',
     },
 });

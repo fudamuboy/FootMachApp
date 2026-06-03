@@ -11,6 +11,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import { THEME } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet } from '../constants/responsive';
 
 const getAvatarUrl = (style, seed) => {
     return `https://api.dicebear.com/9.x/${style || 'initials'}/svg?seed=${encodeURIComponent(seed || 'User')}`;
@@ -153,9 +155,11 @@ export default function ChatsScreen({ navigation }) {
     }
 
 
+    const insets = useSafeAreaInsets();
+
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + rs(10) : rs(40) }]}>
                 <Text style={styles.title}>{t('chats.title')}</Text>
                 <Text style={styles.subtitle}>{profile?.city || t('chats.allCities')}</Text>
             </View>
@@ -189,65 +193,67 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: THEME.background },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     header: {
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        paddingTop: 60,
+        paddingHorizontal: rs(20),
+        paddingVertical: rs(16),
         backgroundColor: THEME.primary,
         borderBottomWidth: 1,
         borderBottomColor: THEME.border,
     },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF' },
+    title: { fontSize: rs(24), fontWeight: 'bold', color: '#FFFFFF' },
     subtitle: {
-        fontSize: 14,
+        fontSize: rs(14),
         color: THEME.light,
-        marginTop: 4,
+        marginTop: rs(4),
     },
     chatItem: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: 'white',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingHorizontal: rs(20),
+        paddingVertical: rs(16),
         borderBottomWidth: 1,
         borderBottomColor: THEME.border,
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 800 : '100%',
+        alignSelf: isTablet ? 'center' : 'auto',
     },
     chatContent: { flex: 1 },
     chatName: {
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: '600',
         color: THEME.text,
-        marginBottom: 4,
+        marginBottom: rs(4),
     },
-    chatMessage: { fontSize: 14, color: THEME.subtext },
-    chatTime: { fontSize: 12, color: '#9ca3af', marginLeft: 12 },
+    chatMessage: { fontSize: rs(14), color: THEME.subtext },
+    chatTime: { fontSize: rs(12), color: '#9ca3af', marginLeft: rs(12) },
     emptyContainer: {
         alignItems: 'center',
-        paddingVertical: 80,
-        paddingHorizontal: 20,
+        paddingVertical: rs(80),
+        paddingHorizontal: rs(20),
     },
     emptyIcon: {
-        width: 80, height: 80, borderRadius: 40, backgroundColor: THEME.light,
-        justifyContent: 'center', alignItems: 'center', marginBottom: 20,
+        width: rs(80), height: rs(80), borderRadius: rs(40), backgroundColor: THEME.light,
+        justifyContent: 'center', alignItems: 'center', marginBottom: rs(20),
     },
     emptyTitle: {
-        fontSize: 20,
+        fontSize: rs(20),
         fontWeight: 'bold',
         color: THEME.text,
-        marginBottom: 8,
+        marginBottom: rs(8),
     },
     emptySubtitle: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: THEME.subtext,
         textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: rs(24),
     },
     chatAvatarWrapper: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: rs(44),
+        height: rs(44),
+        borderRadius: rs(22),
         overflow: 'hidden',
         backgroundColor: '#F5F5F5',
-        marginRight: 12,
+        marginRight: rs(12),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
@@ -256,22 +262,22 @@ const styles = StyleSheet.create({
     chatRightSide: {
         alignItems: 'flex-end',
         justifyContent: 'center',
-        marginLeft: 12,
+        marginLeft: rs(12),
     },
     unreadBadge: {
         backgroundColor: THEME.primary,
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        marginTop: 6,
-        minWidth: 20,
+        borderRadius: rs(12),
+        paddingHorizontal: rs(8),
+        paddingVertical: rs(2),
+        marginTop: rs(6),
+        minWidth: rs(20),
         alignItems: 'center',
         justifyContent: 'center',
     },
     unreadBadgeText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 10,
+        fontSize: rs(10),
         textAlign: 'center',
     },
 });

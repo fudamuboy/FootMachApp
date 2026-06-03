@@ -9,10 +9,11 @@ import { useTranslation } from 'react-i18next';
 import { View, Text } from 'react-native'; // ✅ Ajout de Text
 import api from '../lib/api';
 
-// ✅ Bon pour Expo
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Entypo from '@expo/vector-icons/Entypo';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs } from '../constants/responsive';
 
 
 
@@ -25,6 +26,7 @@ const Tab = createBottomTabNavigator();
 const MainTabNavigator = () => {
     const { unreadCount } = useUnreadMessages();
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
 
     return (
         <Tab.Navigator
@@ -40,15 +42,18 @@ const MainTabNavigator = () => {
                     shadowOffset: { width: 0, height: -4 },
                     shadowOpacity: 0.1,
                     shadowRadius: 12,
-                    paddingBottom: 24,
-                    paddingTop: 8,
-                    height: 85,
+                    paddingBottom: insets.bottom > 0 ? insets.bottom : rs(16),
+                    paddingTop: rs(8),
+                    height: rs(65) + (insets.bottom > 0 ? insets.bottom : rs(16)),
                     position: 'absolute',
                 },
                 tabBarLabelStyle: {
-                    fontSize: 12,
+                    fontSize: rs(11),
                     fontWeight: '500',
                 },
+                tabBarIconStyle: {
+                    marginTop: rs(4),
+                }
             }}
         >
             <Tab.Screen
@@ -57,7 +62,7 @@ const MainTabNavigator = () => {
                 options={{
                     title: t('tabs.profile'),
                     tabBarIcon: ({ focused, size, color }) => (
-                        <User size={size} color={color} fill={focused ? color : 'transparent'} />
+                        <User size={rs(24)} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -67,7 +72,7 @@ const MainTabNavigator = () => {
                 options={{
                     title: t('tabs.announcements'),
                     tabBarIcon: ({ focused, size, color }) => (
-                        <Megaphone size={size} color={color} fill={focused ? color : 'transparent'} />
+                        <Megaphone size={rs(24)} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -80,11 +85,15 @@ const MainTabNavigator = () => {
                     tabBarBadgeStyle: {
                         backgroundColor: '#ef4444',
                         color: 'white',
-                        fontSize: 10,
+                        fontSize: rs(10),
                         fontWeight: 'bold',
+                        minWidth: rs(16),
+                        height: rs(16),
+                        borderRadius: rs(8),
+                        lineHeight: rs(16)
                     },
                     tabBarIcon: ({ focused, size, color }) => (
-                        <MessageCircle size={size} color={color} fill={focused ? color : 'transparent'} />
+                        <MessageCircle size={rs(24)} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />
@@ -96,7 +105,7 @@ const MainTabNavigator = () => {
                 options={{
                     title: t('tabs.reviews'),
                     tabBarIcon: ({ focused, color, size }) => (
-                        <Star size={size} color={color} fill={focused ? color : 'transparent'} />
+                        <Star size={rs(24)} color={color} fill={focused ? color : 'transparent'} />
                     ),
                 }}
             />

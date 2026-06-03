@@ -22,6 +22,8 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { THEME } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet, rw } from '../constants/responsive';
 
 const { width, height } = Dimensions.get('window');
 
@@ -80,7 +82,7 @@ const OnboardingScreen = ({ navigation }) => {
                     style={styles.iconContainer}
                 >
                     <View style={[styles.iconCircle, { backgroundColor: item.colors[0] + '20' }]}>
-                        <Feather name={item.icon} size={80} color={item.colors[0]} />
+                        <Feather name={item.icon} size={rs(80)} color={item.colors[0]} />
                     </View>
                 </Animated.View>
                 
@@ -182,7 +184,7 @@ const OnboardingScreen = ({ navigation }) => {
                         </Text>
                         <Feather 
                             name={currentIndex === slides.length - 1 ? 'check' : 'arrow-right'} 
-                            size={20} 
+                            size={rs(20)} 
                             color="white" 
                         />
                     </LinearGradient>
@@ -202,15 +204,15 @@ const styles = StyleSheet.create({
         height: height * 0.75,
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 40,
+        padding: rs(40),
     },
     iconContainer: {
-        marginBottom: 40,
+        marginBottom: rs(40),
     },
     iconCircle: {
-        width: 180,
-        height: 180,
-        borderRadius: 90,
+        width: rs(180),
+        height: rs(180),
+        borderRadius: rs(90),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
@@ -220,66 +222,67 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: 28,
+        fontSize: rs(28),
         fontWeight: '900',
         color: '#1A1A1A',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: rs(20),
     },
     desc: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: '#757575',
         textAlign: 'center',
-        lineHeight: 24,
-        paddingHorizontal: 20,
+        lineHeight: rs(24),
+        paddingHorizontal: rs(20),
     },
     skipButton: {
         position: 'absolute',
-        top: 60,
-        right: 20,
+        top: rs(60),
+        right: rs(20),
         zIndex: 10,
-        padding: 10,
+        padding: rs(10),
     },
     skipText: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: '#9ca3af',
         fontWeight: '600',
     },
     footer: {
         position: 'absolute',
-        bottom: 50,
+        bottom: rs(50),
         left: 0,
         right: 0,
         alignItems: 'center',
-        paddingHorizontal: 40,
+        paddingHorizontal: rs(40),
     },
     paginationContainer: {
         flexDirection: 'row',
-        height: 40,
+        height: rs(40),
         justifyContent: 'center',
         alignItems: 'center',
     },
     dot: {
-        height: 8,
-        borderRadius: 4,
+        height: rs(8),
+        borderRadius: rs(4),
         backgroundColor: THEME.primary,
-        marginHorizontal: 4,
+        marginHorizontal: rs(4),
     },
     nextButton: {
-        width: '100%',
-        marginTop: 20,
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 480 : '100%',
+        marginTop: rs(20),
     },
     nextGradient: {
         flexDirection: 'row',
-        height: 60,
-        borderRadius: 30,
+        height: rs(60),
+        borderRadius: rs(30),
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 10,
+        gap: rs(10),
     },
     nextText: {
         color: 'white',
-        fontSize: 18,
+        fontSize: rs(18),
         fontWeight: '800',
     },
 });

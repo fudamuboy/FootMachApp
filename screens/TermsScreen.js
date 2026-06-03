@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Pla
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { rs, isTablet } from '../constants/responsive';
 
 const TermsScreen = () => {
     const navigation = useNavigation();
@@ -15,15 +17,17 @@ const TermsScreen = () => {
         </View>
     );
 
+    const insets = useSafeAreaInsets();
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: Platform.OS === 'ios' ? insets.top : rs(10) }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Feather name="arrow-left" size={24} color="#1A1A1A" />
+                    <Feather name="arrow-left" size={rs(24)} color="#1A1A1A" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>{t('terms.title')}</Text>
-                <View style={{ width: 40 }} />
+                <View style={{ width: rs(40) }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -57,56 +61,59 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: rs(16),
+        paddingVertical: rs(12),
         backgroundColor: '#FFF',
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: rs(18),
         fontWeight: 'bold',
         color: '#1A1A1A',
     },
     backButton: {
-        padding: 8,
+        padding: rs(8),
     },
     scrollContent: {
-        padding: 24,
+        padding: rs(24),
+        width: isTablet ? '100%' : '100%',
+        maxWidth: isTablet ? 700 : '100%',
+        alignSelf: 'center',
     },
     intro: {
-        fontSize: 15,
+        fontSize: rs(15),
         color: '#757575',
-        lineHeight: 22,
-        marginBottom: 32,
+        lineHeight: rs(22),
+        marginBottom: rs(32),
     },
     section: {
-        marginBottom: 24,
+        marginBottom: rs(24),
     },
     sectionTitle: {
-        fontSize: 17,
+        fontSize: rs(17),
         fontWeight: 'bold',
         color: '#1A1A1A',
-        marginBottom: 8,
+        marginBottom: rs(8),
     },
     sectionContent: {
-        fontSize: 15,
+        fontSize: rs(15),
         color: '#424242',
-        lineHeight: 22,
+        lineHeight: rs(22),
     },
     footer: {
-        fontSize: 15,
+        fontSize: rs(15),
         fontWeight: '600',
         color: '#4CAF50',
-        marginTop: 24,
+        marginTop: rs(24),
         textAlign: 'center',
     },
     date: {
-        fontSize: 12,
+        fontSize: rs(12),
         color: '#BDBDBD',
-        marginTop: 12,
+        marginTop: rs(12),
         textAlign: 'center',
-        marginBottom: 40,
+        marginBottom: rs(40),
     },
 });
 

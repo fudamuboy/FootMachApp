@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
 import { THEME } from '../../constants/theme';
+import { rs, isTablet } from '../../constants/responsive';
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +64,7 @@ const ProgressionOnboarding = ({ visible, onFinish }) => {
                             style={styles.slideContent}
                         >
                             <View style={[styles.iconCircle, { backgroundColor: `${slide.color}15` }]}>
-                                <Feather name={slide.icon} size={60} color={slide.color} />
+                                <Feather name={slide.icon} size={rs(60)} color={slide.color} />
                             </View>
                             
                             <Text style={styles.title}>{t(slide.title)}</Text>
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
-        width: width * 0.85,
-        borderRadius: 32,
+        width: isTablet ? 480 : width * 0.85,
+        borderRadius: rs(32),
         overflow: 'hidden',
     },
     content: {
-        padding: 32,
+        padding: rs(32),
         alignItems: 'center',
     },
     slideContent: {
@@ -121,26 +122,26 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     iconCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        width: rs(120),
+        height: rs(120),
+        borderRadius: rs(60),
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 32,
+        marginBottom: rs(32),
     },
     title: {
-        fontSize: 24,
+        fontSize: rs(24),
         fontWeight: 'bold',
         color: '#1A1A1A',
         textAlign: 'center',
-        marginBottom: 16,
+        marginBottom: rs(16),
     },
     desc: {
-        fontSize: 16,
+        fontSize: rs(16),
         color: '#757575',
         textAlign: 'center',
-        lineHeight: 24,
-        marginBottom: 32,
+        lineHeight: rs(24),
+        marginBottom: rs(32),
     },
     footer: {
         width: '100%',
@@ -148,22 +149,22 @@ const styles = StyleSheet.create({
     },
     pagination: {
         flexDirection: 'row',
-        gap: 8,
-        marginBottom: 32,
+        gap: rs(8),
+        marginBottom: rs(32),
     },
     dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: rs(8),
+        height: rs(8),
+        borderRadius: rs(4),
         backgroundColor: '#E0E0E0',
     },
     activeDot: {
-        width: 24,
+        width: rs(24),
     },
     button: {
         width: '100%',
-        paddingVertical: 16,
-        borderRadius: 16,
+        paddingVertical: rs(16),
+        borderRadius: rs(16),
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#FFF',
-        fontSize: 16,
+        fontSize: rs(16),
         fontWeight: 'bold',
     },
 });
